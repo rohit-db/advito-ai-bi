@@ -8,6 +8,9 @@ app = FastAPI(title="APEX - Advito Practice Exchange")
 from server.routes.api import router as api_router
 app.include_router(api_router, prefix="/api")
 
+from server.routes.genie import router as genie_router
+app.include_router(genie_router, prefix="/api")
+
 frontend_dir = os.path.join(os.path.dirname(__file__), "frontend", "dist")
 if os.path.exists(frontend_dir):
     assets_dir = os.path.join(frontend_dir, "assets")
