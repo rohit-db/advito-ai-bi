@@ -10,7 +10,7 @@ command:
 
 env:
   - name: DASHBOARD_URL
-    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1169e4b5810418541b22a792aa916/published?o=1048934788948873"
+    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1169e4b5810418541b22a792aa916?o=1048934788948873"
   - name: GENIE_SPACE_ID
     value: "01f0dc0bf5ce1e3088ad455c5f489911"
   - name: WAREHOUSE_ID
@@ -21,3 +21,8 @@ resources:
     sql_warehouse:
       id: "5cd3a4956df6152f"
       permission: CAN_USE
+
+user_api_scopes:
+  - genie
+  - dashboards
+  - sql

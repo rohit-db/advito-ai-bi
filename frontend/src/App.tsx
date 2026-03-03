@@ -5,7 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import ChatSection from "./components/ChatSection";
 
 const DEFAULT_DASHBOARD =
-  "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1169e4b5810418541b22a792aa916/published?o=1048934788948873";
+  "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1169e4b5810418541b22a792aa916?o=1048934788948873";
 
 export default function App() {
   const [activePath, setActivePath] = useState("/");
