@@ -1,0 +1,23 @@
+command:
+  - "python"
+  - "-m"
+  - "uvicorn"
+  - "app:app"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+
+env:
+  - name: DASHBOARD_URL
+    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1169e4b5810418541b22a792aa916/published?o=1048934788948873"
+  - name: GENIE_SPACE_ID
+    value: "01f0dc0bf5ce1e3088ad455c5f489911"
+  - name: WAREHOUSE_ID
+    value: "5cd3a4956df6152f"
+
+resources:
+  - name: sql-warehouse
+    sql_warehouse:
+      id: "5cd3a4956df6152f"
+      permission: CAN_USE
