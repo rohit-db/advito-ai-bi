@@ -10,8 +10,16 @@ DASHBOARD_URL = os.environ.get(
     "DASHBOARD_URL",
     "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1169e4b5810418541b22a792aa916?o=1048934788948873",
 )
-GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "01f0dc0bf5ce1e3088ad455c5f489911")
+MULTI_PAGE_DASHBOARD_URL = os.environ.get(
+    "MULTI_PAGE_DASHBOARD_URL",
+    "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f11c0671df190d96063a4632a3611a?o=1048934788948873",
+)
+GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "01f116f4099a12d9a87c0a0ed323103f")
 WAREHOUSE_ID = os.environ.get("WAREHOUSE_ID", "5cd3a4956df6152f")
+MAS_ENDPOINT = os.environ.get(
+    "MAS_ENDPOINT",
+    "https://dbc-1e27e56a-90cd.cloud.databricks.com/serving-endpoints/mas-27065446-endpoint/invocations",
+)
 
 
 def get_workspace_client() -> WorkspaceClient:

@@ -13,7 +13,7 @@ export function useChat() {
   const [conversationId, setConversationId] = useState<string | null>(null);
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, context?: string) => {
       const userMsg: ChatMessage = { role: "user", content: text };
       setMessages((prev) => [...prev, userMsg]);
       setIsLoading(true);
@@ -22,7 +22,11 @@ export function useChat() {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, conversation_id: conversationId }),
+          body: JSON.stringify({
+            message: text,
+            conversation_id: conversationId,
+            context: context || undefined,
+          }),
         });
 
         const reader = res.body?.getReader();

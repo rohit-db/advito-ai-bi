@@ -1,0 +1,47 @@
+bundle:
+  name: advito-ai-bi
+
+targets:
+  bcd:
+    workspace:
+      host: https://dbc-1e27e56a-90cd.cloud.databricks.com
+      profile: bcd-customer
+    resources:
+      apps:
+        advito-ai-bi:
+          name: advito-ai-bi
+          source_code_path: /Workspace/Users/rohit.bhagwat@bcdtravel.com/advito-ai-bi
+          config:
+            command:
+              - "python"
+              - "-m"
+              - "uvicorn"
+              - "app:app"
+              - "--host"
+              - "0.0.0.0"
+              - "--port"
+              - "8000"
+            env:
+              - name: DASHBOARD_URL
+                value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1169e4b5810418541b22a792aa916?o=1048934788948873"
+              - name: GENIE_SPACE_ID
+                value: "01f116f4099a12d9a87c0a0ed323103f"
+              - name: WAREHOUSE_ID
+                value: "5cd3a4956df6152f"
+          resources:
+            - name: sql-warehouse
+              sql_warehouse:
+                id: "5cd3a4956df6152f"
+                permission: CAN_USE
+          user_api_scopes:
+            - genie
+            - dashboards
+            - sql
+
+sync:
+  include:
+    - "app.py"
+    - "app.yaml"
+    - "requirements.txt"
+    - "server/**"
+    - "frontend/dist/**"

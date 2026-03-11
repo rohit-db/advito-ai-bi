@@ -13,13 +13,9 @@ import {
 } from "lucide-react";
 
 const insightsItems = [
-  { label: "Spend", icon: DollarSign, path: "/" },
-  { label: "Suppliers", icon: Users, path: "/suppliers" },
-  { label: "Demand MGT", icon: TrendingUp, path: "/demand" },
-  { label: "Compliance", icon: ShieldCheck, path: "/compliance" },
-  { label: "Well-Being", icon: Heart, path: "/well-being" },
-  { label: "Sustainability", icon: Leaf, path: "/sustainability" },
-  { label: "Engage", icon: Zap, path: "/engage" },
+  { label: "Multi-Page", icon: TrendingUp, path: "/" },
+  { label: "Single-Page", icon: DollarSign, path: "/single" },
+  { label: "Custom Tabs", icon: Zap, path: "/tabbed" },
 ];
 
 const explorationItems = [

@@ -1,9 +1,10 @@
 import json
 import time
+import asyncio
 from fastapi import APIRouter, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
-from sse_starlette.sse import EventSourceResponse
 from databricks.sdk import WorkspaceClient
 from ..config import GENIE_SPACE_ID, WORKSPACE_URL, IS_DATABRICKS_APP
 import os
@@ -14,6 +15,7 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     message: str
     conversation_id: Optional[str] = None
+    context: Optional[str] = None
 
 
 def _get_client_for_request(request: Request) -> WorkspaceClient:
@@ -29,6 +31,10 @@ def _get_client_for_request(request: Request) -> WorkspaceClient:
     )
 
 
+def _sse_line(data: str) -> str:
+    return f"data: {data}\n\n"
+
+
 @router.post("/chat")
 async def chat(req: ChatRequest, request: Request):
     async def event_stream():
@@ -36,26 +42,31 @@ async def chat(req: ChatRequest, request: Request):
         space_id = GENIE_SPACE_ID
 
         if not space_id:
-            yield {"data": json.dumps({"type": "error", "content": "GENIE_SPACE_ID not configured"})}
+            yield _sse_line(json.dumps({"type": "error", "content": "GENIE_SPACE_ID not configured"}))
             return
 
         try:
+            # Prepend dashboard context so Genie knows what the user is viewing
+            message = req.message
+            if req.context:
+                message = f"[Dashboard context: {req.context}]\n\n{req.message}"
+
             if req.conversation_id:
                 resp = w.genie.create_message(
                     space_id=space_id,
                     conversation_id=req.conversation_id,
-                    content=req.message,
+                    content=message,
                 )
             else:
                 resp = w.genie.start_conversation(
                     space_id=space_id,
-                    content=req.message,
+                    content=message,
                 )
 
             conversation_id = resp.conversation_id
             message_id = resp.message_id
 
-            yield {"data": json.dumps({"type": "meta", "conversationId": conversation_id})}
+            yield _sse_line(json.dumps({"type": "meta", "conversationId": conversation_id}))
 
             msg = None
             for _ in range(60):
@@ -68,12 +79,12 @@ async def chat(req: ChatRequest, request: Request):
                 if status in ("COMPLETED", "QUERY_RESULT_EXPIRED"):
                     break
                 if status in ("FAILED", "CANCELLED"):
-                    yield {"data": json.dumps({"type": "error", "content": f"Query {status}"})}
+                    yield _sse_line(json.dumps({"type": "error", "content": f"Query {status}"}))
                     return
-                yield {"data": json.dumps({"type": "status", "content": "Thinking..."})}
-                time.sleep(2)
+                yield _sse_line(json.dumps({"type": "status", "content": "Thinking..."}))
+                await asyncio.sleep(2)
             else:
-                yield {"data": json.dumps({"type": "error", "content": "Query timed out"})}
+                yield _sse_line(json.dumps({"type": "error", "content": "Query timed out"}))
                 return
 
             for att in msg.attachments or []:
@@ -82,7 +93,7 @@ async def chat(req: ChatRequest, request: Request):
 
                 text_block = att_dict.get("text")
                 if text_block and text_block.get("content"):
-                    yield {"data": json.dumps({"type": "text", "content": text_block["content"]})}
+                    yield _sse_line(json.dumps({"type": "text", "content": text_block["content"]}))
 
                 query_block = att_dict.get("query")
                 if query_block and query_block.get("query"):
@@ -105,16 +116,16 @@ async def chat(req: ChatRequest, request: Request):
                         except Exception:
                             pass
 
-                    yield {"data": json.dumps({
+                    yield _sse_line(json.dumps({
                         "type": "query",
                         "description": query_block.get("description", ""),
                         "sql": query_block["query"],
                         "data": result_data,
-                    })}
+                    }))
 
-            yield {"data": "[DONE]"}
+            yield _sse_line("[DONE]")
 
         except Exception as e:
-            yield {"data": json.dumps({"type": "error", "content": str(e)})}
+            yield _sse_line(json.dumps({"type": "error", "content": str(e)}))
 
-    return EventSourceResponse(event_stream())
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
