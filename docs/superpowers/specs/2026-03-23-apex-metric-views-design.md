@@ -14,7 +14,7 @@ Create a single, clean metric view (`bcd_adv_workspace_poc.apex.travel_metrics`)
 - **Genie Spaces** — for natural language Q&A
 - **SQL queries** — for any ad-hoc analysis
 
-The metric view is based on `summarydataset` (1.4M rows, 116 columns) and distills it into 25 focused dimensions and 22 measures with proper comments, synonyms, and formatting.
+The metric view is based on `summarydataset` (1.4M rows, 116 columns) and distills it into 27 focused dimensions and 23 measures with proper comments, synonyms, and formatting.
 
 ## 2. Decisions
 
@@ -67,6 +67,8 @@ The metric view is based on `summarydataset` (1.4M rows, 116 columns) and distil
 | `Travel Details` | `travel_details` | Route (Air/Rail), Property name (Hotel), Expense type (Taxi) | City Pair, Route |
 | `Air Carrier` | `air_carrier_code` | IATA airline code | Airline, Carrier Code |
 | `Eco Certified Hotel` | `hotel_eco_certified` | Whether hotel has sustainability certification | Green Hotel |
+| `Booking Source` | `booking_source` | Online vs offline booking channel | Channel |
+| `Destination Region` | `destination_country_region` | Continent/region of destination | Region |
 
 #### Client (4 dimensions)
 
@@ -108,22 +110,23 @@ The metric view is based on `summarydataset` (1.4M rows, 116 columns) and distil
 | `Rail Segment Count` | `SUM(rail_segment_count)` | Rail journey legs | Rail Segments |
 | `Total Distance (KM)` | `SUM(distance_km)` | Total distance traveled | Distance |
 | `Traveler Count` | `COUNT(DISTINCT employee_id)` | Unique travelers | Unique Travelers |
+| `Record Count` | `COUNT(*)` | Number of transaction records | Rows, Transactions |
 
 #### Intensity — derived ratios using MEASURE()
 
 | Name | Expression | Comment |
 |------|-----------|---------|
-| `Emissions per KM` | `MEASURE(\`Total Emissions (Advito)\`)*1000 / MEASURE(\`Total Distance (KM)\`)` | kgCO₂e per km |
-| `Emissions per Night` | `MEASURE(\`Total Emissions (Advito)\`)*1000 / MEASURE(\`Hotel Nights\`)` | kgCO₂e per hotel night |
-| `Emissions per Segment` | `MEASURE(\`Total Emissions (Advito)\`)*1000 / MEASURE(\`Air Segment Count\`)` | kgCO₂e per air segment |
-| `Emissions per Rental Day` | `MEASURE(\`Total Emissions (Advito)\`)*1000 / MEASURE(\`Car Rental Days\`)` | kgCO₂e per car rental day |
+| `Emissions per KM` | `MEASURE(\`Total Emissions (Advito)\`)*1000 / NULLIF(MEASURE(\`Total Distance (KM)\`), 0)` | kgCO₂e per km |
+| `Emissions per Night` | `MEASURE(\`Total Emissions (Advito)\`)*1000 / NULLIF(MEASURE(\`Hotel Nights\`), 0)` | kgCO₂e per hotel night |
+| `Emissions per Segment` | `MEASURE(\`Total Emissions (Advito)\`)*1000 / NULLIF(MEASURE(\`Air Segment Count\`), 0)` | kgCO₂e per air segment |
+| `Emissions per Rental Day` | `MEASURE(\`Total Emissions (Advito)\`)*1000 / NULLIF(MEASURE(\`Car Rental Days\`), 0)` | kgCO₂e per car rental day |
 
 #### Carbon Budget
 
 | Name | Expression | Comment |
 |------|-----------|---------|
 | `CO2 Budget` | `SUM(co2_emission_budget)` | Allocated carbon budget (from summarydataset) |
-| `Budget Remaining` | `SUM(co2_emission_budget) - SUM(co2_emissions_advito)/1000` | Budget minus actual emissions |
+| `Budget Remaining` | `MEASURE(\`CO2 Budget\`) - MEASURE(\`Total Emissions (Advito)\`)` | Budget minus actual emissions (derived) |
 
 #### Booking
 
@@ -137,18 +140,24 @@ All emission measures: `number`, 1 decimal place, compact abbreviation
 All spend measures: `number`, 1 decimal place, compact abbreviation
 All volume measures: `number`, 0 decimal places, compact abbreviation
 Intensity measures: `number`, 2 decimal places
+Carbon budget measures: `number`, 1 decimal place, compact abbreviation
 Date dimensions: `date`, YEAR_MONTH_DAY, leading zeros
 
 ## 4. Validation Test Queries
 
 After creating the metric view, run these queries to validate against known values from the existing dashboard/data.
 
-### Test 1: Total row count (should match summarydataset)
+### Test 1: Record count (should match summarydataset row count)
 
 ```sql
--- Expected: 1,408,893 (no global filter, so full table)
-SELECT MEASURE(`Component Count`) as total_components
+-- Metric view:
+SELECT MEASURE(`Record Count`) as record_count
 FROM bcd_adv_workspace_poc.apex.travel_metrics
+
+-- Cross-check:
+SELECT COUNT(*) as row_count FROM bcd_adv_workspace_poc.test.summarydataset
+
+-- EXPECTED: Both should return 1,408,893 (no global filter)
 ```
 
 ### Test 2: Emissions by category — cross-check with existing metric view
@@ -292,6 +301,55 @@ FROM bcd_adv_workspace_poc.test.summarydataset
 WHERE invoice_date BETWEEN '2025-01-01' AND '2025-06-30'
 
 -- EXPECTED: Values should match exactly
+```
+
+### Test 9: Advance booking days — verify AVG handles NULLs
+
+```sql
+SELECT
+  `Category`,
+  MEASURE(`Avg Advance Booking Days`) as avg_days,
+  MEASURE(`Record Count`) as records
+FROM bcd_adv_workspace_poc.apex.travel_metrics
+GROUP BY ALL
+ORDER BY avg_days DESC
+
+-- Cross-check:
+SELECT
+  category,
+  AVG(adv_booking_days) as avg_days,
+  COUNT(*) as records
+FROM bcd_adv_workspace_poc.test.summarydataset
+GROUP BY 1
+ORDER BY avg_days DESC
+
+-- EXPECTED: Values should match. NULL adv_booking_days rows are excluded from AVG.
+```
+
+### Test 10: co2_emission_budget type check — confirm it's numeric in summarydataset
+
+```sql
+-- Verify the column is numeric (not STRING) before trusting SUM()
+SELECT typeof(co2_emission_budget) as budget_type
+FROM bcd_adv_workspace_poc.test.summarydataset
+LIMIT 1
+
+-- EXPECTED: "double" or "decimal". If "string", the CO2 Budget measure needs CAST().
+```
+
+### Test 11: Budget remaining derived measure — verify MEASURE() composition
+
+```sql
+SELECT
+  `Budget Field Value`,
+  MEASURE(`CO2 Budget`) as budget,
+  MEASURE(`Total Emissions (Advito)`) as actual,
+  MEASURE(`Budget Remaining`) as remaining
+FROM bcd_adv_workspace_poc.apex.travel_metrics
+WHERE `Budget Field` IS NOT NULL
+GROUP BY ALL
+
+-- EXPECTED: remaining = budget - actual (exactly, since it's a derived MEASURE())
 ```
 
 ## 5. What This Replaces
