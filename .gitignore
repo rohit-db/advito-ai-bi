@@ -9,3 +9,4 @@ dist/
 build/
 *.tsbuildinfo
 .databricks/
+.superpowers/

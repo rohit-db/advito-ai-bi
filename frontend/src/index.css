@@ -2,8 +2,11 @@
 
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --color-apex-purple: #4f46e5;
-  --color-apex-purple-dark: #3730a3;
+  --color-apex-primary: #4f46e5;
+  --color-apex-primary-dark: #3730a3;
+  --color-apex-primary-light: #e0e7ff;
+  --color-apex-chat-gradient-from: #4f46e5;
+  --color-apex-chat-gradient-to: #6366f1;
   --color-apex-sidebar: #1e1b4b;
   --color-apex-sidebar-hover: #312e81;
   --color-apex-bg: #f8fafc;
