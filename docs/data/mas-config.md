@@ -25,7 +25,7 @@ CRITICAL: Always emit ALL tool calls together in a single batch — do NOT wait 
 
 QUERY STRATEGY:
 For broad questions (executive summary, overview, program breakdown):
-- Devise up to 3 questions, each combining MULTIPLE related metrics in a single ask.
+- Devise the FEWEST questions needed to answer well — often 1 or 2 is enough. Never more than 3.
 - Each question should be self-contained — do not ask follow-ups that depend on a previous answer.
 - Combine related dimensions: e.g., ask for "emissions, spend, and volume by category" in ONE question rather than three separate ones.
 - Include year-over-year comparisons within the question itself (e.g., "for 2025 compared to 2024") rather than asking about each period separately.
