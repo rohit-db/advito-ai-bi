@@ -1,0 +1,13 @@
+resources:
+  jobs:
+    deploy_travel_metrics:
+      name: "[${bundle.target}] Deploy APEX Travel Metrics"
+      tasks:
+        - task_key: create_metric_view
+          sql_task:
+            file:
+              path: ../src/sql/create_travel_metrics.sql
+            warehouse_id: ${var.warehouse_id}
+      permissions:
+        - level: CAN_VIEW
+          group_name: "users"

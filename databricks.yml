@@ -1,11 +1,25 @@
 bundle:
   name: advito-ai-bi
 
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    default: "bcd_adv_workspace_poc"
+  schema:
+    default: "apex"
+  warehouse_id:
+    default: "5cd3a4956df6152f"
+
 targets:
   bcd:
     workspace:
       host: https://dbc-1e27e56a-90cd.cloud.databricks.com
       profile: bcd-customer
+    variables:
+      catalog: "bcd_adv_workspace_poc"
+      schema: "apex"
     resources:
       apps:
         advito-ai-bi:
