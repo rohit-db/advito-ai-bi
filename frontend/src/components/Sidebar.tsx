@@ -78,7 +78,7 @@ export default function Sidebar() {
                 path={route.path}
                 label={route.label}
                 icon={route.icon}
-                placeholder={route.placeholder}
+                placeholder={route.mode === "placeholder"}
               />
             ))}
           </div>
@@ -96,7 +96,7 @@ export default function Sidebar() {
                 path={route.path}
                 label={route.label}
                 icon={route.icon}
-                placeholder={route.placeholder}
+                placeholder={route.mode === "placeholder"}
               />
             ))}
           </div>

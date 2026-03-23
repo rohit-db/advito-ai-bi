@@ -21,8 +21,8 @@ export const ORG = "1048934788948873";
 // ─── Dashboard IDs ────────────────────────────────────────────────────────────
 
 export const DASHBOARDS = {
-  multiPage: "01f03d39e11e13b093e1cce4e4e6f88b",
-  singlePage: "01f03d39e11e13b093e1cce4e4e6f88b", // placeholder — update when single-page dash is created
+  multiPage: "01f11c0671df190d96063a4632a3611a",
+  singlePage: "01f1169e4b5810418541b22a792aa916",
 } as const;
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
@@ -54,6 +54,7 @@ export interface RouteConfig {
   path: string;
   label: string;
   icon: string; // key into ICON_MAP
+  section: "insights" | "exploration";
   mode: RouteMode;
   dashboardId?: string;
   pages?: PageConfig[];
@@ -127,15 +128,17 @@ export function filtersToContext(filters: FilterState): string {
 export const ROUTES: RouteConfig[] = [
   {
     path: "/spend",
-    label: "Spend Analytics",
+    label: "Spend",
     icon: "DollarSign",
+    section: "insights",
     mode: "native",
     dashboardId: DASHBOARDS.multiPage,
   },
   {
     path: "/spend-custom",
-    label: "Spend (Custom)",
+    label: "Spend Custom",
     icon: "DollarSign",
+    section: "insights",
     mode: "custom",
     dashboardId: DASHBOARDS.multiPage,
     pages: [
@@ -148,36 +151,35 @@ export const ROUTES: RouteConfig[] = [
     path: "/suppliers",
     label: "Suppliers",
     icon: "Users",
+    section: "insights",
     mode: "placeholder",
   },
   {
     path: "/general-mgt",
-    label: "General Management",
+    label: "General MGT",
     icon: "Briefcase",
+    section: "insights",
     mode: "placeholder",
   },
   {
     path: "/compliance",
     label: "Compliance",
     icon: "ShieldCheck",
+    section: "insights",
     mode: "placeholder",
   },
   {
     path: "/well-being",
     label: "Well-Being",
     icon: "Heart",
-    mode: "placeholder",
-  },
-  {
-    path: "/engage",
-    label: "Engage",
-    icon: "Zap",
+    section: "insights",
     mode: "placeholder",
   },
   {
     path: "/sustainability",
     label: "Sustainability",
     icon: "Leaf",
+    section: "insights",
     mode: "custom",
     dashboardId: DASHBOARDS.multiPage,
     pages: [
@@ -188,27 +190,38 @@ export const ROUTES: RouteConfig[] = [
     ],
   },
   {
+    path: "/engage",
+    label: "Engage",
+    icon: "Zap",
+    section: "insights",
+    mode: "placeholder",
+  },
+  {
     path: "/reports",
     label: "Reports",
     icon: "FileText",
+    section: "exploration",
     mode: "placeholder",
   },
   {
     path: "/data-store",
     label: "Data Store",
     icon: "Database",
-    mode: "placeholder",
-  },
-  {
-    path: "/community",
-    label: "Community",
-    icon: "UsersRound",
+    section: "exploration",
     mode: "placeholder",
   },
   {
     path: "/apex-qa",
     label: "APEX Q&A",
     icon: "MessageCircle",
+    section: "exploration",
     mode: "react",
+  },
+  {
+    path: "/community",
+    label: "Community",
+    icon: "UsersRound",
+    section: "exploration",
+    mode: "placeholder",
   },
 ];
