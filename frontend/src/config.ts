@@ -143,7 +143,6 @@ export const ROUTES: RouteConfig[] = [
     dashboardId: DASHBOARDS.multiPage,
     pages: [
       { label: "Summary", pageId: "5a35864d" },
-      { label: "Global Filters", pageId: "ceb09eeb" },
       { label: "Detail", pageId: "75ecdc14" },
     ],
   },

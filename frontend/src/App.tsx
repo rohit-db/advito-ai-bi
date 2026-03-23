@@ -50,7 +50,7 @@ export default function App() {
   const location = useLocation();
 
   const currentRoute = ROUTES.find((r) => r.path === location.pathname);
-  const showFilters = currentRoute?.mode === "custom";
+  const isCustom = currentRoute?.mode === "custom";
   const isApexQA = location.pathname === "/apex-qa";
   const filterContext = filtersToContext(filters);
 
@@ -63,7 +63,8 @@ export default function App() {
           onToggleChat={() => setChatOpen(!chatOpen)}
         />
 
-        {showFilters && <FilterBar filters={filters} onChange={setFilters} />}
+        {/* For custom dashboard pages: tabs first, then filters */}
+        {isCustom && <FilterBar filters={filters} onChange={setFilters} />}
 
         <div className="flex-1 flex min-h-0">
           <main className="flex-1 flex flex-col min-w-0">
@@ -80,18 +81,19 @@ export default function App() {
               ))}
             </Routes>
           </main>
+
+          {/* Inline chat side panel — pushes content, doesn't overlay */}
+          {!isApexQA && (
+            <ChatPanel
+              isOpen={chatOpen}
+              onClose={() => setChatOpen(false)}
+              activePath={location.pathname}
+              activePageLabel={currentRoute?.label || "APEX"}
+              filterContext={filterContext}
+            />
+          )}
         </div>
       </div>
-
-      {!isApexQA && (
-        <ChatPanel
-          isOpen={chatOpen}
-          onClose={() => setChatOpen(false)}
-          activePath={location.pathname}
-          activePageLabel={currentRoute?.label || "APEX"}
-          filterContext={filterContext}
-        />
-      )}
     </div>
   );
 }
