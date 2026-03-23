@@ -430,7 +430,7 @@ measures:
 
   - name: emissions_per_km
     display_name: Emissions per KM
-    expr: "MEASURE(`Total Emissions (Advito)`) * 1000 / NULLIF(MEASURE(`Total Distance (KM)`), 0)"
+    expr: "MEASURE(total_emissions_advito) * 1000 / NULLIF(MEASURE(total_distance_km), 0)"
     comment: "Average CO₂ emissions in kgCO₂e per kilometer traveled."
     synonyms:
       - Carbon Intensity per KM
@@ -442,7 +442,7 @@ measures:
 
   - name: emissions_per_night
     display_name: Emissions per Night
-    expr: "MEASURE(`Total Emissions (Advito)`) * 1000 / NULLIF(MEASURE(`Hotel Nights`), 0)"
+    expr: "MEASURE(total_emissions_advito) * 1000 / NULLIF(MEASURE(hotel_nights), 0)"
     comment: "Average CO₂ emissions in kgCO₂e per hotel room night."
     synonyms:
       - Carbon Intensity per Night
@@ -454,7 +454,7 @@ measures:
 
   - name: emissions_per_segment
     display_name: Emissions per Segment
-    expr: "MEASURE(`Total Emissions (Advito)`) * 1000 / NULLIF(MEASURE(`Air Segment Count`), 0)"
+    expr: "MEASURE(total_emissions_advito) * 1000 / NULLIF(MEASURE(air_segment_count), 0)"
     comment: "Average CO₂ emissions in kgCO₂e per air origin-destination segment."
     format:
       type: number
@@ -464,7 +464,7 @@ measures:
 
   - name: emissions_per_rental_day
     display_name: Emissions per Rental Day
-    expr: "MEASURE(`Total Emissions (Advito)`) * 1000 / NULLIF(MEASURE(`Car Rental Days`), 0)"
+    expr: "MEASURE(total_emissions_advito) * 1000 / NULLIF(MEASURE(car_rental_days), 0)"
     comment: "Average CO₂ emissions in kgCO₂e per car rental day."
     format:
       type: number
@@ -487,7 +487,7 @@ measures:
 
   - name: budget_remaining
     display_name: Budget Remaining
-    expr: "MEASURE(`CO2 Budget`) - MEASURE(`Total Emissions (Advito)`)"
+    expr: "MEASURE(co2_budget) - MEASURE(total_emissions_advito)"
     comment: "Remaining carbon budget (tCO₂e): allocated budget minus actual Advito emissions."
     format:
       type: number
