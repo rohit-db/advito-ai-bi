@@ -21,9 +21,15 @@ export const ORG = "1048934788948873";
 // ─── Dashboard IDs ────────────────────────────────────────────────────────────
 
 export const DASHBOARDS = {
-  multiPage: "01f11c0671df190d96063a4632a3611a",
-  singlePage: "01f1169e4b5810418541b22a792aa916",
+  // Old NYC Taxi dashboards (legacy scaffolding)
+  legacyMultiPage: "01f11c0671df190d96063a4632a3611a",
+  legacySinglePage: "01f1169e4b5810418541b22a792aa916",
+  // APEX Travel Analytics dashboard (new, powered by apex.travel_metrics)
+  apex: "01f1271698161d42b3c66528415775e8",
 } as const;
+
+export const GENIE_SPACE_ID = "01f127092d2219f3be10180d79b2ee5d";
+export const MAS_ENDPOINT_NAME = "mas-d4bc5d36-endpoint";
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
 
@@ -132,7 +138,7 @@ export const ROUTES: RouteConfig[] = [
     icon: "DollarSign",
     section: "insights",
     mode: "native",
-    dashboardId: DASHBOARDS.multiPage,
+    dashboardId: DASHBOARDS.apex,
   },
   {
     path: "/spend-custom",
@@ -140,10 +146,10 @@ export const ROUTES: RouteConfig[] = [
     icon: "DollarSign",
     section: "insights",
     mode: "custom",
-    dashboardId: DASHBOARDS.multiPage,
+    dashboardId: DASHBOARDS.apex,
     pages: [
-      { label: "Summary", pageId: "5a35864d" },
-      { label: "Detail", pageId: "75ecdc14" },
+      { label: "Summary", pageId: "139fe555" },
+      { label: "Carbon Forecasting", pageId: "carbon_forecasting" },
     ],
   },
   {
@@ -180,12 +186,10 @@ export const ROUTES: RouteConfig[] = [
     icon: "Leaf",
     section: "insights",
     mode: "custom",
-    dashboardId: DASHBOARDS.multiPage,
+    dashboardId: DASHBOARDS.apex,
     pages: [
-      { label: "Summary", pageId: "5a35864d" },
-      { label: "Comparative", pageId: "ceb09eeb" },
-      { label: "Carbon Budgets", pageId: "75ecdc14" },
-      { label: "Forecasting", pageId: "TODO" },
+      { label: "Summary", pageId: "139fe555" },
+      { label: "Carbon Forecasting", pageId: "carbon_forecasting" },
     ],
   },
   {
