@@ -77,7 +77,7 @@ export default function CustomDashboard({
                 src={src}
                 title={`APEX — ${page.label}`}
                 className="w-full border-0"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                allow="clipboard-write"
                 onLoad={() => markLoaded(page.pageId)}
                 style={{
                   marginTop: `-${HEADER_OFFSET}px`,
