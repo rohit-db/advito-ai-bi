@@ -127,7 +127,7 @@ export function buildNativeEmbedUrl(dashboardId: string, filters?: FilterState):
 }
 
 export function buildPageEmbedUrl(dashboardId: string, pageId: string, filters?: FilterState): string {
-  let url = `${WORKSPACE}/dashboardsv3/${dashboardId}/published/pages/${pageId}?o=${ORG}`;
+  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}/published/pages/${pageId}?o=${ORG}`;
   if (filters) url += `&${buildFilterParams(filters)}`;
   return url;
 }
