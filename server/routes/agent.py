@@ -171,9 +171,10 @@ async def agent_chat(req: AgentChatRequest, request: Request):
             import httpx
             fmapi_url = f"{WORKSPACE_URL}/serving-endpoints/{LLM_ENDPOINT}/invocations"
 
-            # Get auth token
+            # Get auth token — use service principal for FMAPI (not OBO)
             if IS_DATABRICKS_APP:
-                token = request.headers.get("x-forwarded-access-token") or w.config.token
+                sp_client = WorkspaceClient()
+                token = sp_client.config.token
             else:
                 token = os.environ.get("token")
 
