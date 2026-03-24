@@ -16,16 +16,20 @@ env:
   - name: GENIE_SPACE_ID
     value: "01f127092d2219f3be10180d79b2ee5d"
   - name: WAREHOUSE_ID
-    value: "5cd3a4956df6152f"
+    value: "c82e264eefa2d2f5"
   - name: MAS_ENDPOINT
     value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/serving-endpoints/mas-d4bc5d36-endpoint/invocations"
 
 resources:
+  - name: genie-space
+    genie_space:
+      space_id: "01f127092d2219f3be10180d79b2ee5d"
+      permission: CAN_RUN
   - name: sql-warehouse
     sql_warehouse:
-      id: "5cd3a4956df6152f"
+      id: "c82e264eefa2d2f5"
       permission: CAN_USE
-  - name: mas-endpoint
+  - name: serving-endpoint
     serving_endpoint:
       name: "mas-d4bc5d36-endpoint"
       permission: CAN_QUERY
