@@ -10,15 +10,15 @@ command:
 
 env:
   - name: DASHBOARD_URL
-    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1169e4b5810418541b22a792aa916?o=1048934788948873"
+    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1271698161d42b3c66528415775e8?o=1048934788948873"
   - name: MULTI_PAGE_DASHBOARD_URL
-    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f11c0671df190d96063a4632a3611a?o=1048934788948873"
+    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1271698161d42b3c66528415775e8?o=1048934788948873"
   - name: GENIE_SPACE_ID
-    value: "01f116f4099a12d9a87c0a0ed323103f"
+    value: "01f127092d2219f3be10180d79b2ee5d"
   - name: WAREHOUSE_ID
     value: "5cd3a4956df6152f"
   - name: MAS_ENDPOINT
-    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/serving-endpoints/mas-27065446-endpoint/invocations"
+    value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/serving-endpoints/mas-d4bc5d36-endpoint/invocations"
 
 resources:
   - name: sql-warehouse
@@ -27,10 +27,8 @@ resources:
       permission: CAN_USE
   - name: mas-endpoint
     serving_endpoint:
-      name: "mas-27065446-endpoint"
+      name: "mas-d4bc5d36-endpoint"
       permission: CAN_QUERY
 
 user_api_scopes:
-  - genie
-  - dashboards
   - sql
