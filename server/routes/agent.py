@@ -81,10 +81,8 @@ class AgentChatRequest(BaseModel):
 
 
 def _get_workspace_client(request: Request) -> WorkspaceClient:
+    """Use SP auth in Databricks App, PAT in local dev. OBO deferred to later."""
     if IS_DATABRICKS_APP:
-        obo_token = request.headers.get("x-forwarded-access-token")
-        if obo_token:
-            return WorkspaceClient(host=WORKSPACE_URL, token=obo_token)
         return WorkspaceClient()
     return WorkspaceClient(host=WORKSPACE_URL, token=os.environ.get("token"))
 

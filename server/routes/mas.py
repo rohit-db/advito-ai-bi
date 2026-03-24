@@ -15,12 +15,8 @@ class MasChatRequest(BaseModel):
 
 
 def _get_serving_headers(request: Request) -> dict:
-    """Use OBO token in Databricks App, PAT in local dev."""
+    """Use SP auth in Databricks App, PAT in local dev. OBO deferred to later."""
     if IS_DATABRICKS_APP:
-        obo_token = request.headers.get("x-forwarded-access-token")
-        if obo_token:
-            return {"Authorization": f"Bearer {obo_token}"}
-        # Fallback to service principal
         w = get_workspace_client()
         return w.config.authenticate()
     return {"Authorization": f"Bearer {os.environ.get('token', '')}"}
