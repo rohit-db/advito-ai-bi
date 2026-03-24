@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import type { FilterState } from "@/config";
 import { DEFAULT_FILTERS } from "@/config";
 
-const TRAVEL_SECTORS = ["", "Inter-Continental", "Intra-Continental", "Intra-Country"] as const;
+const TRAVEL_SECTORS = ["", "Domestic", "Regional", "Intra Country", "Intra Continental", "Inter Continental", "Intercontinental"] as const;
 const REGIONS = [
-  "", "Africa", "Asia", "Europe", "Latin America & Caribbean",
-  "Northern America", "Oceania",
+  "", "Africa", "Asia", "Europe", "Latin America",
+  "Middle East", "North America", "Southwestern Pacific", "Unknown",
 ] as const;
 
 function StyledSelect({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) {
