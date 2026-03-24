@@ -4,3 +4,4 @@ databricks-sdk
 pydantic
 python-dotenv
 httpx
+anthropic

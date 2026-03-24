@@ -7,6 +7,7 @@ import ChatPanel from "@/components/ChatPanel";
 import NativeDashboard from "@/pages/NativeDashboard";
 import CustomDashboard from "@/pages/CustomDashboard";
 import ApexChat from "@/pages/ApexChat";
+import AgentChat from "@/pages/AgentChat";
 import Placeholder from "@/pages/Placeholder";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -41,7 +42,7 @@ function RouteRenderer({
         />
       );
     case "react":
-      return <ApexChat />;
+      return route.path === "/apex-agent" ? <AgentChat /> : <ApexChat />;
     case "placeholder":
     default:
       return <Placeholder />;
@@ -57,7 +58,7 @@ export default function App() {
 
   const currentRoute = ROUTES.find((r) => r.path === location.pathname);
   const isCustom = currentRoute?.mode === "custom";
-  const isApexQA = location.pathname === "/apex-qa";
+  const isFullPageChat = location.pathname === "/apex-qa" || location.pathname === "/apex-agent";
   const filterContext = filtersToContext(filters);
   const pages = currentRoute?.pages || [];
 
@@ -115,7 +116,7 @@ export default function App() {
             </Routes>
           </main>
 
-          {!isApexQA && (
+          {!isFullPageChat && (
             <ChatPanel
               isOpen={chatOpen}
               onClose={() => setChatOpen(false)}

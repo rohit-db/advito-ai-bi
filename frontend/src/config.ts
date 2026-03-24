@@ -10,6 +10,7 @@ import {
   Database,
   MessageCircle,
   UsersRound,
+  Bot,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,6 +46,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   Database,
   MessageCircle,
   UsersRound,
+  Bot,
 };
 
 // ─── TypeScript interfaces ────────────────────────────────────────────────────
@@ -232,6 +234,13 @@ export const ROUTES: RouteConfig[] = [
     path: "/apex-qa",
     label: "APEX Q&A",
     icon: "MessageCircle",
+    section: "exploration",
+    mode: "react",
+  },
+  {
+    path: "/apex-agent",
+    label: "APEX Agent",
+    icon: "Bot",
     section: "exploration",
     mode: "react",
   },

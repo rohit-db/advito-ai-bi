@@ -14,6 +14,9 @@ app.include_router(genie_router, prefix="/api")
 from server.routes.mas import router as mas_router
 app.include_router(mas_router, prefix="/api")
 
+from server.routes.agent import router as agent_router
+app.include_router(agent_router, prefix="/api")
+
 frontend_dir = os.path.join(os.path.dirname(__file__), "frontend", "dist")
 if os.path.exists(frontend_dir):
     assets_dir = os.path.join(frontend_dir, "assets")
