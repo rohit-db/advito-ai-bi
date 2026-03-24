@@ -171,10 +171,13 @@ async def agent_chat(req: AgentChatRequest, request: Request):
             import httpx
             fmapi_url = f"{WORKSPACE_URL}/serving-endpoints/{LLM_ENDPOINT}/invocations"
 
-            # Get auth token — use service principal for FMAPI (not OBO)
+            # Get auth token for FMAPI
+            # In Databricks App: use SP client's authenticate() which handles OAuth
+            # Locally: use PAT from .env
             if IS_DATABRICKS_APP:
                 sp_client = WorkspaceClient()
-                token = sp_client.config.token
+                auth_headers = sp_client.config.authenticate()
+                token = auth_headers.get("Authorization", "").replace("Bearer ", "")
             else:
                 token = os.environ.get("token")
 
