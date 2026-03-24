@@ -5,9 +5,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
-from databricks.sdk import WorkspaceClient
-from ..config import GENIE_SPACE_ID, WORKSPACE_URL, IS_DATABRICKS_APP
-import os
+from ..config import GENIE_SPACE_ID, get_workspace_client
 
 router = APIRouter()
 
@@ -18,19 +16,6 @@ class ChatRequest(BaseModel):
     context: Optional[str] = None
 
 
-def _get_client_for_request(request: Request) -> WorkspaceClient:
-    """Use OBO token in Databricks App, PAT in local dev."""
-    if IS_DATABRICKS_APP:
-        obo_token = request.headers.get("x-forwarded-access-token")
-        if obo_token:
-            return WorkspaceClient(host=WORKSPACE_URL, token=obo_token)
-        return WorkspaceClient()
-    return WorkspaceClient(
-        host=WORKSPACE_URL,
-        token=os.environ.get("token"),
-    )
-
-
 def _sse_line(data: str) -> str:
     return f"data: {data}\n\n"
 
@@ -38,7 +23,7 @@ def _sse_line(data: str) -> str:
 @router.post("/chat")
 async def chat(req: ChatRequest, request: Request):
     async def event_stream():
-        w = _get_client_for_request(request)
+        w = get_workspace_client(request)
         space_id = GENIE_SPACE_ID
 
         if not space_id:

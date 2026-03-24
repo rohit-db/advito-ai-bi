@@ -3,8 +3,7 @@ import httpx
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from ..config import IS_DATABRICKS_APP, MAS_ENDPOINT, get_workspace_client
-import os
+from ..config import MAS_ENDPOINT, get_obo_token
 
 router = APIRouter()
 
@@ -15,15 +14,11 @@ class MasChatRequest(BaseModel):
 
 
 def _get_serving_headers(request: Request) -> dict:
-    """Use OBO token in Databricks App, PAT in local dev."""
-    if IS_DATABRICKS_APP:
-        obo_token = request.headers.get("x-forwarded-access-token")
-        if obo_token:
-            return {"Authorization": f"Bearer {obo_token}"}
-        # Fallback to service principal
-        w = get_workspace_client()
-        return w.config.authenticate()
-    return {"Authorization": f"Bearer {os.environ.get('token', '')}"}
+    """Get auth headers using OBO token."""
+    token = get_obo_token(request)
+    if token:
+        return {"Authorization": f"Bearer {token}"}
+    raise ValueError("No authentication token available")
 
 
 def _sse_line(data: str) -> str:

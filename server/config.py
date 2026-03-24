@@ -1,4 +1,5 @@
 import os
+from fastapi import Request
 from dotenv import load_dotenv
 from databricks.sdk import WorkspaceClient
 
@@ -22,10 +23,30 @@ MAS_ENDPOINT = os.environ.get(
 )
 
 
-def get_workspace_client() -> WorkspaceClient:
+def get_workspace_client(request: Request | None = None) -> WorkspaceClient:
+    """Get a WorkspaceClient using OBO token (Databricks App) or PAT (local dev).
+
+    In Databricks App: Uses the user's OBO token from the forwarded request header.
+    This means all API calls run as the logged-in user, enabling ABAC via row-level security.
+
+    In local dev: Falls back to PAT from .env file.
+    """
     if IS_DATABRICKS_APP:
+        if request:
+            obo_token = request.headers.get("x-forwarded-access-token")
+            if obo_token:
+                return WorkspaceClient(host=WORKSPACE_URL, token=obo_token)
+        # Fallback: service principal (no user context)
         return WorkspaceClient()
+    # Local dev: PAT
     return WorkspaceClient(
         host=WORKSPACE_URL,
         token=os.environ.get("token"),
     )
+
+
+def get_obo_token(request: Request) -> str | None:
+    """Extract the OBO token from request headers for direct HTTP calls (e.g., MAS)."""
+    if IS_DATABRICKS_APP:
+        return request.headers.get("x-forwarded-access-token")
+    return os.environ.get("token")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from ..config import DASHBOARD_URL, MULTI_PAGE_DASHBOARD_URL, get_workspace_client
 
 router = APIRouter()
@@ -25,9 +25,10 @@ def get_config():
 
 
 @router.get("/me")
-def get_me():
+def get_me(request: Request):
+    """Returns the authenticated user's info using OBO token."""
     try:
-        w = get_workspace_client()
+        w = get_workspace_client(request)
         me = w.current_user.me()
         display_name = me.display_name or ""
         email = me.user_name or ""
