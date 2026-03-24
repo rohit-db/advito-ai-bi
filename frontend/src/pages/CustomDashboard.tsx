@@ -15,18 +15,19 @@ interface CustomDashboardProps {
 export default function CustomDashboard({
   dashboardId,
   pages,
-  filters: _filters,
+  filters,
   activePageId,
 }: CustomDashboardProps) {
   const currentPageId = activePageId || pages[0]?.pageId || "";
 
   const [loadedPages, setLoadedPages] = useState<Set<string>>(new Set());
 
+  // Rebuild URLs when filters change — iframe src change triggers reload
   const pageUrls = useMemo(() => {
     return Object.fromEntries(
-      pages.map((page) => [page.pageId, buildPageEmbedUrl(dashboardId, page.pageId)])
+      pages.map((page) => [page.pageId, buildPageEmbedUrl(dashboardId, page.pageId, filters)])
     );
-  }, [dashboardId, pages]);
+  }, [dashboardId, pages, filters]);
 
   const markLoaded = (pageId: string) => {
     setLoadedPages((prev) => {

@@ -67,65 +67,80 @@ export interface RouteConfig {
 }
 
 export interface FilterState {
-  dateRange?: { from: string; to: string };
-  region?: string[];
-  travelCategory?: string[];
-  agency?: string[];
-  [key: string]: unknown;
+  currentPeriodFrom: string;   // "2025-01-01"
+  currentPeriodTo: string;     // "2025-12-31"
+  previousPeriodFrom: string;  // "2024-01-01"
+  previousPeriodTo: string;    // "2024-12-31"
+  travelSector?: string;       // "Inter-Continental", "Intra-Continental", "Intra-Country"
+  destinationRegion?: string;  // "Europe", "Asia", etc.
 }
 
-// ─── Default filters ──────────────────────────────────────────────────────────
-
 export const DEFAULT_FILTERS: FilterState = {
-  dateRange: undefined,
-  region: [],
-  travelCategory: [],
-  agency: [],
+  currentPeriodFrom: "2025-01-01",
+  currentPeriodTo: "2025-12-31",
+  previousPeriodFrom: "2024-01-01",
+  previousPeriodTo: "2024-12-31",
+};
+
+// ─── Dashboard filter widget IDs ─────────────────────────────────────────────
+// Global Filters page ID: 54194f59
+const GLOBAL_PAGE = "54194f59";
+const FILTER_WIDGETS = {
+  period: "period",                    // date-range-picker → current_period param
+  previousPeriod: "previous_period",   // date-range-picker → previous_period param
+  travelSector: "tsector",             // single-select → travel_sector field
+  destinationRegion: "dest_region",    // single-select → destination_region field
 };
 
 // ─── URL helpers ─────────────────────────────────────────────────────────────
 
-/**
- * Builds a native AI/BI embed URL (standard iframe embed).
- */
-export function buildNativeEmbedUrl(dashboardId: string): string {
-  return `${WORKSPACE}/embed/dashboardsv3/${dashboardId}?o=${ORG}`;
+function buildFilterParams(filters: FilterState): string {
+  const params: string[] = [];
+
+  // Date range filters: f_{globalPage}~{widget}={from}~{to}
+  params.push(
+    `f_${GLOBAL_PAGE}~${FILTER_WIDGETS.period}=${encodeURIComponent(filters.currentPeriodFrom + "T00:00:00.000")}~${encodeURIComponent(filters.currentPeriodTo + "T00:00:00.000")}`
+  );
+  params.push(
+    `f_${GLOBAL_PAGE}~${FILTER_WIDGETS.previousPeriod}=${encodeURIComponent(filters.previousPeriodFrom + "T00:00:00.000")}~${encodeURIComponent(filters.previousPeriodTo + "T00:00:00.000")}`
+  );
+
+  // Field filters: f_{globalPage}~{widget}={value}
+  if (filters.travelSector) {
+    params.push(
+      `f_${GLOBAL_PAGE}~${FILTER_WIDGETS.travelSector}=${encodeURIComponent(filters.travelSector)}`
+    );
+  }
+  if (filters.destinationRegion) {
+    params.push(
+      `f_${GLOBAL_PAGE}~${FILTER_WIDGETS.destinationRegion}=${encodeURIComponent(filters.destinationRegion)}`
+    );
+  }
+
+  return params.join("&");
+}
+
+export function buildNativeEmbedUrl(dashboardId: string, filters?: FilterState): string {
+  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}?o=${ORG}`;
+  if (filters) url += `&${buildFilterParams(filters)}`;
+  return url;
+}
+
+export function buildPageEmbedUrl(dashboardId: string, pageId: string, filters?: FilterState): string {
+  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}?o=${ORG}&page=${pageId}`;
+  if (filters) url += `&${buildFilterParams(filters)}`;
+  return url;
 }
 
 /**
- * Builds an embed URL for a specific page within a multi-page dashboard.
- */
-export function buildPageEmbedUrl(dashboardId: string, pageId: string): string {
-  return `${WORKSPACE}/embed/dashboardsv3/${dashboardId}?o=${ORG}&page=${pageId}`;
-}
-
-/**
- * Converts a FilterState to a plain string context for Genie chat prompts.
+ * Converts FilterState to a context string for Genie/MAS chat.
  */
 export function filtersToContext(filters: FilterState): string {
   const parts: string[] = [];
-
-  if (filters.dateRange?.from && filters.dateRange?.to) {
-    parts.push(`Date range: ${filters.dateRange.from} to ${filters.dateRange.to}`);
-  }
-  if (filters.region && filters.region.length > 0) {
-    parts.push(`Region: ${filters.region.join(", ")}`);
-  }
-  if (filters.travelCategory && filters.travelCategory.length > 0) {
-    parts.push(`Travel category: ${filters.travelCategory.join(", ")}`);
-  }
-  if (filters.agency && filters.agency.length > 0) {
-    parts.push(`Agency: ${filters.agency.join(", ")}`);
-  }
-
-  // Handle any additional keys
-  for (const [key, value] of Object.entries(filters)) {
-    if (["dateRange", "region", "travelCategory", "agency"].includes(key)) continue;
-    if (value !== undefined && value !== null) {
-      parts.push(`${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`);
-    }
-  }
-
+  parts.push(`Current period: ${filters.currentPeriodFrom} to ${filters.currentPeriodTo}`);
+  parts.push(`Previous period: ${filters.previousPeriodFrom} to ${filters.previousPeriodTo}`);
+  if (filters.travelSector) parts.push(`Travel sector: ${filters.travelSector}`);
+  if (filters.destinationRegion) parts.push(`Destination region: ${filters.destinationRegion}`);
   return parts.join(". ");
 }
 

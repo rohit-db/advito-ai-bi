@@ -29,7 +29,7 @@ function RouteRenderer({
   switch (route.mode) {
     case "native":
       return (
-        <NativeDashboard embedUrl={buildNativeEmbedUrl(route.dashboardId!)} />
+        <NativeDashboard embedUrl={buildNativeEmbedUrl(route.dashboardId!, filters)} />
       );
     case "custom":
       return (
