@@ -163,7 +163,7 @@ export const ROUTES: RouteConfig[] = [
     mode: "custom",
     dashboardId: DASHBOARDS.apex,
     pages: [
-      { label: "Summary", pageId: "139fe555" },
+      { label: "Summary", pageId: "summary" },
       { label: "Carbon Forecasting", pageId: "carbon_forecasting" },
     ],
   },
@@ -203,7 +203,7 @@ export const ROUTES: RouteConfig[] = [
     mode: "custom",
     dashboardId: DASHBOARDS.apex,
     pages: [
-      { label: "Summary", pageId: "139fe555" },
+      { label: "Summary", pageId: "summary" },
       { label: "Carbon Forecasting", pageId: "carbon_forecasting" },
     ],
   },
