@@ -7,26 +7,26 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SUGGESTIONS: Record<string, string[]> = {
   "/spend": [
-    "Top 5 routes by revenue?",
-    "How many trips last month?",
-    "Average fare by day of week?",
+    "Total spend by category for 2025?",
+    "Top 10 destinations by gross spend USD?",
+    "Compare spend 2025 vs 2024 by travel sector?",
   ],
   "/spend-custom": [
-    "Compare revenue across routes",
-    "Busiest pickup zones?",
-    "Fare distribution by distance",
+    "Show spend breakdown by travel class",
+    "Which vendors have the highest spend?",
+    "Average advance booking days by category?",
   ],
   "/sustainability": [
-    "Top routes by emissions?",
-    "Compare emissions vs previous period",
-    "Which category grew most?",
+    "Total emissions by category for 2025?",
+    "Top 5 countries by CO2 emissions?",
+    "What is the emissions per km for Air travel?",
   ],
 };
 
 const DEFAULT_SUGGESTIONS = [
-  "Show me total trips",
-  "Top routes by revenue?",
-  "Average fare by day of week?",
+  "Total emissions by category for 2025?",
+  "Top destinations by spend USD?",
+  "How many unique travelers this year?",
 ];
 
 export interface ChatPanelProps {
