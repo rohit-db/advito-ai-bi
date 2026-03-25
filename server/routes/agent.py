@@ -15,8 +15,9 @@ from fastapi.responses import StreamingResponse
 try:
     import mlflow
     mlflow.set_tracking_uri("databricks")
+    mlflow.set_experiment("/Users/rohit.bhagwat@bcdtravel.com/apex-travel-agent")
     TRACING_ENABLED = True
-except ImportError:
+except Exception:
     TRACING_ENABLED = False
 from pydantic import BaseModel
 from databricks.sdk import WorkspaceClient
@@ -172,6 +173,12 @@ async def agent_chat(req: AgentChatRequest, request: Request):
 
         yield _sse(json.dumps({"type": "status", "content": "Thinking..."}))
 
+        # Start MLflow trace for the entire request
+        trace_ctx = mlflow.start_span(name="apex_agent_request") if TRACING_ENABLED else None
+        if trace_ctx:
+            trace_ctx.__enter__()
+            trace_ctx.set_inputs({"message": req.message, "context": req.context})
+
         try:
             # Step 1: Call Claude via Databricks FMAPI to get tool calls
             import httpx
@@ -274,7 +281,14 @@ async def agent_chat(req: AgentChatRequest, request: Request):
 
             yield _sse("[DONE]")
 
+            if trace_ctx:
+                trace_ctx.set_outputs({"status": "success", "genie_calls": len(questions) if 'questions' in dir() else 0})
+                trace_ctx.__exit__(None, None, None)
+
         except Exception as e:
             yield _sse(json.dumps({"type": "error", "content": str(e)}))
+            if trace_ctx:
+                trace_ctx.set_outputs({"status": "error", "error": str(e)})
+                trace_ctx.__exit__(type(e), e, e.__traceback__)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
