@@ -123,13 +123,13 @@ function buildFilterParams(filters: FilterState): string {
 }
 
 export function buildNativeEmbedUrl(dashboardId: string, filters?: FilterState): string {
-  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}?o=${ORG}&hide_title=true`;
+  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}?o=${ORG}`;
   if (filters) url += `&${buildFilterParams(filters)}`;
   return url;
 }
 
 export function buildPageEmbedUrl(dashboardId: string, pageId: string, filters?: FilterState): string {
-  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}/pages/${pageId}?o=${ORG}&hide_title=true`;
+  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}/pages/${pageId}?o=${ORG}`;
   if (filters) url += `&${buildFilterParams(filters)}`;
   return url;
 }
