@@ -1,7 +1,8 @@
 """
 APEX Custom Agent — Claude (via Databricks FMAPI) + Parallel Genie
-Replaces MAS with true parallel Genie calls for fast executive summaries.
+Deployed as a Databricks App (recommended over Model Serving for agents).
 Uses Databricks Foundation Model API to call Claude — no separate API key needed.
+MLflow tracing enabled for observability.
 """
 
 import json
@@ -10,6 +11,13 @@ import asyncio
 import os
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
+
+try:
+    import mlflow
+    mlflow.set_tracking_uri("databricks")
+    TRACING_ENABLED = True
+except ImportError:
+    TRACING_ENABLED = False
 from pydantic import BaseModel
 from databricks.sdk import WorkspaceClient
 from ..config import GENIE_SPACE_ID, WORKSPACE_URL, IS_DATABRICKS_APP
