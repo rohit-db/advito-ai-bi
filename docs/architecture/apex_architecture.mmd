@@ -1,0 +1,74 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e0e7ff', 'primaryBorderColor': '#4f46e5', 'primaryTextColor': '#1e1b4b', 'lineColor': '#64748b', 'secondaryColor': '#f0fdf4', 'tertiaryColor': '#fffbeb'}}}%%
+
+flowchart LR
+    subgraph Users["👤 Client Users"]
+        U[Advito / BCD Travel<br/>Client Users]
+    end
+
+    subgraph App["🔵 Databricks App: advito-ai-bi"]
+        direction TB
+        subgraph UI["React Frontend"]
+            direction LR
+            DASH["📊 Dashboard<br/>Embed"]
+            GENIE_UI["💬 Ask APEX<br/>Chat Panel"]
+            AGENT_UI["🤖 APEX Agent<br/>Full Page"]
+        end
+        subgraph BE["FastAPI Backend"]
+            direction LR
+            API_GENIE["/api/chat<br/>Genie SSE"]
+            API_AGENT["/api/agent/chat<br/>Claude + Parallel Genie"]
+            API_ME["/api/me<br/>User Info"]
+        end
+    end
+
+    subgraph Platform["🟡 Databricks Workspace"]
+        direction TB
+        subgraph AIBI["AI/BI Layer"]
+            direction LR
+            LV["📊 Lakeview Dashboard<br/>APEX Corporate Travel Analytics"]
+            GS["🔮 Genie Space<br/>APEX Travel Intelligence"]
+        end
+        subgraph FMAPI["Foundation Model API"]
+            CLAUDE["🧠 Claude Sonnet 4.6<br/>via FMAPI"]
+        end
+        subgraph DATA["Unity Catalog: bcd_adv_workspace_poc"]
+            direction LR
+            MV["📐 apex.travel_metrics<br/>Metric View<br/>27 dimensions • 23 measures"]
+            SRC["📦 test.summarydataset<br/>1.4M rows<br/>Source Table"]
+        end
+        WH["⚡ SQL Warehouse"]
+    end
+
+    %% User flows
+    U -->|"Browser"| DASH
+    U -->|"Browser"| GENIE_UI
+    U -->|"Browser"| AGENT_UI
+
+    %% Dashboard embed
+    DASH -->|"iframe + URL<br/>filter params"| LV
+
+    %% Genie chat
+    GENIE_UI --> API_GENIE
+    API_GENIE -->|"Genie API<br/>SSE polling"| GS
+
+    %% Agent flow
+    AGENT_UI --> API_AGENT
+    API_AGENT -->|"① Reason"| CLAUDE
+    API_AGENT -->|"② Parallel<br/>Genie queries"| GS
+    API_AGENT -.->|"③ Synthesize"| CLAUDE
+
+    %% Data layer
+    LV -->|"Dataset queries"| MV
+    GS -->|"MEASURE() queries"| MV
+    MV --> SRC
+    MV --> WH
+
+    %% Styling
+    classDef appNode fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b
+    classDef platformNode fill:#fffbeb,stroke:#d97706,color:#78350f
+    classDef dataNode fill:#f0fdf4,stroke:#16a34a,color:#14532d
+    classDef agentNode fill:#ecfdf5,stroke:#059669,color:#064e3b
+
+    class DASH,GENIE_UI,AGENT_UI,API_GENIE,API_AGENT,API_ME appNode
+    class LV,GS,CLAUDE,WH platformNode
+    class MV,SRC dataNode
