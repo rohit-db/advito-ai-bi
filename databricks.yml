@@ -46,6 +46,10 @@ targets:
                 value: "5cd3a4956df6152f"
               - name: MAS_ENDPOINT
                 value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/serving-endpoints/mas-d4bc5d36-endpoint/invocations"
+              - name: GENIE_MCP_POLL_INTERVAL_MS
+                value: "3000"
+              - name: GENIE_MCP_POLL_MAX_ATTEMPTS
+                value: "120"
           resources:
             - name: sql-warehouse
               sql_warehouse:
@@ -57,6 +61,7 @@ targets:
                 permission: CAN_QUERY
           user_api_scopes:
             - sql
+            - genie
 
 sync:
   include:

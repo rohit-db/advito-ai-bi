@@ -11,6 +11,7 @@ import {
   MessageCircle,
   UsersRound,
   Bot,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -47,6 +48,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   MessageCircle,
   UsersRound,
   Bot,
+  Sparkles,
 };
 
 // ─── TypeScript interfaces ────────────────────────────────────────────────────
@@ -241,6 +243,13 @@ export const ROUTES: RouteConfig[] = [
     path: "/apex-agent",
     label: "APEX Agent",
     icon: "Bot",
+    section: "exploration",
+    mode: "react",
+  },
+  {
+    path: "/genie-mcp",
+    label: "Genie MCP",
+    icon: "Sparkles",
     section: "exploration",
     mode: "react",
   },

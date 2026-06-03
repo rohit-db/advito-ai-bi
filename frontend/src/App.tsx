@@ -8,6 +8,7 @@ import NativeDashboard from "@/pages/NativeDashboard";
 import CustomDashboard from "@/pages/CustomDashboard";
 import ApexChat from "@/pages/ApexChat";
 import AgentChat from "@/pages/AgentChat";
+import GenieMcpExperience from "@/pages/GenieMcpExperience";
 import Placeholder from "@/pages/Placeholder";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -42,7 +43,9 @@ function RouteRenderer({
         />
       );
     case "react":
-      return route.path === "/apex-agent" ? <AgentChat /> : <ApexChat />;
+      if (route.path === "/apex-agent") return <AgentChat />;
+      if (route.path === "/genie-mcp") return <GenieMcpExperience />;
+      return <ApexChat />;
     case "placeholder":
     default:
       return <Placeholder />;
@@ -58,7 +61,10 @@ export default function App() {
 
   const currentRoute = ROUTES.find((r) => r.path === location.pathname);
   const isCustom = currentRoute?.mode === "custom";
-  const isFullPageChat = location.pathname === "/apex-qa" || location.pathname === "/apex-agent";
+  const isFullPageChat =
+    location.pathname === "/apex-qa" ||
+    location.pathname === "/apex-agent" ||
+    location.pathname === "/genie-mcp";
   const filterContext = filtersToContext(filters);
   const pages = currentRoute?.pages || [];
 

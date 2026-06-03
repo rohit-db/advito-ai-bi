@@ -20,6 +20,12 @@ env:
   - name: MAS_ENDPOINT
     value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/serving-endpoints/mas-d4bc5d36-endpoint/invocations"
 
+  # Managed Genie MCP server polling (Genie agent turns take ~70-260s).
+  - name: GENIE_MCP_POLL_INTERVAL_MS
+    value: "3000"
+  - name: GENIE_MCP_POLL_MAX_ATTEMPTS
+    value: "120"
+
 resources:
   - name: sql-warehouse
     sql_warehouse:
@@ -32,3 +38,4 @@ resources:
 
 user_api_scopes:
   - sql
+  - genie
