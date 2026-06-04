@@ -1,24 +1,14 @@
 import { useLocation } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ROUTES } from "@/config";
 import { useUser } from "@/hooks/useUser";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-interface HeaderProps {
-  chatOpen: boolean;
-  onToggleChat: () => void;
-}
-
-export default function Header({ chatOpen, onToggleChat }: HeaderProps) {
+export default function Header() {
   const location = useLocation();
   const { user } = useUser();
 
   const currentRoute = ROUTES.find((r) => r.path === location.pathname);
   const pageTitle = currentRoute?.label ?? "APEX";
-
-  const isOnApexQA = location.pathname === "/apex-qa";
 
   const initials = user?.initials ?? user?.displayName
     ?.split(" ")
@@ -36,21 +26,6 @@ export default function Header({ chatOpen, onToggleChat }: HeaderProps) {
 
       {/* Right controls */}
       <div className="flex items-center gap-3">
-        {!isOnApexQA && (
-          <Button
-            variant={chatOpen ? "default" : "outline"}
-            size="sm"
-            onClick={onToggleChat}
-            className={cn(
-              "gap-1.5",
-              chatOpen && "bg-indigo-600 hover:bg-indigo-700 text-white"
-            )}
-          >
-            <MessageCircle size={14} />
-            Ask APEX
-          </Button>
-        )}
-
         {/* User avatar + name */}
         <div className="flex items-center gap-2">
           <Avatar size="sm" className="bg-indigo-100">

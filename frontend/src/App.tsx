@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import FilterBar from "@/components/FilterBar";
-import ChatPanel from "@/components/ChatPanel";
+import DashboardWorkspace from "@/components/DashboardWorkspace";
 import NativeDashboard from "@/pages/NativeDashboard";
 import CustomDashboard from "@/pages/CustomDashboard";
 import ApexChat from "@/pages/ApexChat";
@@ -15,6 +15,7 @@ import {
   ROUTES,
   buildNativeEmbedUrl,
   filtersToContext,
+  getDashboardGenie,
   DEFAULT_FILTERS,
 } from "@/config";
 import type { FilterState, RouteConfig } from "@/config";
@@ -30,18 +31,42 @@ function RouteRenderer({
 }) {
   switch (route.mode) {
     case "native":
+    case "custom": {
+      const genie = getDashboardGenie(route.path, activePageId);
+      const pageLabel =
+        route.mode === "custom"
+          ? `${route.label} · ${
+              route.pages?.find((p) => p.pageId === activePageId)?.label ?? ""
+            }`.replace(/ · $/, "")
+          : route.label;
+      const pageContext = [`Dashboard: ${pageLabel}`, filtersToContext(filters)]
+        .filter(Boolean)
+        .join(". ");
+
+      const content =
+        route.mode === "native" ? (
+          <NativeDashboard embedUrl={buildNativeEmbedUrl(route.dashboardId!, filters)} />
+        ) : (
+          <CustomDashboard
+            dashboardId={route.dashboardId!}
+            pages={route.pages || []}
+            filters={filters}
+            activePageId={activePageId}
+          />
+        );
+
       return (
-        <NativeDashboard embedUrl={buildNativeEmbedUrl(route.dashboardId!, filters)} />
+        <DashboardWorkspace
+          pageKey={`${route.path}:${activePageId ?? ""}`}
+          pageLabel={pageLabel}
+          pageContext={pageContext}
+          summaryPrompt={genie.summaryPrompt}
+          suggestions={genie.suggestions}
+        >
+          {content}
+        </DashboardWorkspace>
       );
-    case "custom":
-      return (
-        <CustomDashboard
-          dashboardId={route.dashboardId!}
-          pages={route.pages || []}
-          filters={filters}
-          activePageId={activePageId}
-        />
-      );
+    }
     case "react":
       if (route.path === "/apex-agent") return <AgentChat />;
       if (route.path === "/genie-mcp") return <GenieMcpExperience />;
@@ -53,7 +78,6 @@ function RouteRenderer({
 }
 
 export default function App() {
-  const [chatOpen, setChatOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [activePageId, setActivePageId] = useState<string | undefined>();
@@ -61,11 +85,6 @@ export default function App() {
 
   const currentRoute = ROUTES.find((r) => r.path === location.pathname);
   const isCustom = currentRoute?.mode === "custom";
-  const isFullPageChat =
-    location.pathname === "/apex-qa" ||
-    location.pathname === "/apex-agent" ||
-    location.pathname === "/genie-mcp";
-  const filterContext = filtersToContext(filters);
   const pages = currentRoute?.pages || [];
 
   // Reset active page when route changes
@@ -80,10 +99,7 @@ export default function App() {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header
-          chatOpen={chatOpen}
-          onToggleChat={() => setChatOpen(!chatOpen)}
-        />
+        <Header />
 
         {/* For custom pages: page tabs first, then filters */}
         {isCustom && pages.length > 0 && (
@@ -105,7 +121,7 @@ export default function App() {
         <div className="flex-1 flex min-h-0">
           <main className="flex-1 flex flex-col min-w-0">
             <Routes>
-              <Route path="/" element={<Navigate to="/spend" replace />} />
+              <Route path="/" element={<Navigate to="/spend-custom" replace />} />
               {ROUTES.map((route) => (
                 <Route
                   key={route.path}
@@ -121,16 +137,6 @@ export default function App() {
               ))}
             </Routes>
           </main>
-
-          {!isFullPageChat && (
-            <ChatPanel
-              isOpen={chatOpen}
-              onClose={() => setChatOpen(false)}
-              activePath={location.pathname}
-              activePageLabel={currentRoute?.label || "APEX"}
-              filterContext={filterContext}
-            />
-          )}
         </div>
       </div>
     </div>

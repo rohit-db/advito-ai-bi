@@ -17,12 +17,29 @@ export interface GenieSqlBlock {
   description?: string;
 }
 
+export interface GenieToolCallResult {
+  status?: string | null;
+  messageId?: string | null;
+  hasText?: boolean;
+  sql?: number;
+  tables?: number;
+}
+
+export interface GenieToolCall {
+  tool: string;
+  phase: "ask" | "poll";
+  args?: Record<string, unknown>;
+  result?: GenieToolCallResult;
+  attempt?: number;
+}
+
 export interface GenieMcpMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   steps: string[];
   sql: GenieSqlBlock[];
+  toolCalls: GenieToolCall[];
   table?: GenieTable | null;
   deepLink?: { url: string; label: string } | null;
   status?: string | null;
@@ -31,6 +48,9 @@ export interface GenieMcpMessage {
 }
 
 export type McpTool = { name: string; description?: string | null };
+
+// "space" -> per-space Genie Space MCP; "multi" -> workspace-wide Genie MCP.
+export type GenieMode = "space" | "multi";
 
 export type McpStatus =
   | { state: "connecting" }
@@ -46,20 +66,21 @@ export type McpStatus =
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useGenieMcpChat() {
+export function useGenieMcpChat(initialMode: GenieMode = "space") {
   const [messages, setMessages] = useState<GenieMcpMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mcpStatus, setMcpStatus] = useState<McpStatus>({ state: "connecting" });
+  const [mode, setModeState] = useState<GenieMode>(initialMode);
 
   const conversationIdRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Probe the managed Genie MCP server — proves a real MCP session and surfaces
-  // the discovered tool contract (genie_ask / genie_poll_response).
+  // Probe the managed Genie MCP server for the selected mode — proves a real MCP
+  // session and surfaces the discovered tool contract.
   const checkHealth = useCallback(async () => {
     setMcpStatus({ state: "connecting" });
     try {
-      const res = await fetch("/api/genie-mcp/health");
+      const res = await fetch(`/api/genie-mcp/health?mode=${mode}`);
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setMcpStatus({ state: "error", message: data.message, serverUrl: data.server_url });
@@ -76,7 +97,7 @@ export function useGenieMcpChat() {
     } catch (err) {
       setMcpStatus({ state: "error", message: err instanceof Error ? err.message : String(err) });
     }
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     checkHealth();
@@ -90,8 +111,8 @@ export function useGenieMcpChat() {
 
     setMessages((prev) => [
       ...prev,
-      { id: userId, role: "user", content: text, steps: [], sql: [], isStreaming: false },
-      { id: assistantId, role: "assistant", content: "", steps: [], sql: [], isStreaming: true },
+      { id: userId, role: "user", content: text, steps: [], sql: [], toolCalls: [], isStreaming: false },
+      { id: assistantId, role: "assistant", content: "", steps: [], sql: [], toolCalls: [], isStreaming: true },
     ]);
     setIsLoading(true);
 
@@ -108,6 +129,7 @@ export function useGenieMcpChat() {
           message: text,
           conversation_id: conversationIdRef.current || undefined,
           context: context || "",
+          mode,
         }),
         signal: abortRef.current.signal,
       });
@@ -158,6 +180,21 @@ export function useGenieMcpChat() {
                 sql: [...m.sql, { sql: event.sql, description: event.description }],
               }));
               break;
+            case "tool_call":
+              patch((m) => ({
+                ...m,
+                toolCalls: [
+                  ...m.toolCalls,
+                  {
+                    tool: event.tool,
+                    phase: event.phase,
+                    args: event.args,
+                    result: event.result,
+                    attempt: event.attempt,
+                  },
+                ],
+              }));
+              break;
             case "table":
               patch((m) => ({ ...m, table: { columns: event.columns, rows: event.rows } }));
               break;
@@ -181,7 +218,7 @@ export function useGenieMcpChat() {
       patch((m) => ({ ...m, isStreaming: false }));
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, mode]);
 
   const clearChat = useCallback(() => {
     if (abortRef.current) abortRef.current.abort();
@@ -190,5 +227,17 @@ export function useGenieMcpChat() {
     setIsLoading(false);
   }, []);
 
-  return { messages, isLoading, mcpStatus, checkHealth, sendMessage, clearChat };
+  // Switching servers starts a fresh session against the other MCP shape.
+  const setMode = useCallback((next: GenieMode) => {
+    setModeState((prev) => {
+      if (prev === next) return prev;
+      if (abortRef.current) abortRef.current.abort();
+      conversationIdRef.current = null;
+      setMessages([]);
+      setIsLoading(false);
+      return next;
+    });
+  }, []);
+
+  return { messages, isLoading, mcpStatus, mode, setMode, checkHealth, sendMessage, clearChat };
 }
