@@ -1,18 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  Sparkles,
-  X,
-  Terminal,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  RefreshCw,
-  Loader2,
-} from "lucide-react";
+import { Sparkles, X, RefreshCw, Loader2 } from "lucide-react";
 import MarkdownContent from "@/components/MarkdownContent";
 import { Badge } from "@/components/ui/badge";
-import { useGenieMcpChat, type GenieTable } from "@/hooks/useGenieMcpChat";
+import { useGenieMcpChat } from "@/hooks/useGenieMcpChat";
 import { buildExecSummaryPrompt } from "@/config";
+import GenieResultTable from "@/components/genie/GenieResultTable";
+import GenieSqlBlock from "@/components/genie/GenieSqlBlock";
+import GenieDeepLink from "@/components/genie/GenieDeepLink";
 
 export interface ExecutiveSummaryModalProps {
   pageLabel: string;
@@ -112,9 +106,7 @@ export default function ExecutiveSummaryModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-5 bg-gray-50">
           {/* Awaiting state */}
-          {streaming && !hasContent && (
-            <AwaitingState step={lastStep} />
-          )}
+          {streaming && !hasContent && <AwaitingState step={lastStep} />}
 
           {assistant?.error && (
             <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-700">
@@ -133,54 +125,16 @@ export default function ExecutiveSummaryModal({
               )}
               <MarkdownContent content={assistant!.content} />
 
-              {/* Result table */}
-              {assistant!.table &&
-                assistant!.table.columns.length > 0 &&
-                assistant!.table.rows.length > 0 && (
-                  <SummaryTable table={assistant!.table} />
-                )}
+              {assistant!.table && <GenieResultTable table={assistant!.table} size="sm" />}
 
-              {/* Generated SQL */}
-              {assistant!.sql.length > 0 && (
-                <div className="mt-4 border-t border-gray-100 pt-3">
-                  <button
-                    onClick={() => setShowSql((s) => !s)}
-                    className="flex items-center justify-between w-full text-left"
-                  >
-                    <span className="flex items-center gap-1.5 text-[11px] font-semibold text-indigo-700 uppercase tracking-wide">
-                      <Terminal className="w-3.5 h-3.5" />
-                      <span>SQL{assistant!.sql.length > 1 ? ` (${assistant!.sql.length})` : ""}</span>
-                    </span>
-                    {showSql ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-indigo-700" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5 text-indigo-700" />
-                    )}
-                  </button>
-                  {showSql &&
-                    assistant!.sql.map((block, i) => (
-                      <pre
-                        key={i}
-                        className="mt-2 bg-gray-900 text-green-300 p-3 rounded-lg text-[11px] font-mono overflow-x-auto"
-                      >
-                        {block.sql}
-                      </pre>
-                    ))}
-                </div>
-              )}
+              <GenieSqlBlock
+                blocks={assistant!.sql}
+                open={showSql}
+                onToggle={() => setShowSql((s) => !s)}
+                variant="compact"
+              />
 
-              {/* Deep link */}
-              {assistant!.deepLink && (
-                <a
-                  href={assistant!.deepLink.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>{assistant!.deepLink.label || "Open in Genie"}</span>
-                </a>
-              )}
+              <GenieDeepLink deepLink={assistant!.deepLink} variant="compact" />
             </div>
           )}
         </div>
@@ -201,8 +155,6 @@ export default function ExecutiveSummaryModal({
     </div>
   );
 }
-
-/* ───────────────────────────── Subcomponents ──────────────────────────────── */
 
 function AwaitingState({ step }: { step?: string }) {
   return (
@@ -235,37 +187,6 @@ function AwaitingState({ step }: { step?: string }) {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function SummaryTable({ table }: { table: GenieTable }) {
-  const columns = (table.columns || []).map((c) => (typeof c === "string" ? c : c.name));
-  const rows = table.rows || [];
-  return (
-    <div className="mt-4 overflow-auto max-h-60 border border-gray-200 rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200 text-[11px]">
-        <thead className="bg-gray-100 sticky top-0">
-          <tr>
-            {columns.map((c, i) => (
-              <th key={i} className="px-2.5 py-1.5 text-left font-semibold text-gray-700 whitespace-nowrap">
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, r) => (
-            <tr key={r}>
-              {row.map((cell, c) => (
-                <td key={c} className="px-2.5 py-1.5 text-gray-600 whitespace-nowrap border-t border-gray-100">
-                  {cell == null ? "" : String(cell)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

@@ -1,27 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  Sparkles,
-  MessageCircle,
-  Send,
-  Trash2,
-  X,
-  Terminal,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  CheckCircle2,
-  Loader2,
-} from "lucide-react";
-import MarkdownContent from "@/components/MarkdownContent";
+import { Sparkles, MessageCircle, Send, Trash2, X } from "lucide-react";
 import ExecutiveSummaryModal from "@/components/ExecutiveSummaryModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  useGenieMcpChat,
-  type GenieMcpMessage,
-  type GenieTable,
-} from "@/hooks/useGenieMcpChat";
+import { useGenieMcpChat, type GenieMcpMessage } from "@/hooks/useGenieMcpChat";
+import { McpStatusDot } from "@/components/genie/GenieMcpStatus";
+import GenieAssistantMessage from "@/components/genie/GenieAssistantMessage";
 
 export interface DashboardWorkspaceProps {
   pageKey: string;
@@ -172,10 +156,11 @@ export default function DashboardWorkspace({
                 m.role === "user" ? (
                   <UserBubble key={m.id} message={m} />
                 ) : (
-                  <AssistantBubble
+                  <GenieAssistantMessage
                     key={m.id}
                     message={m}
-                    showSql={!!openSql[m.id]}
+                    variant="compact"
+                    sqlOpen={!!openSql[m.id]}
                     onToggleSql={() => toggleSql(m.id)}
                   />
                 )
@@ -221,175 +206,11 @@ export default function DashboardWorkspace({
   );
 }
 
-/* ───────────────────────────── Subcomponents ──────────────────────────────── */
-
-function McpStatusDot({ state }: { state: "connecting" | "error" | "connected" }) {
-  const color =
-    state === "connected"
-      ? "bg-emerald-400"
-      : state === "connecting"
-        ? "bg-amber-300 animate-pulse"
-        : "bg-red-400";
-  const title =
-    state === "connected"
-      ? "MCP connected"
-      : state === "connecting"
-        ? "Connecting to MCP…"
-        : "MCP unavailable";
-  return <span className={`w-1.5 h-1.5 rounded-full ${color}`} title={title} />;
-}
-
 function UserBubble({ message }: { message: GenieMcpMessage }) {
   return (
     <div className="flex justify-end">
       <div className="max-w-[88%] bg-indigo-600 text-white rounded-2xl rounded-br-sm px-3 py-2.5 text-sm shadow-sm">
         <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
-      </div>
-    </div>
-  );
-}
-
-function CompactReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: boolean }) {
-  if (!steps || steps.length === 0) {
-    return isStreaming ? (
-      <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-1.5">
-        <span className="flex gap-1">
-          <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-          <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-          <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-        </span>
-        <span>Thinking…</span>
-      </div>
-    ) : null;
-  }
-
-  if (isStreaming) {
-    return (
-      <div className="mb-2 flex items-start gap-1.5 text-[11px] text-gray-600">
-        <span className="w-3 h-3 mt-0.5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin shrink-0" />
-        <span className="break-words">{steps[steps.length - 1]}</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mb-2 flex items-start gap-1.5 text-[11px] text-gray-500">
-      <CheckCircle2 className="w-3 h-3 mt-0.5 text-emerald-600 shrink-0" />
-      <span className="break-words">
-        {steps.length} reasoning step{steps.length > 1 ? "s" : ""} · {steps[steps.length - 1]}
-      </span>
-    </div>
-  );
-}
-
-function CompactTable({ table }: { table: GenieTable }) {
-  const columns = (table.columns || []).map((c) => (typeof c === "string" ? c : c.name));
-  const rows = table.rows || [];
-  if (columns.length === 0 || rows.length === 0) return null;
-
-  return (
-    <div className="mt-2 overflow-auto max-h-48 border border-gray-200 rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200 text-[11px]">
-        <thead className="bg-gray-100 sticky top-0">
-          <tr>
-            {columns.map((c, i) => (
-              <th key={i} className="px-2 py-1 text-left font-semibold text-gray-700 whitespace-nowrap">
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, r) => (
-            <tr key={r}>
-              {row.map((cell, c) => (
-                <td key={c} className="px-2 py-1 text-gray-600 whitespace-nowrap border-t border-gray-100">
-                  {cell == null ? "" : String(cell)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function AssistantBubble({
-  message,
-  showSql,
-  onToggleSql,
-}: {
-  message: GenieMcpMessage;
-  showSql: boolean;
-  onToggleSql: () => void;
-}) {
-  return (
-    <div className="flex items-start gap-2">
-      <Avatar className="h-7 w-7 shrink-0">
-        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs">
-          <Sparkles size={13} />
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1 min-w-0 bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-200">
-        <CompactReasoning steps={message.steps} isStreaming={message.isStreaming} />
-
-        {message.error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 px-2.5 py-2 text-xs text-red-700">
-            {message.error}
-          </div>
-        )}
-
-        {message.content && <MarkdownContent content={message.content} compact />}
-
-        {/* Generated SQL (collapsible) */}
-        {message.sql.length > 0 && (
-          <div className="mt-2 border-t border-gray-100 pt-2">
-            <button onClick={onToggleSql} className="flex items-center justify-between w-full text-left">
-              <span className="flex items-center gap-1.5 text-[11px] font-semibold text-indigo-700 uppercase tracking-wide">
-                <Terminal className="w-3.5 h-3.5" />
-                <span>SQL{message.sql.length > 1 ? ` (${message.sql.length})` : ""}</span>
-              </span>
-              {showSql ? (
-                <ChevronUp className="w-3.5 h-3.5 text-indigo-700" />
-              ) : (
-                <ChevronDown className="w-3.5 h-3.5 text-indigo-700" />
-              )}
-            </button>
-            {showSql &&
-              message.sql.map((block, i) => (
-                <pre
-                  key={i}
-                  className="mt-2 bg-gray-900 text-green-300 p-2.5 rounded-lg text-[10px] font-mono overflow-x-auto"
-                >
-                  {block.sql}
-                </pre>
-              ))}
-          </div>
-        )}
-
-        {/* Result table */}
-        {message.table && <CompactTable table={message.table} />}
-
-        {/* Deep link */}
-        {message.deepLink && (
-          <a
-            href={message.deepLink.url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 text-white text-[11px] font-medium hover:bg-indigo-700 transition-colors"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>{message.deepLink.label || "Open in Genie"}</span>
-          </a>
-        )}
-
-        {/* Initial spinner before any step or content arrives */}
-        {message.isStreaming && message.steps.length === 0 && !message.content && (
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <Loader2 size={12} className="animate-spin" /> Connecting…
-          </div>
-        )}
       </div>
     </div>
   );
