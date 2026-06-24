@@ -137,6 +137,33 @@ export function buildPageEmbedUrl(dashboardId: string, pageId: string, filters?:
 }
 
 /**
+ * External (token) embedding: same /embed/ URL as basic embedding (so the
+ * `f_…` filter params still apply), but with a scoped SP token in the `#token=`
+ * hash instead of relying on a Databricks session cookie. This is what removes
+ * the Databricks login screen for no-login / white-label viewers.
+ */
+export function buildTokenEmbedUrl(
+  dashboardId: string,
+  pageId: string,
+  token: string,
+  filters?: FilterState
+): string {
+  return `${buildPageEmbedUrl(dashboardId, pageId, filters)}#token=${token}`;
+}
+
+export interface EmbedTokenResponse {
+  ok: boolean;
+  token?: string;
+  expires_in?: number;
+  error?: string;
+}
+
+export async function fetchEmbedToken(dashboardId: string): Promise<EmbedTokenResponse> {
+  const res = await fetch(`/api/embed/token?dashboard_id=${encodeURIComponent(dashboardId)}`);
+  return (await res.json()) as EmbedTokenResponse;
+}
+
+/**
  * Converts FilterState to a context string for Genie/MAS chat.
  */
 export function filtersToContext(filters: FilterState): string {
