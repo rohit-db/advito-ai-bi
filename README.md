@@ -47,21 +47,19 @@ advito-ai-bi/
 │       ├── pages/
 │       │   ├── NativeDashboard.tsx # Full iframe embed (AI/BI mode)
 │       │   ├── CustomDashboard.tsx # Tabbed iframe + clipped headers
-│       │   ├── ApexChat.tsx        # Full-page MAS chat
-│       │   ├── AgentChat.tsx       # Full-page custom agent chat
+│       │   ├── GenieMcpExperience.tsx # Full-page Genie MCP chat
 │       │   └── Placeholder.tsx     # Coming soon pages
 │       └── hooks/
 │           ├── useChat.ts          # Genie SSE hook
-│           ├── useMasChat.ts       # MAS SSE hook
-│           └── useAgentChat.ts     # Custom agent SSE hook
+│           └── useGenieMcpChat.ts  # Genie MCP SSE hook
 │
 ├── server/                         # FastAPI backend
 │   ├── config.py                   # Workspace client, env vars
 │   └── routes/
 │       ├── api.py                  # /health, /config, /me
 │       ├── genie.py                # POST /api/chat (Genie SSE)
-│       ├── mas.py                  # POST /api/mas/chat (MAS SSE)
-│       └── agent.py                # POST /api/agent/chat (Claude + parallel Genie)
+│       ├── genie_mcp/              # POST /api/genie-mcp/* (Genie MCP)
+│       └── embed.py                # POST /api/embed/token (scoped embed token)
 │
 ├── src/
 │   ├── sql/

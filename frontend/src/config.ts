@@ -31,7 +31,6 @@ export const DASHBOARDS = {
 } as const;
 
 export const GENIE_SPACE_ID = "01f127092d2219f3be10180d79b2ee5d";
-export const MAS_ENDPOINT_NAME = "mas-d4bc5d36-endpoint";
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
 
@@ -164,7 +163,7 @@ export async function fetchEmbedToken(dashboardId: string): Promise<EmbedTokenRe
 }
 
 /**
- * Converts FilterState to a context string for Genie/MAS chat.
+ * Converts FilterState to a context string for Genie chat.
  */
 export function filtersToContext(filters: FilterState): string {
   const parts: string[] = [];
@@ -201,20 +200,6 @@ export const ROUTES: RouteConfig[] = [
       { label: "Summary", pageId: "summary" },
       { label: "Carbon Forecasting", pageId: "carbon_forecasting" },
     ],
-  },
-  {
-    path: "/apex-qa",
-    label: "APEX Q&A",
-    icon: "MessageCircle",
-    section: "exploration",
-    mode: "react",
-  },
-  {
-    path: "/apex-agent",
-    label: "APEX Agent",
-    icon: "Bot",
-    section: "exploration",
-    mode: "react",
   },
   {
     path: "/genie-mcp",

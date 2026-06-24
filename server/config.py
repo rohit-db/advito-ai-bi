@@ -16,10 +16,6 @@ MULTI_PAGE_DASHBOARD_URL = os.environ.get(
 )
 GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "01f127092d2219f3be10180d79b2ee5d")
 WAREHOUSE_ID = os.environ.get("WAREHOUSE_ID", "5cd3a4956df6152f")
-MAS_ENDPOINT = os.environ.get(
-    "MAS_ENDPOINT",
-    "https://dbc-1e27e56a-90cd.cloud.databricks.com/serving-endpoints/mas-d4bc5d36-endpoint/invocations",
-)
 
 
 def get_workspace_client() -> WorkspaceClient:

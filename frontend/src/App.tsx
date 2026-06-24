@@ -6,8 +6,6 @@ import FilterBar from "@/components/FilterBar";
 import DashboardWorkspace from "@/components/DashboardWorkspace";
 import NativeDashboard from "@/pages/NativeDashboard";
 import CustomDashboard from "@/pages/CustomDashboard";
-import ApexChat from "@/pages/ApexChat";
-import AgentChat from "@/pages/AgentChat";
 import GenieMcpExperience from "@/pages/GenieMcpExperience";
 import Placeholder from "@/pages/Placeholder";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -68,9 +66,8 @@ function RouteRenderer({
       );
     }
     case "react":
-      if (route.path === "/apex-agent") return <AgentChat />;
       if (route.path === "/genie-mcp") return <GenieMcpExperience />;
-      return <ApexChat />;
+      return <Placeholder />;
     case "placeholder":
     default:
       return <Placeholder />;

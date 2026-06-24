@@ -11,12 +11,6 @@ app.include_router(api_router, prefix="/api")
 from server.routes.genie import router as genie_router
 app.include_router(genie_router, prefix="/api")
 
-from server.routes.mas import router as mas_router
-app.include_router(mas_router, prefix="/api")
-
-from server.routes.agent import router as agent_router
-app.include_router(agent_router, prefix="/api")
-
 from server.routes.genie_mcp import router as genie_mcp_router
 app.include_router(genie_mcp_router, prefix="/api")
 
