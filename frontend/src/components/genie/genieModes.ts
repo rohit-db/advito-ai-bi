@@ -4,15 +4,15 @@ import type { GenieMode } from "@/hooks/useGenieMcpChat";
 // tailored example for each. Both are native Databricks endpoints — no external
 // orchestration is needed to power this analytical experience.
 export const MODE_META: Record<GenieMode, { label: string; path: string; blurb: string }> = {
+  multi: {
+    label: "Genie One MCP",
+    path: "/api/2.0/mcp/genie",
+    blurb: "Workspace-wide agent across every Genie space you can access.",
+  },
   space: {
-    label: "Genie Space MCP",
+    label: "Genie Space",
     path: "/api/2.0/mcp/genie/{space_id}",
     blurb: "A single Genie space — the APEX Travel Intelligence space.",
-  },
-  multi: {
-    label: "Genie MCP",
-    path: "/api/2.0/mcp/genie",
-    blurb: "Workspace-wide server exposing every Genie space you can access.",
   },
 };
 

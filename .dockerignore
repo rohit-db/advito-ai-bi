@@ -1,0 +1,43 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Node / frontend build artifacts (frontend is built inside the image)
+**/node_modules
+frontend/dist
+
+# Python caches & virtualenvs
+**/__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Local env / secrets
+.env
+*.env
+edge/.env
+
+# Not needed at runtime
+app-appkit
+docs
+*.md
+
+# Editor / OS cruft
+.vscode
+.idea
+.DS_Store
+
+# Screenshots / recordings / scratch artifacts
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mov
+screenshots
+recordings

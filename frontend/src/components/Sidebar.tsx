@@ -31,17 +31,28 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         onClick={() => navigate(path)}
         title={collapsed ? label : undefined}
         className={cn(
-          "w-full flex items-center rounded-md transition-colors",
-          collapsed ? "justify-center px-2 py-2" : "gap-2.5 px-2 py-1.5",
+          "group relative w-full flex items-center rounded-lg transition-all duration-150",
+          collapsed ? "justify-center px-2 py-2" : "gap-2.5 px-2.5 py-2",
           isActive
-            ? "bg-apex-primary text-white font-medium shadow-sm"
-            : "text-white/60 hover:bg-apex-sidebar-hover hover:text-white"
+            ? "bg-white/10 text-white"
+            : "text-white/55 hover:bg-white/5 hover:text-white"
         )}
       >
-        {Icon && <Icon size={16} strokeWidth={isActive ? 2 : 1.5} />}
+        {isActive && !collapsed && (
+          <span className="absolute left-0 inset-y-1.5 w-[3px] rounded-r-full bg-indigo-400" />
+        )}
+        {Icon && (
+          <Icon
+            size={17}
+            strokeWidth={isActive ? 2.2 : 1.75}
+            className={cn("shrink-0 transition-colors", isActive ? "text-indigo-300" : "text-white/55 group-hover:text-white")}
+          />
+        )}
         {!collapsed && (
           <>
-            <span className="flex-1 text-left text-sm">{label}</span>
+            <span className={cn("flex-1 text-left text-[13px]", isActive ? "font-semibold" : "font-medium")}>
+              {label}
+            </span>
             {placeholder && (
               <span className="text-[9px] font-semibold tracking-wider uppercase bg-white/10 text-white/50 px-1.5 py-0.5 rounded">
                 soon
@@ -56,28 +67,35 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col shrink-0 h-full bg-apex-sidebar transition-all duration-200",
-        collapsed ? "w-[60px]" : "w-[220px]"
+        "flex flex-col shrink-0 h-full bg-gradient-to-b from-[#211d52] via-apex-sidebar to-[#16142e] transition-all duration-200",
+        collapsed ? "w-[60px]" : "w-[224px]"
       )}
     >
       {/* Logo + collapse toggle */}
       <div className="px-3 py-4 border-b border-white/10 shrink-0">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           {!collapsed ? (
-            <div>
-              <div className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5 px-1">
-                ✦ APEX
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="grid place-items-center w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 text-white text-base font-bold shadow-lg shadow-indigo-900/40 shrink-0">
+                ✦
               </div>
-              <div className="text-[9px] text-white/40 tracking-[0.2em] uppercase mt-0.5 px-1">
-                Advito Practice Exchange
+              <div className="min-w-0">
+                <div className="text-[15px] font-bold tracking-tight text-white leading-none">
+                  APEX
+                </div>
+                <div className="text-[8.5px] text-white/40 tracking-[0.18em] uppercase mt-1 truncate">
+                  Advito Practice Exchange
+                </div>
               </div>
             </div>
           ) : (
-            <div className="text-white font-bold text-lg mx-auto">✦</div>
+            <div className="grid place-items-center w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 text-white text-base font-bold shadow-lg shadow-indigo-900/40 mx-auto">
+              ✦
+            </div>
           )}
           <button
             onClick={onToggle}
-            className="p-1 text-white/40 hover:text-white/80 transition-colors rounded"
+            className="p-1.5 text-white/40 hover:text-white hover:bg-white/5 transition-colors rounded-lg shrink-0"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? <PanelLeft size={16} /> : <PanelLeftClose size={16} />}
@@ -87,14 +105,20 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Client badge */}
       {!collapsed ? (
-        <div className="px-4 py-3 border-b border-white/10 shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-            <span className="text-xs font-medium text-white/70 truncate">CloudVenture</span>
+        <div className="px-3 py-3 border-b border-white/10 shrink-0">
+          <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.04] ring-1 ring-white/5 px-2.5 py-2">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-[9px] text-white/35 tracking-[0.14em] uppercase leading-none">Client</div>
+              <div className="text-xs font-semibold text-white/85 truncate mt-0.5">CloudVenture</div>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="py-2 border-b border-white/10 shrink-0 flex justify-center">
+        <div className="py-2.5 border-b border-white/10 shrink-0 flex justify-center">
           <span className="w-2 h-2 rounded-full bg-emerald-400" title="CloudVenture" />
         </div>
       )}

@@ -1,9 +1,27 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
-import { buildTokenEmbedUrl, fetchEmbedToken } from "@/config";
+import { DatabricksDashboard } from "@databricks/aibi-client";
+import { WORKSPACE, ORG, DEFAULT_FILTERS, buildTokenEmbedUrl, fetchEmbedToken } from "@/config";
 import type { FilterState, PageConfig } from "@/config";
 
+// Config payload that hides the "Powered by Databricks" footer. Mirrors what
+// @databricks/aibi-client sends; we re-send it ourselves after any iframe reload
+// because the SDK only pushes it once (after the first DATABRICKS_EMBED_READY).
+const LOGO_CONFIG = { version: 1, hideRefreshButton: false, hideDatabricksLogo: true };
+
+// The embedded dashboard renders its own page header/title bar at the top. We
+// crop it by shifting the iframe up and over-sizing its height (the SDK renders
+// the iframe at a flat 100%, so we re-apply this after it builds the iframe).
 const HEADER_OFFSET = 48;
+
+function cropIframeHeader(iframe: HTMLIFrameElement | null | undefined) {
+  if (!iframe) return;
+  iframe.style.display = "block";
+  iframe.style.width = "100%";
+  iframe.style.border = "0";
+  iframe.style.marginTop = `-${HEADER_OFFSET}px`;
+  iframe.style.height = `calc(100% + ${HEADER_OFFSET}px)`;
+}
 
 interface CustomDashboardProps {
   dashboardId: string;
@@ -12,6 +30,27 @@ interface CustomDashboardProps {
   activePageId?: string;
 }
 
+function filtersAreDefault(f: FilterState): boolean {
+  return (
+    f.currentPeriodFrom === DEFAULT_FILTERS.currentPeriodFrom &&
+    f.currentPeriodTo === DEFAULT_FILTERS.currentPeriodTo &&
+    f.previousPeriodFrom === DEFAULT_FILTERS.previousPeriodFrom &&
+    f.previousPeriodTo === DEFAULT_FILTERS.previousPeriodTo &&
+    !f.travelSector &&
+    !f.destinationRegion
+  );
+}
+
+/**
+ * White-label dashboard embed.
+ *
+ * Uses the official @databricks/aibi-client SDK so we get the supported
+ * `config.hideDatabricksLogo` flag (removes the "Powered by Databricks" footer)
+ * plus token mint/refresh. The SDK has no filter API, so we apply the dashboard
+ * `f_…` filter widgets by reloading the embed iframe with the documented URL
+ * params — and re-push the hide-logo config after each reload (the SDK only
+ * sends it once). Page switches use the SDK's smooth `navigate()`.
+ */
 export default function CustomDashboard({
   dashboardId,
   pages,
@@ -20,65 +59,137 @@ export default function CustomDashboard({
 }: CustomDashboardProps) {
   const currentPageId = activePageId || pages[0]?.pageId || "";
 
-  const [loadedPages, setLoadedPages] = useState<Set<string>>(new Set());
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dashRef = useRef<DatabricksDashboard | null>(null);
+  const tokenRef = useRef<string>("");
+  const readyRef = useRef(false);
+  const pageRef = useRef(currentPageId);
+  pageRef.current = currentPageId;
 
-  // External (token) embedding: fetch a scoped SP token so the dashboard
-  // renders with no Databricks login, then refresh it before expiry.
-  const [token, setToken] = useState<string | null>(null);
-  const [tokenError, setTokenError] = useState<string | null>(null);
-  const refreshRef = useRef<number | null>(null);
+  const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const res = await fetchEmbedToken(dashboardId);
-        if (cancelled) return;
-        if (res.ok && res.token) {
-          setToken(res.token);
-          setTokenError(null);
-          const ms = Math.max(60_000, (res.expires_in ?? 3600) * 1000 - 300_000);
-          refreshRef.current = window.setTimeout(load, ms);
-        } else {
-          setTokenError(res.error || "Could not mint embed token");
-        }
-      } catch (e) {
-        if (!cancelled) setTokenError(e instanceof Error ? e.message : String(e));
+  const fromEmbed = (e: MessageEvent): boolean => {
+    try {
+      return new URL(e.origin).origin === new URL(WORKSPACE).origin;
+    } catch {
+      return false;
+    }
+  };
+
+  // Re-send the hide-logo config the next time the embed reports READY (needed
+  // after every reload, since the SDK only auto-sends it once).
+  const reapplyConfigOnNextReady = () => {
+    const onReady = (e: MessageEvent) => {
+      if (!fromEmbed(e)) return;
+      if (e.data?.type === "DATABRICKS_EMBED_READY") {
+        const iframe = containerRef.current?.querySelector("iframe");
+        iframe?.contentWindow?.postMessage(
+          { type: "DATABRICKS_SET_CONFIG", config: LOGO_CONFIG },
+          WORKSPACE
+        );
+        window.removeEventListener("message", onReady);
       }
     };
-    load();
+    window.addEventListener("message", onReady);
+    setTimeout(() => window.removeEventListener("message", onReady), 20000);
+  };
+
+  const reloadWithFilters = (pageId: string, f: FilterState) => {
+    const iframe = containerRef.current?.querySelector("iframe");
+    if (!iframe || !tokenRef.current) return;
+    reapplyConfigOnNextReady();
+    iframe.src = buildTokenEmbedUrl(dashboardId, pageId, tokenRef.current, f);
+  };
+
+  // Create the SDK dashboard once per dashboard.
+  useEffect(() => {
+    let cancelled = false;
+    readyRef.current = false;
+    setPhase("loading");
+    setError(null);
+
+    const onFirstReady = (e: MessageEvent) => {
+      if (!fromEmbed(e)) return;
+      if (e.data?.type === "DATABRICKS_EMBED_READY" && !readyRef.current) {
+        readyRef.current = true;
+        setPhase("ready");
+        // Apply any non-default initial filters (e.g. restored from Lakebase).
+        if (!filtersAreDefault(filters)) reloadWithFilters(pageRef.current, filters);
+      }
+    };
+    window.addEventListener("message", onFirstReady);
+
+    (async () => {
+      const res = await fetchEmbedToken(dashboardId);
+      if (cancelled) return;
+      if (!res.ok || !res.token) {
+        setError(res.error || "Could not mint embed token");
+        setPhase("error");
+        return;
+      }
+      tokenRef.current = res.token;
+      if (!containerRef.current) return;
+      const dash = new DatabricksDashboard({
+        instanceUrl: WORKSPACE,
+        workspaceId: ORG,
+        dashboardId,
+        pageId: currentPageId || undefined,
+        token: res.token,
+        container: containerRef.current,
+        config: { version: 1, hideDatabricksLogo: true },
+        getNewToken: async () => {
+          const r = await fetchEmbedToken(dashboardId);
+          if (r.ok && r.token) tokenRef.current = r.token;
+          return r.token || "";
+        },
+      });
+      dash.initialize();
+      dashRef.current = dash;
+      // The SDK appends its iframe synchronously during initialize(); crop the
+      // embedded dashboard's page header (rAF guards against append timing).
+      requestAnimationFrame(() => cropIframeHeader(containerRef.current?.querySelector("iframe")));
+    })();
+
     return () => {
       cancelled = true;
-      if (refreshRef.current) window.clearTimeout(refreshRef.current);
+      window.removeEventListener("message", onFirstReady);
+      try {
+        dashRef.current?.destroy();
+      } catch {
+        /* ignore */
+      }
+      dashRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardId]);
 
-  // Rebuild URLs when filters or token change — iframe src change triggers reload
-  const pageUrls = useMemo(() => {
-    if (!token) return {} as Record<string, string>;
-    return Object.fromEntries(
-      pages.map((page) => [page.pageId, buildTokenEmbedUrl(dashboardId, page.pageId, token, filters)])
-    );
-  }, [dashboardId, pages, filters, token]);
-
-  const markLoaded = (pageId: string) => {
-    setLoadedPages((prev) => {
-      if (prev.has(pageId)) return prev;
-      const next = new Set(prev);
-      next.add(pageId);
-      return next;
+  // Page switch (no filter change) → smooth in-place navigate.
+  useEffect(() => {
+    if (!readyRef.current || !dashRef.current) return;
+    dashRef.current.navigate({ dashboardId, pageId: currentPageId }).catch(() => {
+      // Fall back to a reload if navigate isn't available yet.
+      reloadWithFilters(currentPageId, filters);
     });
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPageId]);
+
+  // Filter change → reload the current page with f_ params.
+  useEffect(() => {
+    if (!readyRef.current) return;
+    reloadWithFilters(pageRef.current, filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   if (pages.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-sm text-gray-400">
+      <div className="h-full flex items-center justify-center text-sm text-slate-400">
         No pages configured for this dashboard.
       </div>
     );
   }
 
-  if (tokenError) {
+  if (phase === "error") {
     return (
       <div className="h-full flex items-center justify-center p-6">
         <div className="max-w-md rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
@@ -86,18 +197,7 @@ export default function CustomDashboard({
             <AlertCircle size={16} />
             Could not load the dashboard
           </div>
-          <p className="text-rose-600">{tokenError}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!token) {
-    return (
-      <div className="h-full flex items-center justify-center bg-apex-bg">
-        <div className="flex flex-col items-center gap-3 text-gray-400">
-          <Loader2 size={28} className="animate-spin text-indigo-500" />
-          <span className="text-xs font-medium">Preparing secure dashboard…</span>
+          <p className="text-rose-600">{error}</p>
         </div>
       </div>
     );
@@ -105,45 +205,16 @@ export default function CustomDashboard({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Iframe layer — all pages stay mounted for instant tab switching */}
       <div className="flex-1 relative overflow-hidden bg-apex-bg">
-        {pages.map((page) => {
-          const isActive = page.pageId === currentPageId;
-          const isLoaded = loadedPages.has(page.pageId);
-          const src = pageUrls[page.pageId];
-
-          return (
-            <div
-              key={page.pageId}
-              className="absolute inset-0"
-              style={{
-                visibility: isActive ? "visible" : "hidden",
-                zIndex: isActive ? 1 : 0,
-                overflow: "hidden",
-              }}
-            >
-              {!isLoaded && isActive && (
-                <div className="absolute inset-0 flex items-center justify-center bg-apex-bg z-10">
-                  <div className="flex flex-col items-center gap-3 text-gray-400">
-                    <Loader2 size={28} className="animate-spin text-indigo-500" />
-                    <span className="text-xs font-medium">Loading {page.label}…</span>
-                  </div>
-                </div>
-              )}
-              <iframe
-                src={src}
-                title={`APEX — ${page.label}`}
-                className="w-full border-0"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                onLoad={() => markLoaded(page.pageId)}
-                style={{
-                  marginTop: `-${HEADER_OFFSET}px`,
-                  height: `calc(100% + ${HEADER_OFFSET}px)`,
-                }}
-              />
+        {phase === "loading" && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-apex-bg">
+            <div className="flex flex-col items-center gap-3 text-slate-400">
+              <Loader2 size={28} className="animate-spin text-indigo-500" />
+              <span className="text-xs font-medium">Preparing secure dashboard…</span>
             </div>
-          );
-        })}
+          </div>
+        )}
+        <div ref={containerRef} className="absolute inset-0" />
       </div>
     </div>
   );

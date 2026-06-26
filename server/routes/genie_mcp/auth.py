@@ -1,10 +1,13 @@
 """
 Auth for the Genie MCP connection.
 
-Prefer the on-behalf-of (OBO) user token the Databricks App platform injects as
-``x-forwarded-access-token`` (requires the ``genie`` user API scope), so Genie
-runs AS THE USER under Unity Catalog governance. Falls back to the app service
-principal (Databricks App) or a local PAT for dev.
+When hosted externally (the default for this branch) Genie runs AS THE APP
+SERVICE PRINCIPAL, authenticated via M2M (DATABRICKS_CLIENT_ID/SECRET) — no
+Databricks login and no Databricks Apps platform required.
+
+If an on-behalf-of (OBO) user token is forwarded (e.g. inside a Databricks App
+via ``x-forwarded-access-token`` with the ``genie`` user API scope, or by your
+own IdP), it is honored first so Genie runs as the user under UC governance.
 """
 
 import os
@@ -12,7 +15,7 @@ import os
 from fastapi import Request
 from databricks.sdk import WorkspaceClient
 
-from ...config import IS_DATABRICKS_APP
+from ...config import IS_DATABRICKS_APP, get_sp_bearer
 
 
 def resolve_token(request: Request) -> tuple[str, str]:
@@ -20,6 +23,12 @@ def resolve_token(request: Request) -> tuple[str, str]:
     obo = request.headers.get("x-forwarded-access-token")
     if obo:
         return obo, "obo"
+
+    # Host-agnostic Service Principal (M2M). Works on EC2/ECS/any container and
+    # inside Databricks Apps — this is the portable path for external hosting.
+    sp_token = get_sp_bearer()
+    if sp_token:
+        return sp_token, "service_principal"
 
     if IS_DATABRICKS_APP:
         sp = WorkspaceClient()
@@ -33,6 +42,7 @@ def resolve_token(request: Request) -> tuple[str, str]:
     pat = os.environ.get("token")
     if not pat:
         raise RuntimeError(
-            "No OBO token and no local PAT (env 'token') available for the MCP connection"
+            "No OBO token, no SP credentials (DATABRICKS_CLIENT_ID/SECRET), and no "
+            "local PAT (env 'token') available for the MCP connection"
         )
     return pat, "service_principal"

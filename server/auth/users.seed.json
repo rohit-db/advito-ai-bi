@@ -1,0 +1,30 @@
+{
+  "_note": "Demo user directory for the white-label login layer (JSON fallback, used when LAKEBASE_ENABLED is false). All sample users share the demo password 'apex'. Password hashes are PBKDF2-HMAC-SHA256 (pbkdf2_sha256$iterations$salt_b64$hash_b64) generated via server.auth.sessions.hash_password.",
+  "demo_password": "apex",
+  "users": [
+    {
+      "email": "alice@acmetravel.com",
+      "password_hash": "pbkdf2_sha256$200000$f6z8grNh51tm1ZRwb27oiA==$M1W5FVeDDIeie4/UZYb0lXZhRv13KYsqR4jfxSZicws=",
+      "display_name": "Alice Chen",
+      "tenant": "Acme Travel",
+      "external_value": "acme-travel",
+      "role": "user"
+    },
+    {
+      "email": "ben@globex.com",
+      "password_hash": "pbkdf2_sha256$200000$VlVEnp2/DLSzniRgPNRjmg==$pBPxITdNR5LuGDQaFcAgtO3lkFjK4tASkAReQ0nGstQ=",
+      "display_name": "Ben Ortiz",
+      "tenant": "Globex",
+      "external_value": "globex",
+      "role": "user"
+    },
+    {
+      "email": "dana@advito.com",
+      "password_hash": "pbkdf2_sha256$200000$fAc5OBfaZAOcBXvWy/FfHw==$DICXaHvpkXX3g9CRJ6as6phddg5cX0FpJt6ntNSfLxo=",
+      "display_name": "Dana Lee",
+      "tenant": "Advito (All)",
+      "external_value": "*",
+      "role": "operator"
+    }
+  ]
+}

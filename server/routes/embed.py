@@ -25,7 +25,7 @@ import os
 import urllib.parse
 
 import requests
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from ..config import WORKSPACE_URL, DASHBOARD_URL
@@ -100,11 +100,29 @@ def _mint_embed_token(dashboard_id: str, viewer_id: str, external_value: str | N
 
 
 @router.get("/embed/token")
-def embed_token(dashboard_id: str | None = None,
+def embed_token(request: Request,
+                dashboard_id: str | None = None,
                 viewer_id: str = "apex-viewer",
                 external_value: str | None = None) -> JSONResponse:
-    """Return a scoped, browser-safe embed token for the given dashboard."""
+    """Return a scoped, browser-safe embed token for the given dashboard.
+
+    When a white-label session is present (``request.state.identity``, set by the
+    auth middleware), the logged-in tenant's ``external_value`` and a stable
+    ``viewer_id`` derived from the session take precedence over the query-param
+    defaults — so each tenant automatically gets row-scoped data without the
+    caller having to pass anything. Explicit query params still override when set.
+    """
     did = dashboard_id or _DEFAULT_DASHBOARD_ID
+
+    identity = getattr(request.state, "identity", None)
+    if identity:
+        # Session identity wins over the default viewer; a query-param override
+        # (anything other than the default) is still honored.
+        if viewer_id == "apex-viewer":
+            viewer_id = identity.get("email") or identity.get("tenant") or viewer_id
+        if external_value is None:
+            external_value = identity.get("external_value")
+
     try:
         result = _mint_embed_token(did, viewer_id, external_value)
         return JSONResponse({"ok": True, "dashboard_id": did, **result})

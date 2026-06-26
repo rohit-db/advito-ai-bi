@@ -5,6 +5,5 @@ pydantic
 python-dotenv
 httpx
 requests
-anthropic
-mlflow
 mcp
+psycopg[binary]

@@ -1,31 +1,42 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Plus, Sparkles, Zap, Cpu } from "lucide-react";
+import { Send, Plus, Sparkles, MessageSquare, Trash2, History, ArrowUp } from "lucide-react";
 import {
   useGenieMcpChat,
   type GenieMcpMessage,
-  type GenieMode,
+  type ConversationMeta,
 } from "@/hooks/useGenieMcpChat";
 import { useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MODE_META, SUGGESTIONS_BY_MODE } from "@/components/genie/genieModes";
-import { McpStatusChip } from "@/components/genie/GenieMcpStatus";
+import { SUGGESTIONS_BY_MODE } from "@/components/genie/genieModes";
+import { McpStatusPill } from "@/components/genie/GenieMcpStatus";
 import GenieAssistantMessage from "@/components/genie/GenieAssistantMessage";
 
 export default function GenieMcpExperience() {
-  const { messages, isLoading, mcpStatus, mode, setMode, checkHealth, sendMessage, clearChat } =
-    useGenieMcpChat();
+  const {
+    messages,
+    isLoading,
+    mcpStatus,
+    checkHealth,
+    sendMessage,
+    clearChat,
+    conversations,
+    activeConversationId,
+    loadConversation,
+    removeConversation,
+  } = useGenieMcpChat("multi", { persist: true }); // Genie One MCP (workspace-wide), no toggle
   const { user } = useUser();
   const [input, setInput] = useState("");
   const [openSql, setOpenSql] = useState<Record<string, boolean>>({});
   const [openTools, setOpenTools] = useState<Record<string, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const empty = messages.length === 0;
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = () => {
     if (!input.trim() || isLoading) return;
     sendMessage(input.trim());
     setInput("");
@@ -35,196 +46,329 @@ export default function GenieMcpExperience() {
   const toggleTools = (id: string) => setOpenTools((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gray-50/50 min-w-0">
-      {/* Header / hero */}
-      <div className="shrink-0 bg-gradient-to-r from-violet-700 to-indigo-700 text-white px-6 py-4">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-3">
-            <div className="bg-white/15 rounded-xl p-2.5">
-              <Sparkles className="w-6 h-6 text-white" />
+    <div className="flex-1 flex h-full min-w-0">
+      <ConversationRail
+        conversations={conversations}
+        activeId={activeConversationId}
+        onSelect={loadConversation}
+        onNew={clearChat}
+        onDelete={removeConversation}
+        disabled={isLoading}
+      />
+
+      <div className="relative flex-1 flex flex-col h-full min-w-0 bg-slate-50">
+        {/* Header */}
+        <header className="z-10 shrink-0 border-b border-slate-200/70 bg-white/70 px-6 py-3 backdrop-blur-md">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 shadow-sm shadow-indigo-300/50">
+                <Sparkles className="h-[18px] w-[18px] text-white" />
+              </div>
+              <div>
+                <h1 className="text-[15px] font-semibold leading-tight tracking-tight text-slate-900">
+                  Ask APEX
+                </h1>
+                <p className="text-[11px] text-slate-500">Conversational analytics, governed</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold leading-tight">Genie MCP</h1>
-              <p className="text-sm text-white/80 max-w-2xl mt-0.5">
-                A real MCP client talking to the Databricks{" "}
-                <span className="font-semibold">managed Genie MCP server</span> — grounded answers
-                with live reasoning, generated SQL, result tables, and a deep link back to Databricks.
+            <McpStatusPill status={mcpStatus} onRetry={checkHealth} />
+          </div>
+        </header>
+
+        {empty ? (
+          /* ───── Landing: centered hero composer ───── */
+          <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
+            {/* decorative depth */}
+            <div aria-hidden className="pointer-events-none absolute inset-0">
+              <div className="absolute left-1/2 top-[22%] h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-400/15 blur-3xl" />
+              <div className="absolute left-[30%] top-[55%] h-56 w-56 rounded-full bg-violet-400/10 blur-3xl" />
+            </div>
+
+            <div className="relative z-10 w-full max-w-2xl text-center">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-300/40 ring-1 ring-white/40">
+                <Sparkles className="h-7 w-7 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+                Ask APEX anything
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-slate-500">
+                Grounded answers on your travel spend, sustainability, and bookings — with live SQL
+                and results.
               </p>
+
+              <div className="mt-7">
+                <HeroComposer
+                  value={input}
+                  onChange={setInput}
+                  onSubmit={submit}
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                {SUGGESTIONS_BY_MODE.multi.map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => !isLoading && sendMessage(q)}
+                    className="rounded-full border border-slate-200 bg-white/70 px-3.5 py-1.5 text-[13px] text-slate-600 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:text-indigo-700 hover:shadow"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-          <McpStatusChip status={mcpStatus} onRetry={checkHealth} />
-        </div>
-        <ModeToggle mode={mode} onChange={setMode} disabled={isLoading} />
-      </div>
-
-      {/* Contrast banner: Multi-Agent vs Genie MCP */}
-      <ContrastBanner />
-
-      {/* Conversation */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-5">
-        {messages.length === 0 ? (
-          <EmptyState mode={mode} onPick={(q) => !isLoading && sendMessage(q)} />
         ) : (
-          <div className="max-w-4xl mx-auto space-y-5">
-            {messages.map((m) =>
-              m.role === "user" ? (
-                <UserBubble key={m.id} message={m} initials={user?.initials || "U"} />
-              ) : (
-                <GenieAssistantMessage
-                  key={m.id}
-                  message={m}
-                  variant="full"
-                  sqlOpen={!!openSql[m.id]}
-                  onToggleSql={() => toggleSql(m.id)}
-                  toolsOpen={!!openTools[m.id]}
-                  onToggleTools={() => toggleTools(m.id)}
-                  collapsibleAnswer
-                  showFooter
+          /* ───── Conversation ───── */
+          <>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="mx-auto max-w-3xl space-y-5">
+                {messages.map((m) =>
+                  m.role === "user" ? (
+                    <UserBubble key={m.id} message={m} initials={user?.initials || "U"} />
+                  ) : (
+                    <GenieAssistantMessage
+                      key={m.id}
+                      message={m}
+                      variant="full"
+                      sqlOpen={!!openSql[m.id]}
+                      onToggleSql={() => toggleSql(m.id)}
+                      toolsOpen={!!openTools[m.id]}
+                      onToggleTools={() => toggleTools(m.id)}
+                      collapsibleAnswer
+                      showFooter
+                    />
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Footer composer */}
+            <div className="shrink-0 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent px-6 pb-5 pt-3">
+              <div className="mx-auto flex max-w-3xl items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={clearChat}
+                  title="New conversation"
+                  className="flex h-11 shrink-0 items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                >
+                  <Plus size={16} />
+                  <span className="hidden sm:inline">New</span>
+                </button>
+                <FooterComposer
+                  value={input}
+                  onChange={setInput}
+                  onSubmit={submit}
+                  disabled={isLoading}
                 />
-              )
-            )}
-          </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
-
-      {/* Composer */}
-      <div className="shrink-0 border-t border-gray-200 bg-white px-6 py-4">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex items-center gap-3">
-          <button
-            type="button"
-            onClick={clearChat}
-            title="New conversation"
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm text-violet-700 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors shrink-0"
-          >
-            <Plus size={16} />
-            <span className="hidden sm:inline">New</span>
-          </button>
-          <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2.5 focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-100 transition-all">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Genie a question about your travel data..."
-              disabled={isLoading}
-              className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none disabled:cursor-not-allowed"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className="w-11 h-11 bg-violet-600 rounded-full flex items-center justify-center hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
-          >
-            <Send size={18} className="text-white" />
-          </button>
-        </form>
-      </div>
     </div>
   );
 }
 
-/* ───────────────────────────── Page chrome ─────────────────────────────────── */
+/* ───────────────────────────── Composers ───────────────────────────────────── */
 
-function ModeToggle({
-  mode,
+function HeroComposer({
+  value,
   onChange,
+  onSubmit,
   disabled,
 }: {
-  mode: GenieMode;
-  onChange: (m: GenieMode) => void;
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit: () => void;
   disabled?: boolean;
 }) {
-  const modes: GenieMode[] = ["space", "multi"];
   return (
-    <div className="mt-3 flex flex-col gap-1.5">
-      <div className="inline-flex items-center gap-1 bg-white/10 rounded-xl p-1 w-fit">
-        {modes.map((m) => {
-          const active = m === mode;
-          return (
-            <button
-              key={m}
-              type="button"
-              disabled={disabled}
-              onClick={() => onChange(m)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                active ? "bg-white text-violet-700 shadow-sm" : "text-white/80 hover:text-white"
-              }`}
-            >
-              {MODE_META[m].label}
-            </button>
-          );
-        })}
-      </div>
-      <p className="text-[11px] text-white/70">
-        {MODE_META[mode].blurb}{" "}
-        <span className="font-mono text-white/55">{MODE_META[mode].path}</span>
-      </p>
-    </div>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+      className="group relative flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-xl shadow-slate-300/30 transition-all focus-within:border-indigo-400 focus-within:shadow-indigo-200/40 focus-within:ring-4 focus-within:ring-indigo-100"
+    >
+      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-indigo-400" />
+      {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+      <input
+        autoFocus
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Ask about spend, emissions, bookings…"
+        disabled={disabled}
+        className="flex-1 bg-transparent py-1.5 text-[15px] text-slate-800 placeholder-slate-400 focus:outline-none disabled:cursor-not-allowed"
+      />
+      <SendButton disabled={disabled || !value.trim()} />
+    </form>
   );
 }
 
-function ContrastBanner() {
+function FooterComposer({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <div className="shrink-0 bg-white border-b border-gray-200 px-6 py-3">
-      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="flex items-start gap-2.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-          <Cpu className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-semibold text-gray-700">Multi-Agent System (Model Serving)</p>
-            <p className="text-xs text-gray-500">Streams a free-text answer. No native SQL, table, or deep link.</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2">
-          <Zap className="w-5 h-5 text-violet-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-semibold text-violet-700">Genie MCP (this page)</p>
-            <p className="text-xs text-gray-600">
-              Grounded answer + live reasoning + generated SQL + result table + deep link, governed by Unity Catalog.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+      className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-1.5 shadow-sm transition-all focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100"
+    >
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Ask a follow-up…"
+        disabled={disabled}
+        className="h-8 flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none disabled:cursor-not-allowed"
+      />
+      <SendButton disabled={disabled || !value.trim()} />
+    </form>
   );
 }
 
-function EmptyState({ mode, onPick }: { mode: GenieMode; onPick: (q: string) => void }) {
+function SendButton({ disabled }: { disabled?: boolean }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center px-8 py-12 max-w-3xl mx-auto">
-      <div className="bg-violet-100 rounded-2xl p-4 mb-5">
-        <Sparkles className="w-9 h-9 text-violet-600" />
+    <button
+      type="submit"
+      disabled={disabled}
+      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
+    >
+      <ArrowUp size={16} strokeWidth={2.5} />
+    </button>
+  );
+}
+
+/* ─────────────────────────── Conversation history ──────────────────────────── */
+
+function formatRelative(iso: string | null): string {
+  if (!iso) return "";
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const diff = Date.now() - then;
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function ConversationRail({
+  conversations,
+  activeId,
+  onSelect,
+  onNew,
+  onDelete,
+  disabled,
+}: {
+  conversations: ConversationMeta[];
+  activeId: string | null;
+  onSelect: (id: string) => void;
+  onNew: () => void;
+  onDelete: (id: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
+      <div className="flex shrink-0 items-center justify-between px-3 py-3">
+        <div className="flex items-center gap-2 text-slate-700">
+          <History size={15} className="text-indigo-600" />
+          <span className="text-sm font-semibold">History</span>
+        </div>
+        <button
+          type="button"
+          onClick={onNew}
+          disabled={disabled}
+          title="New conversation"
+          className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-500 text-white shadow-sm transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <Plus size={15} />
+        </button>
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-2">Ask Genie anything</h3>
-      <p className="text-gray-600 mb-2 max-w-xl">
-        Watch Genie reason step-by-step, generate SQL, run it against your governed data, and answer
-        — all through the Model Context Protocol.
-      </p>
-      <p className="text-xs text-gray-500 mb-8">
-        Querying the <span className="font-semibold text-violet-700">{MODE_META[mode].label}</span> —{" "}
-        {MODE_META[mode].blurb}
-      </p>
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {SUGGESTIONS_BY_MODE[mode].map((q) => (
-          <button
-            key={q}
-            onClick={() => onPick(q)}
-            className="text-left px-4 py-3.5 bg-white border border-gray-200 rounded-xl hover:border-violet-300 hover:shadow-sm transition-all text-sm text-gray-700"
-          >
-            {q}
-          </button>
-        ))}
+      <div className="flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
+        {conversations.length === 0 ? (
+          <p className="px-2 py-8 text-center text-xs leading-relaxed text-slate-400">
+            Your conversations appear here.
+            <br />
+            Ask a question to start one.
+          </p>
+        ) : (
+          conversations.map((c) => {
+            const active = c.id === activeId;
+            return (
+              <div
+                key={c.id}
+                onClick={() => onSelect(c.id)}
+                className={`group relative flex cursor-pointer items-start gap-2 rounded-lg px-2.5 py-2 transition-colors ${
+                  active ? "bg-indigo-50 text-indigo-900" : "hover:bg-slate-50"
+                }`}
+              >
+                {active && (
+                  <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-indigo-500" />
+                )}
+                <MessageSquare
+                  size={14}
+                  className={`mt-0.5 shrink-0 ${active ? "text-indigo-600" : "text-slate-400"}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={`truncate text-[13px] font-medium ${
+                      active ? "text-indigo-900" : "text-slate-700"
+                    }`}
+                  >
+                    {c.title}
+                  </p>
+                  <p className="text-[11px] text-slate-400">{formatRelative(c.updated_at)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(c.id);
+                  }}
+                  title="Delete conversation"
+                  className="shrink-0 p-1 text-slate-300 opacity-0 transition-all hover:text-rose-500 group-hover:opacity-100"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            );
+          })
+        )}
       </div>
-    </div>
+      <div className="shrink-0 border-t border-slate-100 px-3 py-2.5">
+        <p className="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          History stored in <span className="font-semibold text-indigo-600">Lakebase</span>
+        </p>
+      </div>
+    </aside>
   );
 }
 
 function UserBubble({ message, initials }: { message: GenieMcpMessage; initials: string }) {
   return (
-    <div className="flex items-start justify-end gap-2">
-      <div className="bg-violet-600 text-white rounded-2xl rounded-br-md px-4 py-2.5 shadow-sm max-w-[80%]">
-        <p className="text-sm">{message.content}</p>
+    <div className="flex items-start justify-end gap-2.5">
+      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-gradient-to-br from-indigo-600 to-indigo-500 px-4 py-2.5 text-white shadow-sm shadow-indigo-200/50">
+        <p className="text-sm leading-relaxed">{message.content}</p>
       </div>
-      <Avatar className="h-7 w-7 shrink-0">
-        <AvatarFallback className="bg-violet-100 text-violet-700 text-[10px] font-semibold">
+      <Avatar className="h-7 w-7 shrink-0 ring-2 ring-white">
+        <AvatarFallback className="bg-indigo-100 text-[10px] font-semibold text-indigo-700">
           {initials}
         </AvatarFallback>
       </Avatar>

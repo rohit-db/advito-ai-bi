@@ -48,7 +48,7 @@ export function TabsList({ className, children, ...props }: TabsListProps) {
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-start rounded-lg bg-slate-100 p-1 gap-1",
+        "inline-flex items-center justify-start rounded-xl bg-slate-100/80 p-1 gap-1 ring-1 ring-slate-200/60",
         className
       )}
       role="tablist"
@@ -73,12 +73,12 @@ export function TabsTrigger({ className, value, children, ...props }: TabsTrigge
       aria-selected={isActive}
       onClick={() => setActiveTab(value)}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium",
-        "transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-[13px] font-semibold",
+        "transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
         "disabled:pointer-events-none disabled:opacity-50",
         isActive
-          ? "bg-indigo-600 text-white shadow-sm"
-          : "text-slate-600 hover:text-slate-900 hover:bg-slate-200",
+          ? "bg-white text-indigo-700 shadow-sm ring-1 ring-slate-200/70"
+          : "text-slate-500 hover:text-slate-800",
         className
       )}
       {...props}

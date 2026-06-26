@@ -23,10 +23,7 @@ export const ORG = "1048934788948873";
 // ─── Dashboard IDs ────────────────────────────────────────────────────────────
 
 export const DASHBOARDS = {
-  // Old NYC Taxi dashboards (legacy scaffolding)
-  legacyMultiPage: "01f11c0671df190d96063a4632a3611a",
-  legacySinglePage: "01f1169e4b5810418541b22a792aa916",
-  // APEX Travel Analytics dashboard (new, powered by apex.travel_metrics)
+  // APEX Travel Analytics dashboard (powered by the apex metric view)
   apex: "01f1271698161d42b3c66528415775e8",
 } as const;
 
@@ -162,6 +159,109 @@ export async function fetchEmbedToken(dashboardId: string): Promise<EmbedTokenRe
   return (await res.json()) as EmbedTokenResponse;
 }
 
+// ─── APEX persistence API (Lakebase-backed) ──────────────────────────────────
+// Conversation history + per-user dashboard filter preferences. Every helper
+// fails soft (returns empty/null) so the UI still works when Lakebase is off.
+
+export interface ConversationMeta {
+  id: string;
+  title: string;
+  mode: string;
+  created_at: string | null;
+  updated_at: string | null;
+  message_count: number;
+}
+
+export async function listConversations(): Promise<ConversationMeta[]> {
+  try {
+    const res = await fetch("/api/apex/conversations");
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.conversations ?? []) as ConversationMeta[];
+  } catch {
+    return [];
+  }
+}
+
+export async function createConversation(mode: string): Promise<string | null> {
+  try {
+    const res = await fetch("/api/apex/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.persisted ? (data.id as string) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getConversation(
+  id: string
+): Promise<{ id: string; title: string; mode: string; messages: any[] } | null> {
+  try {
+    const res = await fetch(`/api/apex/conversations/${encodeURIComponent(id)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function saveConversationTurn(
+  id: string,
+  user: string,
+  assistant: unknown
+): Promise<{ title?: string } | null> {
+  try {
+    const res = await fetch(`/api/apex/conversations/${encodeURIComponent(id)}/turn`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user, assistant }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteConversation(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/apex/conversations/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function fetchFilterPrefs(dashboardId: string): Promise<Partial<FilterState> | null> {
+  try {
+    const res = await fetch(`/api/apex/filters/${encodeURIComponent(dashboardId)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data.filters ?? null) as Partial<FilterState> | null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveFilterPrefs(dashboardId: string, filters: FilterState): Promise<void> {
+  try {
+    await fetch(`/api/apex/filters/${encodeURIComponent(dashboardId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filters }),
+    });
+  } catch {
+    /* fail soft */
+  }
+}
+
 /**
  * Converts FilterState to a context string for Genie chat.
  */
@@ -203,7 +303,7 @@ export const ROUTES: RouteConfig[] = [
   },
   {
     path: "/genie-mcp",
-    label: "Genie MCP",
+    label: "Ask APEX",
     icon: "Sparkles",
     section: "exploration",
     mode: "react",

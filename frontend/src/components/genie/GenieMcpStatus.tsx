@@ -43,6 +43,43 @@ export function McpStatusChip({ status, onRetry }: { status: McpStatus; onRetry:
   );
 }
 
+// Compact status pill for a LIGHT header (the Ask APEX page).
+export function McpStatusPill({ status, onRetry }: { status: McpStatus; onRetry: () => void }) {
+  if (status.state === "connecting") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+        <Radio className="h-3 w-3 animate-pulse" />
+        Connecting…
+      </span>
+    );
+  }
+  if (status.state === "error") {
+    return (
+      <button
+        onClick={onRetry}
+        title={status.message}
+        className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700 hover:bg-rose-100 transition-colors"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+        MCP offline — retry
+      </button>
+    );
+  }
+  const toolNames = (status.tools || []).map((t) => t.name).join(", ");
+  return (
+    <span
+      title={toolNames ? `Tools: ${toolNames}` : undefined}
+      className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700"
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+      Live MCP
+      <span className="text-emerald-600/70">
+        · {status.auth === "obo" ? "on-behalf-of user" : "service principal"}
+      </span>
+    </span>
+  );
+}
+
 // Tiny status dot for compact surfaces (the dashboard rail header).
 export function McpStatusDot({ state }: { state: McpStatus["state"] }) {
   const color =

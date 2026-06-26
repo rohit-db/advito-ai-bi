@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, MessageCircle, Send, Trash2, X } from "lucide-react";
+import { Sparkles, Send, Trash2, X } from "lucide-react";
 import ExecutiveSummaryModal from "@/components/ExecutiveSummaryModal";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useGenieMcpChat, type GenieMcpMessage } from "@/hooks/useGenieMcpChat";
 import { McpStatusDot } from "@/components/genie/GenieMcpStatus";
@@ -13,6 +12,10 @@ export interface DashboardWorkspaceProps {
   pageContext: string;
   summaryPrompt: string;
   suggestions: string[];
+  railOpen: boolean;
+  onRailOpenChange: (open: boolean) => void;
+  summaryOpen: boolean;
+  onSummaryOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }
 
@@ -22,11 +25,13 @@ export default function DashboardWorkspace({
   pageContext,
   summaryPrompt,
   suggestions,
+  railOpen,
+  onRailOpenChange,
+  summaryOpen,
+  onSummaryOpenChange,
   children,
 }: DashboardWorkspaceProps) {
   const { messages, isLoading, mcpStatus, sendMessage, clearChat } = useGenieMcpChat();
-  const [railOpen, setRailOpen] = useState(false);
-  const [summaryOpen, setSummaryOpen] = useState(false);
   const [input, setInput] = useState("");
   const [openSql, setOpenSql] = useState<Record<string, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -36,7 +41,6 @@ export default function DashboardWorkspace({
     clearChat();
     setInput("");
     setOpenSql({});
-    setSummaryOpen(false);
   }, [pageKey, clearChat]);
 
   useEffect(() => {
@@ -61,37 +65,15 @@ export default function DashboardWorkspace({
     <div className="flex h-full min-w-0">
       {/* Main column */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Toolbar */}
-        <div className="shrink-0 bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setSummaryOpen(true)}
-            className="gap-1.5 text-indigo-700 border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800"
-          >
-            <Sparkles size={14} />
-            <span>Executive Summary</span>
-          </Button>
-          <Button
-            size="sm"
-            variant={railOpen ? "default" : "outline"}
-            onClick={() => setRailOpen((o) => !o)}
-            className="gap-1.5"
-          >
-            <MessageCircle size={14} />
-            <span>Ask APEX</span>
-          </Button>
-        </div>
-
         {/* Dashboard content */}
         <div className="flex-1 min-h-0">{children}</div>
       </div>
 
       {/* Right rail */}
       {railOpen && (
-        <aside className="w-[400px] shrink-0 border-l border-gray-200 bg-white flex flex-col h-full">
+        <aside className="w-[400px] shrink-0 border-l border-slate-200 bg-white flex flex-col h-full">
           {/* Gradient header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 pt-4 pb-3 shrink-0">
+          <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 pt-4 pb-3 shrink-0">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
@@ -114,7 +96,7 @@ export default function DashboardWorkspace({
                   <Trash2 size={14} />
                 </button>
                 <button
-                  onClick={() => setRailOpen(false)}
+                  onClick={() => onRailOpenChange(false)}
                   className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-md transition-colors"
                   title="Close panel"
                 >
@@ -132,19 +114,19 @@ export default function DashboardWorkspace({
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50">
             {messages.length === 0 && !isLoading ? (
               <div className="space-y-4 pt-2">
-                <p className="text-xs text-gray-400 text-center">Ask about what you're viewing</p>
+                <p className="text-xs text-slate-400 text-center">Ask about what you're viewing</p>
                 <div className="space-y-1.5">
-                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold px-1">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold px-1">
                     Suggested
                   </p>
                   {suggestions.map((q) => (
                     <button
                       key={q}
                       onClick={() => handleSuggestion(q)}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-600 bg-white hover:bg-indigo-50 hover:text-indigo-700 rounded-lg border border-gray-200 transition-colors"
+                      className="w-full text-left px-3 py-2 text-sm text-slate-600 bg-white hover:bg-indigo-50 hover:text-indigo-700 rounded-lg border border-slate-200 transition-colors"
                     >
                       {q}
                     </button>
@@ -169,17 +151,17 @@ export default function DashboardWorkspace({
           </div>
 
           {/* Composer */}
-          <div className="border-t border-gray-200 bg-white px-3 py-3 shrink-0">
+          <div className="border-t border-slate-200 bg-white px-3 py-3 shrink-0">
             <form
               onSubmit={handleSubmit}
-              className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all"
+              className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all"
             >
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about your data..."
-                className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none py-0.5"
+                className="flex-1 bg-transparent text-sm text-slate-800 placeholder-slate-400 focus:outline-none py-0.5"
                 disabled={isLoading}
               />
               <button
@@ -199,7 +181,7 @@ export default function DashboardWorkspace({
           pageLabel={pageLabel}
           pageContext={pageContext}
           summaryPrompt={summaryPrompt}
-          onClose={() => setSummaryOpen(false)}
+          onClose={() => onSummaryOpenChange(false)}
         />
       )}
     </div>
