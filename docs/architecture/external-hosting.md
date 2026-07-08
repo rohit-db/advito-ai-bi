@@ -46,7 +46,7 @@ origin over HTTPS). The Service Principal secret never leaves the server.
    ┌──────────┐  HTTPS  │  ┌───────────────────────────────────────────────┐  │
    │ Browser  │◀───────▶│  │ FastAPI (server/)                             │  │
    │ (end     │         │  │  • server/auth/  custom OEM login + session   │  │
-   │  user)   │         │  │  • /embed/token   3-step embed-token mint     │  │
+   │  user)   │         │  │  • /api/embed/token   3-step embed-token mint │  │
    │          │         │  │  • /api/genie-mcp/ask   Genie One MCP (SSE)   │  │
    │          │         │  │  • serves the built SPA (frontend/)           │  │
    └────┬─────┘         │  └───────────────┬───────────────────────────────┘  │
@@ -71,7 +71,7 @@ origin over HTTPS). The Service Principal secret never leaves the server.
 ### 2.1 Data path — embedded dashboard
 
 1. Browser requests a dashboard page from the APEX SPA.
-2. SPA calls the backend: `GET /embed/token?dashboard_id=…&viewer_id=…[&external_value=…]`.
+2. SPA calls the backend: `GET /api/embed/token?dashboard_id=…&viewer_id=…[&external_value=…]`.
 3. Backend runs the **3-step OAuth exchange as the SP** (see §4 of the
    [filter-passing workaround](./aibi-embedding-filter-passing-workaround.md))
    and returns `{ token, expires_in }`. The SP secret stays server-side.
@@ -212,7 +212,7 @@ are authoritative — they match `.env.example` and `server/config.py`.
 
 | Variable | Required | Example | Purpose |
 | --- | --- | --- | --- |
-| `AUTH_ENABLED` | No (default on) | `true` | Enables the in-process custom login. |
+| `AUTH_ENABLED` | No (code default `false`; `.env.example` ships `true`) | `true` | Enables the in-process custom login. When unset the session gate is a **no-op** (`server/auth/middleware.py`), preserving the Databricks-Apps behavior. |
 | `AUTH_SESSION_SECRET` | **Yes** (if auth on) | `a-long-random-string` | Signs session cookies. **Rotate; keep secret.** |
 | `AUTH_SESSION_COOKIE` | No | `apex_session` | Session cookie name. |
 | `AUTH_SESSION_TTL_SECONDS` | No | `28800` | Session lifetime (8h). |
@@ -283,7 +283,7 @@ flows from the **server-side session** into the embed-token mint:
 ```
 custom login (server/auth/)        embed-token mint (server/routes/embed.py)
 ┌──────────────────────────┐       ┌─────────────────────────────────────────┐
-│ user signs in            │       │ GET /embed/token?dashboard_id=…&          │
+│ user signs in            │       │ GET /api/embed/token?dashboard_id=…&      │
 │ session stores:          │  ───▶ │     viewer_id=<from session>&             │
 │  • viewer_id             │       │     external_value=<tenant from session>  │
 │  • external_value (tenant)│      │                                           │

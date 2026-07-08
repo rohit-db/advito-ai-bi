@@ -1,5 +1,15 @@
 # Advito AI-BI — Full Requirements & Asks
 
+> **Status: historical reference.** This captures the *original* customer asks and
+> the POC-era design. Some architecture described below (the multi-agent "MAS"
+> supervisor, Claude/OpenAI-agent routing, MLflow AgentServer) was **superseded** —
+> the shipped app uses the **managed Genie MCP server ("Ask APEX")**, SDK-based
+> white-label embedding, and Lakebase persistence. For the current architecture and
+> how each requirement was met, see the [handoff guide](handoff/README.md) and
+> [`architecture/apex_architecture.mmd`](architecture/apex_architecture.mmd). The
+> screenshot filenames referenced below are illustrative and may not all be present
+> under `docs/screenshots/`.
+
 ## Source
 - BCD Travel / Advito stakeholders (Ajay Singh, Karan Vora, John Trigg, Malathy)
 - Captured by Rohit, Ryan Bates, Gopal

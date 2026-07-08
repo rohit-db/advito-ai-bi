@@ -29,7 +29,7 @@ This is a metric view. All measures must use MEASURE() function. Example: `SELEC
 Categories: Air (flights), Hotel (room nights), Rail (trains), Car (rentals), Taxi/Rideshare. Volume measures: flight_count for Air, hotel_nights for Hotel, car_rental_days for Car, rail_segment_count for Rail. component_count is the total across all categories.
 
 ### 7. App Filter Context
-The APEX app passes filter context with questions. When you see context like "Dashboard: Sustainability. Active filters: Currency: EUR, Category: Air", apply those as WHERE clauses and use the specified currency measure.
+The APEX app passes filter context with questions. When you see context like "Period: 2025-01-01 to 2025-12-31. Previous period: 2024-01-01 to 2024-12-31. Sector: Inter Continental. Region: Europe", apply those as WHERE clauses (Period → `travel_start_date` range, Sector → travel sector, Region → destination region). Default the currency measure to USD unless the user specifies otherwise. (The app's filter model has no currency filter — currency is chosen per measure.)
 
 ## Sample Questions
 

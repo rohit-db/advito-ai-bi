@@ -8,7 +8,7 @@ The thesis: **Databricks is all you need to build white-label analytical applica
 
 - **White-label AI/BI dashboards** — Databricks AI/BI dashboards embedded with the host app controlling tabs and filters. Filters are pushed in via `f_` URL parameters (see the workaround doc below), and the "Powered by Databricks" logo is hidden using the `@databricks/aibi-client` SDK.
 - **"Ask APEX" (Genie One MCP)** — an agentic chat experience over the managed Genie MCP server. Streams reasoning, SQL, result tables, and deep links via SSE, with an "under the hood" view of MCP tool calls. Defaults to the multi-space **Genie One MCP** ("Agent mode out of the box").
-- **Executive Summary** — one click generates a structured (Overview / KPIs / Strategic Insights) summary for the current dashboard page via the per-space Genie MCP.
+- **Executive Summary** — one click generates a structured (Overview / KPIs / Strategic Insights) summary for the current dashboard page via the workspace-wide **Genie One MCP** (`multi` mode).
 - **Per-user personalization** — conversation history and saved dashboard filter preferences persist in **Lakebase** (Databricks managed Postgres).
 - **Own your front door** — an optional in-process **white-label login** (Lakebase/JSON user directory + HMAC-signed session cookies) so end users never see a Databricks login screen.
 
@@ -41,7 +41,8 @@ FastAPI backend ──────────────► Databricks (via Se
                      AI/BI Dashboard · Genie Space · Metric View (Unity Catalog)
 ```
 
-See `docs/architecture/` for editable Mermaid + rendered PNG diagrams.
+See [`docs/architecture/apex_architecture.mmd`](docs/architecture/apex_architecture.mmd) for the
+editable Mermaid architecture diagram (render with `npx @mermaid-js/mermaid-cli -i docs/architecture/apex_architecture.mmd -o apex_architecture.png`).
 
 ## Project structure
 
@@ -128,13 +129,31 @@ databricks bundle deploy   # uses databricks.yml
 
 ## Key documentation
 
+> **Handing this off to another team?** Start with the
+> [**Engineering Handoff Guide**](docs/handoff/README.md) — a guided walkthrough
+> mapping each blocker (SDK filter passing, white-label embedding, Ask APEX via
+> Genie MCP) to the exact code that solves it.
+
+**Handoff guides** (`docs/handoff/`) — start here:
+
 | Doc | What it covers |
 |-----|----------------|
-| `docs/architecture/external-hosting.md` | Running outside Databricks Apps; SP auth; Lakebase roles |
-| `docs/architecture/aibi-embedding-filter-passing-workaround.md` | **The SDK override** that pushes `f_` filter params into embedded dashboards + hides the logo (the core technique) |
-| `docs/data/genie-space-config.md` | Genie space setup |
-| `docs/data/summarydataset_analysis.md` | Source data analysis |
-| `docs/requirements.md` | Original customer requirements |
+| [`docs/handoff/README.md`](docs/handoff/README.md) | **Start-here index** — the three headline blockers, reading order, prerequisites, demo logins, and gotchas |
+| [`docs/handoff/ask-apex-genie-mcp.md`](docs/handoff/ask-apex-genie-mcp.md) | Ask APEX over the managed Genie MCP server — SSE streaming, auth, tool discovery, artifact parsing, Executive Summary |
+| [`docs/handoff/whitelabel-auth-and-hosting.md`](docs/handoff/whitelabel-auth-and-hosting.md) | Custom white-label login (PBKDF2 + signed cookie), edge-gateway vs external-host models, Docker |
+| [`docs/handoff/lakebase-persistence-and-config.md`](docs/handoff/lakebase-persistence-and-config.md) | Lakebase history + filter prefs, and the config-driven dashboard/filter registry |
+
+**Architecture & reference:**
+
+| Doc | What it covers |
+|-----|----------------|
+| [`docs/architecture/aibi-embedding-filter-passing-workaround.md`](docs/architecture/aibi-embedding-filter-passing-workaround.md) | **The SDK technique** — white-label embedding + pushing `f_` filter params into embedded dashboards + hiding the logo (the core method) |
+| [`docs/architecture/external-hosting.md`](docs/architecture/external-hosting.md) | Running outside Databricks Apps; SP (M2M) auth; per-tenant embed scoping |
+| [`docs/architecture/apex_architecture.mmd`](docs/architecture/apex_architecture.mmd) | Editable Mermaid architecture diagram (current) |
+| [`docs/data/genie-space-config.md`](docs/data/genie-space-config.md) | Genie space setup + instructions for the metric view |
+| [`docs/data/summarydataset_analysis.md`](docs/data/summarydataset_analysis.md) | Source data lineage analysis |
+| [`docs/data/metric-view-validation-results.md`](docs/data/metric-view-validation-results.md) | Metric-view validation snapshot (incl. carbon-budget NULL gap) |
+| [`docs/requirements.md`](docs/requirements.md) | Original customer requirements (historical) |
 
 ## Known gaps / roadmap
 
