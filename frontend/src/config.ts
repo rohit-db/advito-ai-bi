@@ -223,12 +223,6 @@ function embedOrgParam(spec: DashboardSpec): string {
   return `o=${spec.org ?? ORG}`;
 }
 
-export function buildNativeEmbedUrl(spec: DashboardSpec, filters?: FilterState): string {
-  let url = `${embedRoot(spec)}?${embedOrgParam(spec)}`;
-  if (filters) url += `&${buildFilterParams(spec, filters)}`;
-  return url;
-}
-
 export function buildPageEmbedUrl(spec: DashboardSpec, pageId: string, filters?: FilterState): string {
   let url = `${embedRoot(spec)}/pages/${pageId}?${embedOrgParam(spec)}`;
   if (filters) url += `&${buildFilterParams(spec, filters)}`;
@@ -442,7 +436,7 @@ export interface PageConfig {
   genie?: DashboardGenieConfig;
 }
 
-export type RouteMode = "native" | "custom" | "placeholder" | "react";
+export type RouteMode = "custom" | "placeholder" | "react";
 
 export interface RouteConfig {
   path: string;

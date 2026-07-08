@@ -1100,8 +1100,8 @@ which `service.py` prepends as `[Filter context: …]`.
    [managed MCP docs](https://docs.databricks.com/aws/en/generative-ai/mcp/managed-mcp)).
 3. A **Service Principal** (for external/portable hosting) with an OAuth secret,
    **or** an OBO user token path (Databricks App / your IdP).
-4. A SQL warehouse the Genie space can use (APEX also carries a `WAREHOUSE_ID`
-   in `config.py`).
+4. A SQL warehouse the Genie space can use (on Databricks Apps this is granted
+   via the `sql-warehouse` resource in `app.yaml`).
 
 ### Permissions the identity needs on the Genie space
 
@@ -1119,9 +1119,8 @@ Whichever identity actually calls the MCP server (the **SP** for M2M, or the
 The one required data setting is the Genie space id. Server default lives in
 `config.py`:
 
-```50:51:server/config.py
+```50:50:server/config.py
 GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "01f127092d2219f3be10180d79b2ee5d")
-WAREHOUSE_ID = os.environ.get("WAREHOUSE_ID", "5cd3a4956df6152f")
 ```
 
 Copy `.env.example` → `.env` and fill in your values:

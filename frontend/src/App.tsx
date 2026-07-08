@@ -5,7 +5,6 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import FilterBar from "@/components/FilterBar";
 import DashboardWorkspace from "@/components/DashboardWorkspace";
-import NativeDashboard from "@/pages/NativeDashboard";
 import CustomDashboard from "@/pages/CustomDashboard";
 import GenieMcpExperience from "@/pages/GenieMcpExperience";
 import Placeholder from "@/pages/Placeholder";
@@ -13,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ROUTES,
-  buildNativeEmbedUrl,
   filtersToContext,
   getDashboard,
   getDashboardGenie,
@@ -42,31 +40,24 @@ function RouteRenderer({
   onSummaryOpenChange: (open: boolean) => void;
 }) {
   switch (route.mode) {
-    case "native":
     case "custom": {
       const genie = getDashboardGenie(route, activePageId);
       const spec = getDashboard(route);
-      const pageLabel =
-        route.mode === "custom"
-          ? `${route.label} · ${
-              route.pages?.find((p) => p.pageId === activePageId)?.label ?? ""
-            }`.replace(/ · $/, "")
-          : route.label;
+      const pageLabel = `${route.label} · ${
+        route.pages?.find((p) => p.pageId === activePageId)?.label ?? ""
+      }`.replace(/ · $/, "");
       const pageContext = [`Dashboard: ${pageLabel}`, filtersToContext(filters, spec)]
         .filter(Boolean)
         .join(". ");
 
-      const content =
-        route.mode === "native" ? (
-          <NativeDashboard embedUrl={buildNativeEmbedUrl(spec!, filters)} />
-        ) : (
-          <CustomDashboard
-            spec={spec!}
-            pages={route.pages || []}
-            filters={filters}
-            activePageId={activePageId}
-          />
-        );
+      const content = (
+        <CustomDashboard
+          spec={spec!}
+          pages={route.pages || []}
+          filters={filters}
+          activePageId={activePageId}
+        />
+      );
 
       return (
         <DashboardWorkspace
@@ -103,7 +94,6 @@ export default function App() {
 
   const currentRoute = ROUTES.find((r) => r.path === location.pathname);
   const isCustom = currentRoute?.mode === "custom";
-  const isDashboard = currentRoute?.mode === "custom" || currentRoute?.mode === "native";
   const pages = currentRoute?.pages || [];
   const currentDashboard = getDashboard(currentRoute);
   const currentDashboardId = currentDashboard?.id;
@@ -153,7 +143,7 @@ export default function App() {
         <Header />
 
         {/* Unified dashboard toolbar: page tabs (left) + page actions (right) */}
-        {isDashboard && (
+        {isCustom && (
           <div className="shrink-0 bg-white px-5 pt-3 pb-1 flex items-center justify-between gap-3">
             {isCustom && pages.length > 0 ? (
               <Tabs value={effectivePageId} onValueChange={setActivePageId}>

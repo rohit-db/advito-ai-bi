@@ -328,26 +328,11 @@ export function useGenieMcpChat(
     [clearChat, refreshConversations]
   );
 
-  // Switching servers starts a fresh session against the other MCP shape.
-  const setMode = useCallback((next: GenieMode) => {
-    setModeState((prev) => {
-      if (prev === next) return prev;
-      if (abortRef.current) abortRef.current.abort();
-      conversationIdRef.current = null;
-      dbConvRef.current = null;
-      setActiveConversationId(null);
-      setMessages([]);
-      setIsLoading(false);
-      return next;
-    });
-  }, []);
-
   return {
     messages,
     isLoading,
     mcpStatus,
     mode,
-    setMode,
     checkHealth,
     sendMessage,
     clearChat,

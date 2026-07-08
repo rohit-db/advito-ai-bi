@@ -3,7 +3,6 @@ uvicorn
 databricks-sdk
 pydantic
 python-dotenv
-httpx
 requests
 mcp
 psycopg[binary]

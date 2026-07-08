@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from ..config import DASHBOARD_URL, MULTI_PAGE_DASHBOARD_URL, get_workspace_client
+from ..config import get_workspace_client
 
 router = APIRouter()
 
@@ -14,14 +14,6 @@ def compute_initials(display_name: str) -> str:
 @router.get("/health")
 def health():
     return {"status": "ok"}
-
-
-@router.get("/config")
-def get_config():
-    return {
-        "dashboardUrl": DASHBOARD_URL,
-        "multiPageDashboardUrl": MULTI_PAGE_DASHBOARD_URL,
-    }
 
 
 @router.get("/me")

@@ -42,8 +42,6 @@ targets:
                 value: "https://dbc-1e27e56a-90cd.cloud.databricks.com/embed/dashboardsv3/01f1271698161d42b3c66528415775e8?o=1048934788948873"
               - name: GENIE_SPACE_ID
                 value: "01f127092d2219f3be10180d79b2ee5d"
-              - name: WAREHOUSE_ID
-                value: "5cd3a4956df6152f"
               - name: GENIE_MCP_POLL_INTERVAL_MS
                 value: "3000"
               - name: GENIE_MCP_POLL_MAX_ATTEMPTS
