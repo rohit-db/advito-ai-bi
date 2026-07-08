@@ -15,18 +15,25 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+// =============================================================================
+// APEX app configuration
+//
+// This file is the single place to WIRE the app:
+//   1. DASHBOARDS  — register an AI/BI dashboard + how its filters are wired
+//   2. FILTERS     — declare the logical filters the app knows about (UI + URL)
+//   3. ROUTES      — map nav entries to dashboards, pages, and Genie wiring
+//
+// Adding a dashboard or changing which filters apply to a page should only
+// require editing the declarative blocks below — not the components.
+// =============================================================================
+
 // ─── Workspace constants ───────────────────────────────────────────────────────
+// Global defaults. A dashboard may override these per-entry (see DashboardSpec).
 
 export const WORKSPACE = "https://dbc-1e27e56a-90cd.cloud.databricks.com";
 export const ORG = "1048934788948873";
 
-// ─── Dashboard IDs ────────────────────────────────────────────────────────────
-
-export const DASHBOARDS = {
-  // APEX Travel Analytics dashboard (powered by the apex metric view)
-  apex: "01f1271698161d42b3c66528415775e8",
-} as const;
-
+// Genie space backing the global "Ask APEX" experience.
 export const GENIE_SPACE_ID = "01f127092d2219f3be10180d79b2ee5d";
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
@@ -47,32 +54,17 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   Sparkles,
 };
 
-// ─── TypeScript interfaces ────────────────────────────────────────────────────
-
-export interface PageConfig {
-  label: string;
-  pageId: string;
-}
-
-export type RouteMode = "native" | "custom" | "placeholder" | "react";
-
-export interface RouteConfig {
-  path: string;
-  label: string;
-  icon: string; // key into ICON_MAP
-  section: "insights" | "exploration";
-  mode: RouteMode;
-  dashboardId?: string;
-  pages?: PageConfig[];
-}
+// ─── Filter state ───────────────────────────────────────────────────────────
+// The app's filter model. Date ranges are always present (defaulted); field
+// filters are optional. Dashboards opt into the subset they support (below).
 
 export interface FilterState {
   currentPeriodFrom: string;   // "2025-01-01"
   currentPeriodTo: string;     // "2025-12-31"
   previousPeriodFrom: string;  // "2024-01-01"
   previousPeriodTo: string;    // "2024-12-31"
-  travelSector?: string;       // "Inter-Continental", "Intra-Continental", "Intra-Country"
-  destinationRegion?: string;  // "Europe", "Asia", etc.
+  travelSector?: string;       // "Inter Continental", "Intra Country", …
+  destinationRegion?: string;  // "Europe", "Asia", …
 }
 
 export const DEFAULT_FILTERS: FilterState = {
@@ -82,53 +74,164 @@ export const DEFAULT_FILTERS: FilterState = {
   previousPeriodTo: "2024-12-31",
 };
 
-// ─── Dashboard filter widget IDs ─────────────────────────────────────────────
-// Global Filters page ID: 54194f59
-const GLOBAL_PAGE = "54194f59";
-const FILTER_WIDGETS = {
-  period: "period",                    // date-range-picker → current_period param
-  previousPeriod: "previous_period",   // date-range-picker → previous_period param
-  travelSector: "tsector",             // single-select → travel_sector field
-  destinationRegion: "dest_region",    // single-select → destination_region field
+// ─── Filter catalog ───────────────────────────────────────────────────────────
+// Each logical filter declared ONCE: how it renders (FilterBar) and how it maps
+// onto a FilterState field. A dashboard binds these keys to its own widget ids.
+
+export type FilterKey =
+  | "currentPeriod"
+  | "previousPeriod"
+  | "travelSector"
+  | "destinationRegion";
+
+interface DateRangeFilterDef {
+  key: FilterKey;
+  kind: "dateRange";
+  label: string;
+  fromField: keyof FilterState;
+  toField: keyof FilterState;
+}
+
+interface FieldFilterDef {
+  key: FilterKey;
+  kind: "field";
+  label: string;
+  field: keyof FilterState;
+  allLabel: string;
+  options: string[];
+}
+
+export type FilterDef = DateRangeFilterDef | FieldFilterDef;
+
+export const FILTERS: Record<FilterKey, FilterDef> = {
+  currentPeriod: {
+    key: "currentPeriod",
+    kind: "dateRange",
+    label: "Period",
+    fromField: "currentPeriodFrom",
+    toField: "currentPeriodTo",
+  },
+  previousPeriod: {
+    key: "previousPeriod",
+    kind: "dateRange",
+    label: "vs",
+    fromField: "previousPeriodFrom",
+    toField: "previousPeriodTo",
+  },
+  travelSector: {
+    key: "travelSector",
+    kind: "field",
+    label: "Sector",
+    field: "travelSector",
+    allLabel: "All Sectors",
+    options: [
+      "Domestic",
+      "Regional",
+      "Intra Country",
+      "Intra Continental",
+      "Inter Continental",
+      "Intercontinental",
+    ],
+  },
+  destinationRegion: {
+    key: "destinationRegion",
+    kind: "field",
+    label: "Region",
+    field: "destinationRegion",
+    allLabel: "All Regions",
+    options: [
+      "Africa",
+      "Asia",
+      "Europe",
+      "Latin America",
+      "Middle East",
+      "North America",
+      "Southwestern Pacific",
+      "Unknown",
+    ],
+  },
 };
 
-// ─── URL helpers ─────────────────────────────────────────────────────────────
+// ─── Dashboard registry ───────────────────────────────────────────────────────
+// Register each AI/BI dashboard and WIRE its filters. `globalFilterPage` is the
+// dashboard's "Global Filters" page id; `filters` maps a logical FilterKey to
+// the widget id that drives it on THIS dashboard. Only listed filters are pushed
+// into the embed URL and shown in the FilterBar — so different dashboards can
+// expose different filter sets.
 
-function buildFilterParams(filters: FilterState): string {
+export interface DashboardSpec {
+  id: string;                                   // Lakeview dashboard id
+  globalFilterPage: string;                     // "Global Filters" page id
+  filters: Partial<Record<FilterKey, string>>;  // FilterKey → widget id
+  workspace?: string;                           // optional per-dashboard workspace
+  org?: string;                                 // optional per-dashboard org id
+}
+
+export const DASHBOARDS: Record<string, DashboardSpec> = {
+  apex: {
+    id: "01f1271698161d42b3c66528415775e8",
+    globalFilterPage: "54194f59",
+    filters: {
+      currentPeriod: "period",
+      previousPeriod: "previous_period",
+      travelSector: "tsector",
+      destinationRegion: "dest_region",
+    },
+  },
+};
+
+export function getDashboardById(id: string): DashboardSpec | undefined {
+  return Object.values(DASHBOARDS).find((d) => d.id === id);
+}
+
+export function getSupportedFilterKeys(spec?: DashboardSpec): FilterKey[] {
+  if (!spec) return [];
+  return (Object.keys(spec.filters) as FilterKey[]).filter((k) => !!spec.filters[k]);
+}
+
+// ─── Embed URL helpers ─────────────────────────────────────────────────────────
+// Build /embed/ URLs with the dashboard's `f_…` filter params. Token embedding
+// appends the scoped SP token in the `#token=` hash (white-label, no-login).
+
+function serializeFilter(page: string, def: FilterDef, widget: string, f: FilterState): string | null {
+  if (def.kind === "dateRange") {
+    const from = f[def.fromField] as string | undefined;
+    const to = f[def.toField] as string | undefined;
+    if (!from || !to) return null;
+    return `f_${page}~${widget}=${encodeURIComponent(from + "T00:00:00.000")}~${encodeURIComponent(to + "T00:00:00.000")}`;
+  }
+  const value = f[def.field] as string | undefined;
+  if (!value) return null;
+  return `f_${page}~${widget}=${encodeURIComponent(value)}`;
+}
+
+function buildFilterParams(spec: DashboardSpec, filters: FilterState): string {
   const params: string[] = [];
-
-  // Date range filters: f_{globalPage}~{widget}={from}~{to}
-  params.push(
-    `f_${GLOBAL_PAGE}~${FILTER_WIDGETS.period}=${encodeURIComponent(filters.currentPeriodFrom + "T00:00:00.000")}~${encodeURIComponent(filters.currentPeriodTo + "T00:00:00.000")}`
-  );
-  params.push(
-    `f_${GLOBAL_PAGE}~${FILTER_WIDGETS.previousPeriod}=${encodeURIComponent(filters.previousPeriodFrom + "T00:00:00.000")}~${encodeURIComponent(filters.previousPeriodTo + "T00:00:00.000")}`
-  );
-
-  // Field filters: f_{globalPage}~{widget}={value}
-  if (filters.travelSector) {
-    params.push(
-      `f_${GLOBAL_PAGE}~${FILTER_WIDGETS.travelSector}=${encodeURIComponent(filters.travelSector)}`
-    );
+  for (const key of getSupportedFilterKeys(spec)) {
+    const widget = spec.filters[key]!;
+    const part = serializeFilter(spec.globalFilterPage, FILTERS[key], widget, filters);
+    if (part) params.push(part);
   }
-  if (filters.destinationRegion) {
-    params.push(
-      `f_${GLOBAL_PAGE}~${FILTER_WIDGETS.destinationRegion}=${encodeURIComponent(filters.destinationRegion)}`
-    );
-  }
-
   return params.join("&");
 }
 
-export function buildNativeEmbedUrl(dashboardId: string, filters?: FilterState): string {
-  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}?o=${ORG}`;
-  if (filters) url += `&${buildFilterParams(filters)}`;
+function embedRoot(spec: DashboardSpec): string {
+  return `${spec.workspace ?? WORKSPACE}/embed/dashboardsv3/${spec.id}`;
+}
+
+function embedOrgParam(spec: DashboardSpec): string {
+  return `o=${spec.org ?? ORG}`;
+}
+
+export function buildNativeEmbedUrl(spec: DashboardSpec, filters?: FilterState): string {
+  let url = `${embedRoot(spec)}?${embedOrgParam(spec)}`;
+  if (filters) url += `&${buildFilterParams(spec, filters)}`;
   return url;
 }
 
-export function buildPageEmbedUrl(dashboardId: string, pageId: string, filters?: FilterState): string {
-  let url = `${WORKSPACE}/embed/dashboardsv3/${dashboardId}/pages/${pageId}?o=${ORG}`;
-  if (filters) url += `&${buildFilterParams(filters)}`;
+export function buildPageEmbedUrl(spec: DashboardSpec, pageId: string, filters?: FilterState): string {
+  let url = `${embedRoot(spec)}/pages/${pageId}?${embedOrgParam(spec)}`;
+  if (filters) url += `&${buildFilterParams(spec, filters)}`;
   return url;
 }
 
@@ -139,12 +242,12 @@ export function buildPageEmbedUrl(dashboardId: string, pageId: string, filters?:
  * the Databricks login screen for no-login / white-label viewers.
  */
 export function buildTokenEmbedUrl(
-  dashboardId: string,
+  spec: DashboardSpec,
   pageId: string,
   token: string,
   filters?: FilterState
 ): string {
-  return `${buildPageEmbedUrl(dashboardId, pageId, filters)}#token=${token}`;
+  return `${buildPageEmbedUrl(spec, pageId, filters)}#token=${token}`;
 }
 
 export interface EmbedTokenResponse {
@@ -263,57 +366,30 @@ export async function saveFilterPrefs(dashboardId: string, filters: FilterState)
 }
 
 /**
- * Converts FilterState to a context string for Genie chat.
+ * Converts FilterState to a context string for Genie chat. Only includes the
+ * filters supported by the given dashboard (defaults to all when omitted).
  */
-export function filtersToContext(filters: FilterState): string {
+export function filtersToContext(filters: FilterState, spec?: DashboardSpec): string {
+  const keys = spec ? getSupportedFilterKeys(spec) : (Object.keys(FILTERS) as FilterKey[]);
   const parts: string[] = [];
-  parts.push(`Current period: ${filters.currentPeriodFrom} to ${filters.currentPeriodTo}`);
-  parts.push(`Previous period: ${filters.previousPeriodFrom} to ${filters.previousPeriodTo}`);
-  if (filters.travelSector) parts.push(`Travel sector: ${filters.travelSector}`);
-  if (filters.destinationRegion) parts.push(`Destination region: ${filters.destinationRegion}`);
+  for (const key of keys) {
+    const def = FILTERS[key];
+    if (def.kind === "dateRange") {
+      const from = filters[def.fromField] as string | undefined;
+      const to = filters[def.toField] as string | undefined;
+      if (from && to) parts.push(`${def.label === "vs" ? "Previous period" : def.label}: ${from} to ${to}`);
+    } else {
+      const value = filters[def.field] as string | undefined;
+      if (value) parts.push(`${def.label}: ${value}`);
+    }
+  }
   return parts.join(". ");
 }
 
-// ─── Routes ──────────────────────────────────────────────────────────────────
-
-export const ROUTES: RouteConfig[] = [
-  {
-    path: "/spend-custom",
-    label: "Spend",
-    icon: "DollarSign",
-    section: "insights",
-    mode: "custom",
-    dashboardId: DASHBOARDS.apex,
-    pages: [
-      { label: "Summary", pageId: "summary" },
-      { label: "Carbon Forecasting", pageId: "carbon_forecasting" },
-    ],
-  },
-  {
-    path: "/sustainability",
-    label: "Sustainability",
-    icon: "Leaf",
-    section: "insights",
-    mode: "custom",
-    dashboardId: DASHBOARDS.apex,
-    pages: [
-      { label: "Summary", pageId: "summary" },
-      { label: "Carbon Forecasting", pageId: "carbon_forecasting" },
-    ],
-  },
-  {
-    path: "/genie-mcp",
-    label: "Ask APEX",
-    icon: "Sparkles",
-    section: "exploration",
-    mode: "react",
-  },
-];
-
-// ─── Per-dashboard Genie config (executive summary + page Q&A) ────────────────
-// Each dashboard page maps to a tailored executive-summary prompt and a set of
-// suggested questions. The in-dashboard Ask APEX rail and the Executive Summary
-// button both call the managed Genie MCP server (per-space) with these.
+// ─── Genie wiring (executive summary + page Q&A) ──────────────────────────────
+// Each page can carry its own tailored executive-summary prompt + suggested
+// questions. The in-dashboard Ask APEX rail and the Executive Summary button
+// both call the managed Genie MCP server with these.
 
 export interface DashboardGenieConfig {
   summaryPrompt: string;
@@ -356,20 +432,72 @@ const CARBON_FORECAST_GENIE: DashboardGenieConfig = {
   ],
 };
 
-// Keyed by route path, or `${path}:${pageId}` for custom multi-page dashboards.
-export const DASHBOARD_GENIE: Record<string, DashboardGenieConfig> = {
-  "/spend": SPEND_GENIE,
-  "/spend-custom:summary": SPEND_GENIE,
-  "/spend-custom:carbon_forecasting": CARBON_FORECAST_GENIE,
-  "/sustainability:summary": SUSTAINABILITY_GENIE,
-  "/sustainability:carbon_forecasting": CARBON_FORECAST_GENIE,
-};
+// ─── Routes ──────────────────────────────────────────────────────────────────
+// `dashboard` is a key into DASHBOARDS. Each page can override Genie wiring;
+// otherwise the route-level `genie` (then a safe fallback) is used.
 
-export function getDashboardGenie(path: string, pageId?: string): DashboardGenieConfig {
-  if (pageId && DASHBOARD_GENIE[`${path}:${pageId}`]) {
-    return DASHBOARD_GENIE[`${path}:${pageId}`];
-  }
-  return DASHBOARD_GENIE[path] ?? SPEND_GENIE;
+export interface PageConfig {
+  label: string;
+  pageId: string;
+  genie?: DashboardGenieConfig;
+}
+
+export type RouteMode = "native" | "custom" | "placeholder" | "react";
+
+export interface RouteConfig {
+  path: string;
+  label: string;
+  icon: string; // key into ICON_MAP
+  section: "insights" | "exploration";
+  mode: RouteMode;
+  dashboard?: string;            // key into DASHBOARDS
+  pages?: PageConfig[];
+  genie?: DashboardGenieConfig;  // route-level default Genie wiring
+}
+
+export const ROUTES: RouteConfig[] = [
+  {
+    path: "/spend-custom",
+    label: "Spend",
+    icon: "DollarSign",
+    section: "insights",
+    mode: "custom",
+    dashboard: "apex",
+    genie: SPEND_GENIE,
+    pages: [
+      { label: "Summary", pageId: "summary", genie: SPEND_GENIE },
+      { label: "Carbon Forecasting", pageId: "carbon_forecasting", genie: CARBON_FORECAST_GENIE },
+    ],
+  },
+  {
+    path: "/sustainability",
+    label: "Sustainability",
+    icon: "Leaf",
+    section: "insights",
+    mode: "custom",
+    dashboard: "apex",
+    genie: SUSTAINABILITY_GENIE,
+    pages: [
+      { label: "Summary", pageId: "summary", genie: SUSTAINABILITY_GENIE },
+      { label: "Carbon Forecasting", pageId: "carbon_forecasting", genie: CARBON_FORECAST_GENIE },
+    ],
+  },
+  {
+    path: "/genie-mcp",
+    label: "Ask APEX",
+    icon: "Sparkles",
+    section: "exploration",
+    mode: "react",
+  },
+];
+
+export function getDashboard(route?: RouteConfig): DashboardSpec | undefined {
+  return route?.dashboard ? DASHBOARDS[route.dashboard] : undefined;
+}
+
+export function getDashboardGenie(route?: RouteConfig, pageId?: string): DashboardGenieConfig {
+  const page = route?.pages?.find((p) => p.pageId === pageId);
+  return page?.genie ?? route?.genie ?? SPEND_GENIE;
 }
 
 // ─── Executive summary prompt formatting ──────────────────────────────────────

@@ -15,7 +15,9 @@ import {
   ROUTES,
   buildNativeEmbedUrl,
   filtersToContext,
+  getDashboard,
   getDashboardGenie,
+  getSupportedFilterKeys,
   DEFAULT_FILTERS,
   fetchFilterPrefs,
   saveFilterPrefs,
@@ -42,23 +44,24 @@ function RouteRenderer({
   switch (route.mode) {
     case "native":
     case "custom": {
-      const genie = getDashboardGenie(route.path, activePageId);
+      const genie = getDashboardGenie(route, activePageId);
+      const spec = getDashboard(route);
       const pageLabel =
         route.mode === "custom"
           ? `${route.label} · ${
               route.pages?.find((p) => p.pageId === activePageId)?.label ?? ""
             }`.replace(/ · $/, "")
           : route.label;
-      const pageContext = [`Dashboard: ${pageLabel}`, filtersToContext(filters)]
+      const pageContext = [`Dashboard: ${pageLabel}`, filtersToContext(filters, spec)]
         .filter(Boolean)
         .join(". ");
 
       const content =
         route.mode === "native" ? (
-          <NativeDashboard embedUrl={buildNativeEmbedUrl(route.dashboardId!, filters)} />
+          <NativeDashboard embedUrl={buildNativeEmbedUrl(spec!, filters)} />
         ) : (
           <CustomDashboard
-            dashboardId={route.dashboardId!}
+            spec={spec!}
             pages={route.pages || []}
             filters={filters}
             activePageId={activePageId}
@@ -102,7 +105,9 @@ export default function App() {
   const isCustom = currentRoute?.mode === "custom";
   const isDashboard = currentRoute?.mode === "custom" || currentRoute?.mode === "native";
   const pages = currentRoute?.pages || [];
-  const currentDashboardId = currentRoute?.dashboardId;
+  const currentDashboard = getDashboard(currentRoute);
+  const currentDashboardId = currentDashboard?.id;
+  const filterKeys = getSupportedFilterKeys(currentDashboard);
 
   // Restore this user's saved filter selection for the current dashboard
   // (persisted in Lakebase). Falls back to defaults when none is stored.
@@ -187,7 +192,9 @@ export default function App() {
           </div>
         )}
 
-        {isCustom && <FilterBar filters={filters} onChange={handleFilterChange} />}
+        {isCustom && filterKeys.length > 0 && (
+          <FilterBar filters={filters} onChange={handleFilterChange} filterKeys={filterKeys} />
+        )}
 
         <div className="flex-1 flex min-h-0">
           <main className="flex-1 flex flex-col min-w-0">

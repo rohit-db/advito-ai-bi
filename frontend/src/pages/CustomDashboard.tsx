@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { DatabricksDashboard } from "@databricks/aibi-client";
 import { WORKSPACE, ORG, DEFAULT_FILTERS, buildTokenEmbedUrl, fetchEmbedToken } from "@/config";
-import type { FilterState, PageConfig } from "@/config";
+import type { DashboardSpec, FilterState, PageConfig } from "@/config";
 
 // Config payload that hides the "Powered by Databricks" footer. Mirrors what
 // @databricks/aibi-client sends; we re-send it ourselves after any iframe reload
@@ -24,7 +24,7 @@ function cropIframeHeader(iframe: HTMLIFrameElement | null | undefined) {
 }
 
 interface CustomDashboardProps {
-  dashboardId: string;
+  spec: DashboardSpec;
   pages: PageConfig[];
   filters: FilterState;
   activePageId?: string;
@@ -52,11 +52,14 @@ function filtersAreDefault(f: FilterState): boolean {
  * sends it once). Page switches use the SDK's smooth `navigate()`.
  */
 export default function CustomDashboard({
-  dashboardId,
+  spec,
   pages,
   filters,
   activePageId,
 }: CustomDashboardProps) {
+  const dashboardId = spec.id;
+  const instanceUrl = spec.workspace ?? WORKSPACE;
+  const orgId = spec.org ?? ORG;
   const currentPageId = activePageId || pages[0]?.pageId || "";
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,7 +74,7 @@ export default function CustomDashboard({
 
   const fromEmbed = (e: MessageEvent): boolean => {
     try {
-      return new URL(e.origin).origin === new URL(WORKSPACE).origin;
+      return new URL(e.origin).origin === new URL(instanceUrl).origin;
     } catch {
       return false;
     }
@@ -86,7 +89,7 @@ export default function CustomDashboard({
         const iframe = containerRef.current?.querySelector("iframe");
         iframe?.contentWindow?.postMessage(
           { type: "DATABRICKS_SET_CONFIG", config: LOGO_CONFIG },
-          WORKSPACE
+          instanceUrl
         );
         window.removeEventListener("message", onReady);
       }
@@ -99,7 +102,7 @@ export default function CustomDashboard({
     const iframe = containerRef.current?.querySelector("iframe");
     if (!iframe || !tokenRef.current) return;
     reapplyConfigOnNextReady();
-    iframe.src = buildTokenEmbedUrl(dashboardId, pageId, tokenRef.current, f);
+    iframe.src = buildTokenEmbedUrl(spec, pageId, tokenRef.current, f);
   };
 
   // Create the SDK dashboard once per dashboard.
@@ -131,8 +134,8 @@ export default function CustomDashboard({
       tokenRef.current = res.token;
       if (!containerRef.current) return;
       const dash = new DatabricksDashboard({
-        instanceUrl: WORKSPACE,
-        workspaceId: ORG,
+        instanceUrl,
+        workspaceId: orgId,
         dashboardId,
         pageId: currentPageId || undefined,
         token: res.token,

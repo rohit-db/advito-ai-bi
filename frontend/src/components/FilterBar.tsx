@@ -1,15 +1,12 @@
-import { useState, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Filter, ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import type { FilterState } from "@/config";
-import { DEFAULT_FILTERS } from "@/config";
+import { DEFAULT_FILTERS, FILTERS } from "@/config";
+import type { FilterKey, FilterState } from "@/config";
 
-const TRAVEL_SECTORS = ["", "Domestic", "Regional", "Intra Country", "Intra Continental", "Inter Continental", "Intercontinental"] as const;
-const REGIONS = [
-  "", "Africa", "Asia", "Europe", "Latin America",
-  "Middle East", "North America", "Southwestern Pacific", "Unknown",
-] as const;
+const DATE_INPUT_CLS =
+  "h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors";
 
 function StyledSelect({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) {
   return (
@@ -39,9 +36,11 @@ function Divider() {
 interface FilterBarProps {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
+  /** Logical filters to render — comes from the active dashboard's binding. */
+  filterKeys: FilterKey[];
 }
 
-export default function FilterBar({ filters, onChange }: FilterBarProps) {
+export default function FilterBar({ filters, onChange, filterKeys }: FilterBarProps) {
   const [draft, setDraft] = useState<FilterState>(filters);
 
   // Sync the draft when the applied filters change externally (e.g. saved
@@ -81,79 +80,46 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
           <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 select-none">Filters</span>
         </div>
 
-        <Divider />
-
-        {/* Current Period */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-slate-500 font-medium">Period</span>
-          <input
-            type="date"
-            value={draft.currentPeriodFrom}
-            onChange={(e) => setDraft({ ...draft, currentPeriodFrom: e.target.value })}
-            className="h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors"
-          />
-          <span className="text-xs text-slate-300">→</span>
-          <input
-            type="date"
-            value={draft.currentPeriodTo}
-            onChange={(e) => setDraft({ ...draft, currentPeriodTo: e.target.value })}
-            className="h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors"
-          />
-        </div>
-
-        <Divider />
-
-        {/* Previous Period */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-slate-500 font-medium">vs</span>
-          <input
-            type="date"
-            value={draft.previousPeriodFrom}
-            onChange={(e) => setDraft({ ...draft, previousPeriodFrom: e.target.value })}
-            className="h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors"
-          />
-          <span className="text-xs text-slate-300">→</span>
-          <input
-            type="date"
-            value={draft.previousPeriodTo}
-            onChange={(e) => setDraft({ ...draft, previousPeriodTo: e.target.value })}
-            className="h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors"
-          />
-        </div>
-
-        <Divider />
-
-        {/* Travel Sector */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-xs text-slate-500 font-medium">Sector</span>
-          <StyledSelect
-            value={draft.travelSector || ""}
-            onChange={(e) => setDraft({ ...draft, travelSector: e.target.value || undefined })}
-            style={{ minWidth: "8rem" }}
-          >
-            <option value="">All Sectors</option>
-            {TRAVEL_SECTORS.filter(Boolean).map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </StyledSelect>
-        </div>
-
-        <Divider />
-
-        {/* Destination Region */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-xs text-slate-500 font-medium">Region</span>
-          <StyledSelect
-            value={draft.destinationRegion || ""}
-            onChange={(e) => setDraft({ ...draft, destinationRegion: e.target.value || undefined })}
-            style={{ minWidth: "8rem" }}
-          >
-            <option value="">All Regions</option>
-            {REGIONS.filter(Boolean).map((r) => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </StyledSelect>
-        </div>
+        {filterKeys.map((key) => {
+          const def = FILTERS[key];
+          return (
+            <Fragment key={key}>
+              <Divider />
+              {def.kind === "dateRange" ? (
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-slate-500 font-medium">{def.label}</span>
+                  <input
+                    type="date"
+                    value={(draft[def.fromField] as string) || ""}
+                    onChange={(e) => setDraft({ ...draft, [def.fromField]: e.target.value })}
+                    className={DATE_INPUT_CLS}
+                  />
+                  <span className="text-xs text-slate-300">→</span>
+                  <input
+                    type="date"
+                    value={(draft[def.toField] as string) || ""}
+                    onChange={(e) => setDraft({ ...draft, [def.toField]: e.target.value })}
+                    className={DATE_INPUT_CLS}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-xs text-slate-500 font-medium">{def.label}</span>
+                  <StyledSelect
+                    value={(draft[def.field] as string) || ""}
+                    onChange={(e) => setDraft({ ...draft, [def.field]: e.target.value || undefined })}
+                    style={{ minWidth: "8rem" }}
+                  >
+                    <option value="">{def.allLabel}</option>
+                    {def.options.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </StyledSelect>
+                </div>
+              )}
+            </Fragment>
+          );
+        })}
 
         <div className="flex-1" />
 
