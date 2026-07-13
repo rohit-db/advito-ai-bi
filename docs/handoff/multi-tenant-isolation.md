@@ -2,7 +2,7 @@
 
 **What & why.** In the single-SP build, every user's Genie questions and dashboard
 queries run as the *one* app Service Principal, so isolation depends entirely on
-the app passing the right `external_value`. That's fine for a demo, not defensible
+the app passing the right `tenant_id`. That's fine for a demo, not defensible
 for a real multi-tenant deployment. This feature gives **each tenant its own
 Service Principal**: when a user signs in, the app resolves them to their tenant
 SP and runs **both** Ask APEX (Genie MCP) **and** the embedded AI/BI dashboards
@@ -15,8 +15,8 @@ control that holds even if the app layer is wrong.
 >   runbook (apply the row filter, onboard, verify). This doc is the
 >   *architecture + code map + admin*.
 > - [`whitelabel-auth-and-hosting.md`](./whitelabel-auth-and-hosting.md) — how a
->   user becomes an identity: login → signed session cookie → `external_value`.
->   This doc picks up where that one ends: `external_value` → tenant SP.
+>   user becomes an identity: login → signed session cookie → `tenant_id`.
+>   This doc picks up where that one ends: `tenant_id` → tenant SP.
 
 ---
 
@@ -24,11 +24,11 @@ control that holds even if the app layer is wrong.
 
 ```
 Login (white-label IdP)                 server/auth/*   (see auth doc)
-  └─ session cookie identity: { email, tenant, external_value, role }
-        │  external_value  ==  tenant_id   (the join key — no extra table)
+  └─ session cookie identity: { email, tenant, tenant_id, role }
+        │  tenant_id  ==  apex_client_registry.tenant_id   (direct join — no extra table)
         ▼
 resolver.resolve_tenant_sp(request)     server/tenants/resolver.py  ← THE SEAM
-        │  external_value → apex_client_registry.tenant_id → sp_app_id
+        │  tenant_id → apex_client_registry.tenant_id → sp_app_id
         ▼
 apex_sp_credentials (Lakebase, AES-GCM) server/tenants/{registry,crypto}.py
         │  sp_app_id → client_secret (decrypted)
@@ -77,7 +77,7 @@ def resolve_tenant_sp(request: Request) -> Optional[Tuple[str, TenantRow]]:
     return token, row
 ```
 
-`tenant_id_for_request` returns the session's `external_value`, treating `*` and
+`tenant_id_for_request` returns the session's `tenant_id`, treating `*` and
 empty (operator / all-rows) as "no tenant SP" → `None`.
 
 ---
@@ -90,7 +90,7 @@ empty (operator / all-rows) as "no tenant SP" → `None`.
 | `registry.py` | Lakebase tables `apex_client_registry` (tenant→SP) + `apex_sp_credentials` (encrypted secret); tenant + credential CRUD. |
 | `minter.py` | `TokenMinter` — per-SP OAuth (M2M) `all-apis` token cache, refreshed 5 min before expiry. |
 | `runtime.py` | Singletons: `minter()`, `admin_client()` (SP lifecycle/admin SQL), `secret_for_sp()`, `warehouse_id()`. |
-| `resolver.py` | **The seam.** `resolve_tenant_sp(request)` → `(token, TenantRow)` from the session's `external_value`; `None` → callers fall back to the app SP. |
+| `resolver.py` | **The seam.** `resolve_tenant_sp(request)` → `(token, TenantRow)` from the session's `tenant_id`; `None` → callers fall back to the app SP. |
 | `sp_lifecycle.py` | Create / rotate / deactivate / reactivate / delete SPs via the SDK (`service_principals` + `service_principal_secrets_proxy`), with transactional rollback on onboard. |
 | `unity_catalog.py` | Mapping-table CRUD (`insert/activate/deactivate/delete_mapping`) + `verify_tenant`/`verify_all` (mints the tenant token, asserts `SELECT DISTINCT tenant_id == [tenant_id]`). |
 | `resources.py` | **NEW.** Grantable resource catalog + per-tenant `CAN_RUN` grant/revoke on individual dashboards + Genie spaces (the "Manage access" feature). |
@@ -108,7 +108,8 @@ empty (operator / all-rows) as "no tenant SP" → `None`.
 - **AI/BI embed** — `embed.py::_resolve_embed_credentials()` mints the embed token
   with the **tenant SP's** client_id/secret (falling back to the app SP), so the
   dashboard's warehouse queries run as the tenant SP and hit the same row filter.
-  `external_value` is still passed as defense-in-depth.
+  The session `tenant_id` is also mapped to Databricks' embed `external_value`
+  param at token mint as defense-in-depth.
 - **Admin API** — `server/routes/tenants.py`, mounted at `/api/tenants/*`,
   operator-gated (`role == "operator"` from the session cookie).
 - **Admin UI** — `frontend/src/pages/AdminPage.tsx` (route `/admin`), reachable
@@ -248,7 +249,7 @@ Key facts confirmed:
     SET ROW FILTER bcd_adv_workspace_poc.apex.client_access_filter ON (client_id);
   ```
   Verified: before attach the tenant SP saw all 64 `client_id`s; after attach it
-  sees only its own (`447` → Cloud Venture). Set the login user's `external_value`
+  sees only its own (`447` → Cloud Venture). Set the login user's `tenant_id`
   **and** the registry `tenant_id` to the **numeric `client_id`** so they line up.
 
 ---
@@ -290,7 +291,7 @@ filter queries) is separate — it lives in `UC_CATALOG.UC_SCHEMA` and is manage
 
 ## Graceful degradation
 
-- No Lakebase / no onboarded tenant / operator (`external_value` = `*`) →
+- No Lakebase / no onboarded tenant / operator (`tenant_id` = `*`) →
   `resolve_tenant_sp` returns `None` and Genie + embed run as the **app SP**
   exactly as before. Nothing breaks pre-onboarding.
 - UC catalog/schema unset → mapping writes + verification are skipped with a clear
@@ -303,5 +304,5 @@ filter queries) is separate — it lives in `UC_CATALOG.UC_SCHEMA` and is manage
 Same model, adapted to this app: `client_registry` + encrypted `sp_credentials`,
 per-SP `TokenMinter`, a mapping table + row filter on `session_user()`, and admin
 onboarding. The key adaptation is the **join key**: here the tenant is the
-white-label login's `external_value`, so no separate user→tenant table is needed —
+white-label login's `tenant_id`, so no separate user→tenant table is needed —
 the same identity that scopes the dashboard embed selects the tenant SP.

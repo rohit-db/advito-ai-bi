@@ -9,7 +9,7 @@ exactly one tenant, so each tenant SP only ever sees its own rows.
 > **Companion docs:** [`multi-tenant-isolation.md`](./multi-tenant-isolation.md)
 > is the architecture + code map + admin (incl. the "Manage access" feature and
 > **reusing an existing customer filter**, e.g. Advito). For how a login becomes
-> the `external_value`/`tenant_id` join key, see
+> the `tenant_id` join key, see
 > [`whitelabel-auth-and-hosting.md`](./whitelabel-auth-and-hosting.md). This doc
 > stays a practical, numbered runbook.
 
@@ -75,7 +75,7 @@ INSERT INTO main.apex.bookings VALUES
 
 Set `UC_CATALOG=main`, `UC_SCHEMA=apex`, `VERIFY_TABLE=main.apex.bookings`,
 `ISOLATED_TABLES=bookings`, and onboard two tenants with `tenant_id`
-`acme-travel` and `globex-corp` (matching each test login's `external_value`).
+`acme-travel` and `globex-corp` (matching each test login's `tenant_id`).
 
 ### 1. Apply the row filter
 
@@ -143,11 +143,11 @@ A tenant **PASSes** iff its visible `DISTINCT tenant_id` equals exactly
 
 ## Mapping an app login to a tenant
 
-The tenant join key is the white-label user's **`external_value`** (e.g.
+The tenant join key is the white-label user's **`tenant_id`** (e.g.
 `acme-travel`). By convention that value **equals**
 `apex_client_registry.tenant_id`, so a logged-in user resolves directly to their
 tenant SP — no extra mapping table. When onboarding, set `--tenant-id` to the
-same string the identity provider emits as `external_value`.
+same string stored on the user record.
 
 ## Troubleshooting
 

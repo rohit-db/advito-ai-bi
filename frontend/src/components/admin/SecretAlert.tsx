@@ -1,5 +1,6 @@
 import { KeyRound, ShieldCheck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { CopyButton } from "./shared";
 
 export interface SecretItem {
@@ -11,6 +12,8 @@ export interface SecretAlertData {
   kind: "onboard" | "rotate";
   tenantId: string;
   items: SecretItem[];
+  /** Shown after onboard — opens Manage access for the new tenant. */
+  onManageAccess?: () => void;
 }
 
 /**
@@ -92,6 +95,23 @@ export default function SecretAlert({
       >
         Shown once — stored encrypted in Lakebase, not retrievable again.
       </p>
+
+      {isOnboard && data.onManageAccess && (
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-emerald-200/80 pt-4">
+          <p className="text-xs text-emerald-800">
+            Next: grant this tenant access to dashboards and Genie so embeds and Ask APEX work.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            onClick={data.onManageAccess}
+            className="gap-1.5 bg-emerald-700 text-white hover:bg-emerald-800"
+          >
+            <KeyRound size={13} />
+            Manage access
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

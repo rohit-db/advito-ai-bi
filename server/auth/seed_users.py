@@ -50,7 +50,7 @@ def main() -> None:
             password_hash=pw_hash,
             display_name=u.get("display_name", u["email"]),
             tenant=u.get("tenant", ""),
-            external_value=u.get("external_value", "*"),
+            tenant_id=u.get("tenant_id") or u.get("external_value", "*"),
             role=u.get("role", "user"),
         ))
         count += 1
@@ -58,7 +58,7 @@ def main() -> None:
     rows = users_repo._lakebase_list()
     print(f"Seeded {count} users; directory now has {len(rows)}:")
     for r in rows:
-        print(f"  - {r.email:28} {r.tenant:16} external_value={r.external_value} role={r.role}")
+        print(f"  - {r.email:28} {r.tenant:16} tenant_id={r.tenant_id} role={r.role}")
 
 
 if __name__ == "__main__":

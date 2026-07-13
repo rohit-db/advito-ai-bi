@@ -100,6 +100,19 @@ export interface SetAccessBody {
   grant: boolean;
 }
 
+export interface AvailableClient {
+  tenant_id: string;
+  display_name: string;
+  onboarded: boolean;
+}
+
+export interface AvailableClientsResult {
+  configured: boolean;
+  source_table?: string | null;
+  clients: AvailableClient[];
+  error?: string;
+}
+
 // ─── Error handling ──────────────────────────────────────────────────────────
 
 /**
@@ -163,10 +176,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   // 204 / empty body → return undefined cast to T.
   if (res.status === 204) return undefined as T;
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new AdminApiError(
+      res.status,
+      "Unexpected response from server — restart the app to pick up new API routes."
+    );
+  }
   try {
     return (await res.json()) as T;
   } catch {
-    return undefined as T;
+    throw new AdminApiError(res.status, "Invalid JSON response from server");
   }
 }
 
@@ -227,6 +247,10 @@ export function resources(): Promise<ResourceCatalog> {
   return request<ResourceCatalog>("/api/tenants/resources");
 }
 
+export function availableClients(): Promise<AvailableClientsResult> {
+  return request<AvailableClientsResult>("/api/tenants/available-clients");
+}
+
 export function access(tenantId: string): Promise<TenantAccess> {
   return request<TenantAccess>(`/api/tenants/${encodeURIComponent(tenantId)}/access`);
 }
@@ -235,5 +259,64 @@ export function setAccess(tenantId: string, body: SetAccessBody): Promise<OkResu
   return request<OkResult>(`/api/tenants/${encodeURIComponent(tenantId)}/access`, {
     method: "POST",
     body: JSON.stringify(body),
+  });
+}
+
+// ─── Login users (white-label directory) ─────────────────────────────────────
+
+export interface AppUserOut {
+  email: string;
+  display_name: string;
+  tenant: string;
+  tenant_id: string;
+  role: string;
+}
+
+export interface AppUsersResult {
+  users: AppUserOut[];
+  writable: boolean;
+}
+
+export interface AppUserCreateBody {
+  email: string;
+  password: string;
+  display_name: string;
+  tenant: string;
+  tenant_id: string;
+  role?: string;
+}
+
+export interface AppUserUpdateBody {
+  display_name?: string;
+  tenant?: string;
+  tenant_id?: string;
+  role?: string;
+  password?: string;
+}
+
+export function listAppUsers(): Promise<AppUsersResult> {
+  return request<AppUsersResult>("/api/users");
+}
+
+export function createAppUser(body: AppUserCreateBody): Promise<{ user: AppUserOut }> {
+  return request<{ user: AppUserOut }>("/api/users", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateAppUser(
+  email: string,
+  body: AppUserUpdateBody
+): Promise<{ user: AppUserOut }> {
+  return request<{ user: AppUserOut }>(`/api/users/${encodeURIComponent(email)}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteAppUser(email: string): Promise<{ ok: boolean; email: string }> {
+  return request<{ ok: boolean; email: string }>(`/api/users/${encodeURIComponent(email)}`, {
+    method: "DELETE",
   });
 }

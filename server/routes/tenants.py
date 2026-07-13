@@ -8,6 +8,7 @@ the operator's email is threaded through to the service layer as the audit
 Endpoints:
   GET    /tenants                        list tenants
   GET    /tenants/resources              grantable dashboards + Genie spaces
+  GET    /tenants/available-clients      tenant keys in VERIFY_TABLE (onboard picker)
   GET    /tenants/{id}/access            resource access for one tenant SP
   POST   /tenants/{id}/access            grant/revoke a resource for a tenant SP
   POST   /tenants/onboard                create tenant SP (returns secret once)
@@ -124,6 +125,13 @@ def list_resources(request: Request):
     """Catalog of grantable dashboards + Genie spaces."""
     _require_operator(request)
     return service.list_resources()
+
+
+@router.get("/tenants/available-clients")
+def list_available_clients(request: Request):
+    """Distinct tenant keys from the governed fact table (onboard picker)."""
+    _require_operator(request)
+    return service.available_clients()
 
 
 @router.get("/tenants/{tenant_id}/access")

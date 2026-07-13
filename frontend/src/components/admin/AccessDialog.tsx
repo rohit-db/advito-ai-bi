@@ -4,6 +4,8 @@ import * as adminApi from "@/lib/adminApi";
 import type { ResourceCatalog, ResourceItem, ResourceType, TenantOut } from "@/lib/adminApi";
 import { Modal, Spinner } from "./shared";
 
+const ACCESS_TIMEOUT_MS = 30_000;
+
 /**
  * Operator dialog to grant/revoke a tenant Service Principal's access to
  * individual AI/BI dashboards and Genie spaces. Each toggle maps to a
@@ -22,29 +24,58 @@ export default function AccessDialog({
     dashboards: Record<string, boolean>;
     genie_spaces: Record<string, boolean>;
   }>({ dashboards: {}, genie_spaces: {} });
-  const [loading, setLoading] = useState(true);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [accessLoading, setAccessLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      try {
-        const [cat, acc] = await Promise.all([
-          adminApi.resources(),
-          adminApi.access(tenant.tenant_id),
-        ]);
-        if (cancelled) return;
-        setCatalog(cat);
-        setGranted(acc.access);
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load access");
-      } finally {
-        if (!cancelled) setLoading(false);
+    setCatalogLoading(true);
+    setAccessLoading(true);
+    setError(null);
+
+    adminApi
+      .resources()
+      .then((cat) => {
+        if (!cancelled) setCatalog(cat);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not load resources");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+
+    const timer = window.setTimeout(() => {
+      if (!cancelled) {
+        setAccessLoading(false);
+        setError((prev) => prev ?? "Loading access timed out — try closing and reopening.");
       }
-    })();
+    }, ACCESS_TIMEOUT_MS);
+
+    adminApi
+      .access(tenant.tenant_id)
+      .then((acc) => {
+        if (!cancelled) setGranted(acc.access);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not load access");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          window.clearTimeout(timer);
+          setAccessLoading(false);
+        }
+      });
+
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [tenant.tenant_id]);
 
@@ -73,6 +104,8 @@ export default function AccessDialog({
     [tenant.tenant_id]
   );
 
+  const loading = catalogLoading && !catalog;
+
   return (
     <Modal
       title="Manage access"
@@ -100,6 +133,7 @@ export default function AccessDialog({
             items={catalog?.dashboards ?? []}
             granted={granted.dashboards}
             busyKey={busyKey}
+            loading={accessLoading}
             type="dashboard"
             onToggle={toggle}
           />
@@ -110,6 +144,7 @@ export default function AccessDialog({
             items={catalog?.genie_spaces ?? []}
             granted={granted.genie_spaces}
             busyKey={busyKey}
+            loading={accessLoading}
             type="genie_space"
             onToggle={toggle}
           />
@@ -131,6 +166,7 @@ function ResourceGroup({
   items,
   granted,
   busyKey,
+  loading,
   type,
   onToggle,
 }: {
@@ -139,6 +175,7 @@ function ResourceGroup({
   items: ResourceItem[];
   granted: Record<string, boolean>;
   busyKey: string | null;
+  loading: boolean;
   type: ResourceType;
   onToggle: (type: ResourceType, id: string, next: boolean) => void;
 }) {
@@ -147,6 +184,7 @@ function ResourceGroup({
       <div className="mb-2 flex items-center gap-1.5">
         {icon}
         <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</h3>
+        {loading && <Spinner size={12} />}
       </div>
       {items.length === 0 ? (
         <p className="rounded-lg border border-dashed border-slate-200 px-3 py-3 text-xs text-slate-400">
@@ -163,7 +201,11 @@ function ResourceGroup({
                   <div className="truncate text-sm font-medium text-slate-800">{it.name}</div>
                   <code className="font-mono text-[10px] text-slate-400">{it.id}</code>
                 </div>
-                <Toggle on={on} busy={busy} onChange={(v) => onToggle(type, it.id, v)} />
+                <Toggle
+                  on={on}
+                  busy={busy || loading}
+                  onChange={(v) => onToggle(type, it.id, v)}
+                />
               </div>
             );
           })}

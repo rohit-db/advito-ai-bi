@@ -155,7 +155,7 @@ cd frontend && npm install && npm run dev
 
 **Demo logins** (only when `AUTH_ENABLED=true`; the shipped JSON directory `server/auth/users.seed.json`, password `apex` for all). A Lakebase-backed directory (`AUTH_USERS_TABLE`) overrides this when `LAKEBASE_ENABLED=true`.
 
-| Email | Tenant | Row scope (`external_value`) |
+| Email | Tenant | Row scope (`tenant_id`) |
 |---|---|---|
 | `alice@acmetravel.com` | Acme Travel | `acme-travel` |
 | `ben@globex.com` | Globex | `globex` |

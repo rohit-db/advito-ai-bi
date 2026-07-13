@@ -25,13 +25,13 @@ self-hosted white-label login. Runs on **Databricks Apps _or_ fully externally**
   - [`docs/architecture/external-hosting.md`](docs/architecture/external-hosting.md) — running outside Databricks.
 
 ## Invariants — do not break
-- **Tenant join key:** the white-label login's `external_value` **is** the
+- **Tenant join key:** the white-label login's `tenant_id` **is** the
   `tenant_id` in `apex_client_registry`. Do not add a separate user→tenant table.
 - **Per-tenant identity:** each tenant has its own Service Principal. Genie MCP and
   the AI/BI embed run **as that SP** so the UC row filter is the load-bearing
   isolation control. The seam is
   `server/tenants/resolver.resolve_tenant_sp(request) -> (token, TenantRow) | None`.
-  On `None` (operator `external_value="*"`, no Lakebase, or pre-onboarding),
+  On `None` (operator `tenant_id="*"`, no Lakebase, or pre-onboarding),
   callers **must fall back to the app SP — never fail**.
 - **Secrets:** SP client secrets are AES-GCM encrypted (`AES_KEY_BASE64`) in
   Lakebase; never log/return them except once at onboard/rotate. Never commit

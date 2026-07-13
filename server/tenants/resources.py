@@ -22,14 +22,16 @@ from __future__ import annotations
 import logging
 import os
 
+from databricks.sdk.service.iam import AccessControlRequest
+
 from . import runtime
 
 logger = logging.getLogger("server.tenants.resources")
 
-# Permissions-API object paths, keyed by our logical resource_type.
-_PERM_PATHS = {
-    "dashboard": "/api/2.0/permissions/dashboards/{id}",
-    "genie_space": "/api/2.0/permissions/genie/{id}",
+# Permissions-API object types, keyed by our logical resource_type.
+_PERM_OBJECT_TYPES = {
+    "dashboard": "dashboards",
+    "genie_space": "genie",
 }
 _PERMISSION_LEVEL = "CAN_RUN"
 
@@ -66,30 +68,42 @@ def catalog() -> dict:
     return {"dashboards": dashboards, "genie_spaces": spaces}
 
 
-def _path(resource_type: str, resource_id: str) -> str:
-    tmpl = _PERM_PATHS.get(resource_type)
-    if not tmpl:
+def _object_type(resource_type: str) -> str:
+    obj = _PERM_OBJECT_TYPES.get(resource_type)
+    if not obj:
         raise ValueError(f"unknown resource_type: {resource_type!r}")
-    return tmpl.format(id=resource_id)
+    return obj
 
 
-def _acl(path: str) -> list[dict]:
-    res = runtime.admin_client().api_client.do("GET", path)
-    if isinstance(res, dict):
-        return res.get("access_control_list", []) or []
-    return []
+def _acl_entries(resource_type: str, resource_id: str) -> list:
+    """Fetch the ACL for one resource via the SDK permissions service."""
+    perms = runtime.admin_client().permissions.get(
+        _object_type(resource_type), resource_id
+    )
+    return list(perms.access_control_list or [])
+
+
+def _sp_has_access(entries: list, sp_app_id: str) -> bool:
+    for e in entries:
+        if getattr(e, "service_principal_name", None) != sp_app_id:
+            continue
+        for p in getattr(e, "all_permissions", None) or []:
+            if getattr(p, "permission_level", None):
+                return True
+    return False
 
 
 def grant(sp_app_id: str, resource_type: str, resource_id: str) -> None:
     """Give the tenant SP CAN_RUN on the resource (PATCH merges, non-destructive)."""
-    runtime.admin_client().api_client.do(
-        "PATCH",
-        _path(resource_type, resource_id),
-        body={
-            "access_control_list": [
-                {"service_principal_name": sp_app_id, "permission_level": _PERMISSION_LEVEL}
-            ]
-        },
+    runtime.admin_client().permissions.update(
+        _object_type(resource_type),
+        resource_id,
+        access_control_list=[
+            AccessControlRequest(
+                service_principal_name=sp_app_id,
+                permission_level=_PERMISSION_LEVEL,
+            )
+        ],
     )
 
 
@@ -101,46 +115,51 @@ def revoke(sp_app_id: str, resource_type: str, resource_id: str) -> None:
     inherited) permission. Inherited permissions are omitted (they re-apply
     automatically and can't be set explicitly).
     """
-    path = _path(resource_type, resource_id)
-    rebuilt: list[dict] = []
-    for e in _acl(path):
-        if e.get("service_principal_name") == sp_app_id:
+    rebuilt: list[AccessControlRequest] = []
+    for e in _acl_entries(resource_type, resource_id):
+        if getattr(e, "service_principal_name", None) == sp_app_id:
             continue
         direct = [
-            p.get("permission_level")
-            for p in e.get("all_permissions", [])
-            if p.get("permission_level") and not p.get("inherited")
+            getattr(p, "permission_level", None)
+            for p in getattr(e, "all_permissions", None) or []
+            if getattr(p, "permission_level", None) and not getattr(p, "inherited", False)
         ]
         if not direct:
             continue
-        entry: dict = {"permission_level": direct[0]}
+        kwargs: dict = {"permission_level": direct[0]}
         for key in ("user_name", "group_name", "service_principal_name"):
-            if e.get(key):
-                entry[key] = e[key]
-        if len(entry) > 1:  # has a principal, not just a level
-            rebuilt.append(entry)
-    runtime.admin_client().api_client.do(
-        "PUT", path, body={"access_control_list": rebuilt}
+            val = getattr(e, key, None)
+            if val:
+                kwargs[key] = val
+        if len(kwargs) > 1:  # has a principal, not just a level
+            rebuilt.append(AccessControlRequest(**kwargs))
+    runtime.admin_client().permissions.set(
+        _object_type(resource_type),
+        resource_id,
+        access_control_list=rebuilt,
     )
 
 
 def has_access(sp_app_id: str, resource_type: str, resource_id: str) -> bool:
-    for e in _acl(_path(resource_type, resource_id)):
-        if e.get("service_principal_name") == sp_app_id and any(
-            p.get("permission_level") for p in e.get("all_permissions", [])
-        ):
-            return True
-    return False
+    return _sp_has_access(_acl_entries(resource_type, resource_id), sp_app_id)
 
 
 def tenant_access(sp_app_id: str) -> dict:
     """Return ``{dashboards:{id:bool}, genie_spaces:{id:bool}}`` for the SP."""
     cat = catalog()
+    acl_cache: dict[tuple[str, str], list] = {}
+
+    def _check(resource_type: str, resource_id: str) -> bool:
+        key = (resource_type, resource_id)
+        if key not in acl_cache:
+            acl_cache[key] = _acl_entries(resource_type, resource_id)
+        return _sp_has_access(acl_cache[key], sp_app_id)
+
     return {
         "dashboards": {
-            d["id"]: has_access(sp_app_id, "dashboard", d["id"]) for d in cat["dashboards"]
+            d["id"]: _check("dashboard", d["id"]) for d in cat["dashboards"]
         },
         "genie_spaces": {
-            s["id"]: has_access(sp_app_id, "genie_space", s["id"]) for s in cat["genie_spaces"]
+            s["id"]: _check("genie_space", s["id"]) for s in cat["genie_spaces"]
         },
     }

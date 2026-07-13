@@ -27,6 +27,10 @@ app.include_router(kpis_router, prefix="/api")
 from server.routes.tenants import router as tenants_router
 app.include_router(tenants_router, prefix="/api")
 
+# White-label login user directory (operator API).
+from server.routes.users import router as users_router
+app.include_router(users_router, prefix="/api")
+
 # Conversation history + user filter preferences, persisted in Lakebase.
 from server.routes.apex import router as apex_router
 app.include_router(apex_router, prefix="/api/apex")
@@ -57,6 +61,16 @@ def _ensure_lakebase_schema() -> None:
 
         logging.getLogger("app").warning("Tenant schema init skipped: %s", exc)
 
+    # White-label user directory (migrate external_value → tenant_id, etc.).
+    try:
+        from server.auth import users as _auth_users
+
+        _auth_users.ensure_schema()
+    except Exception as exc:  # noqa: BLE001
+        import logging
+
+        logging.getLogger("app").warning("Auth users schema init skipped: %s", exc)
+
 # Login/logout/identity routes. Mounted WITHOUT an /api prefix (so /login and
 # /logout are top-level), and BEFORE the SPA catch-all so they aren't swallowed
 # by the index.html fallback. The /api/auth/* routes are declared inside it too.
@@ -70,6 +84,12 @@ if os.path.exists(frontend_dir):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
+        # Never swallow API routes — an old or missing handler should 404 as JSON,
+        # not return index.html (which breaks admin fetch clients).
+        if full_path.startswith("api/"):
+            from fastapi import HTTPException
+
+            raise HTTPException(status_code=404, detail="Not Found")
         file_path = os.path.join(frontend_dir, full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)

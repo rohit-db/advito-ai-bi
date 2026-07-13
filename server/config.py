@@ -87,6 +87,8 @@ MAPPING_TENANT_COLUMN = os.environ.get("MAPPING_TENANT_COLUMN", "tenant_id").str
 MAPPING_ACTIVE_COLUMN = os.environ.get("MAPPING_ACTIVE_COLUMN", "active").strip()
 MAPPING_TS_COLUMN = os.environ.get("MAPPING_TS_COLUMN", "").strip()
 TENANT_COLUMN = os.environ.get("TENANT_COLUMN", "tenant_id").strip()
+# Optional human-readable label column on VERIFY_TABLE (e.g. ``client_name``).
+TENANT_LABEL_COLUMN = os.environ.get("TENANT_LABEL_COLUMN", "").strip()
 FILTER_FUNCTION = os.environ.get("FILTER_FUNCTION", "tenant_row_filter").strip()
 
 

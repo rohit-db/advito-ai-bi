@@ -38,7 +38,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument(
         "--tenant-id",
         required=True,
-        help="tenant id == the white-label user's external_value (e.g. acme-travel)",
+        help="tenant id == the white-label user's tenant_id (e.g. acme-travel)",
     )
     p.add_argument(
         "--display-name",

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import time
 from typing import Optional
 
@@ -33,6 +34,7 @@ from ..config import (
     MAPPING_TS_COLUMN,
     MAPPING_USER_COLUMN,
     TENANT_COLUMN,
+    TENANT_LABEL_COLUMN,
     UC_CATALOG,
     UC_SCHEMA,
     WORKSPACE_URL,
@@ -281,3 +283,60 @@ def verify_all(target_table: Optional[str] = None) -> list[dict]:
             continue
         results.append(verify_tenant(row, target_table))
     return results
+
+
+_COL_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
+
+def _sql_col(name: str) -> str:
+    if not _COL_RE.match(name):
+        raise ValueError(f"invalid SQL identifier: {name!r}")
+    return name
+
+
+def list_available_clients() -> dict:
+    """Distinct tenant keys from ``VERIFY_TABLE`` for the onboard picker.
+
+    Returns ``{configured, source_table, clients: [{tenant_id, display_name, onboarded}]}``.
+    When ``VERIFY_TABLE`` or UC catalog/schema are unset, ``configured`` is false
+    and ``clients`` is empty (callers show a manual-entry fallback).
+    """
+    target = os.environ.get("VERIFY_TABLE", "").strip()
+    if not target:
+        return {"configured": False, "source_table": None, "clients": []}
+
+    onboarded = {r.tenant_id for r in registry.list_tenants()}
+    table = fq(target)
+    tenant_col = _sql_col(TENANT_COLUMN)
+    label_col = _sql_col(TENANT_LABEL_COLUMN) if TENANT_LABEL_COLUMN else None
+
+    if label_col:
+        sql = (
+            f"SELECT CAST(`{tenant_col}` AS STRING) AS id, MAX(`{label_col}`) AS name "
+            f"FROM {table} WHERE `{tenant_col}` IS NOT NULL "
+            f"GROUP BY 1 ORDER BY 1"
+        )
+    else:
+        sql = (
+            f"SELECT DISTINCT CAST(`{tenant_col}` AS STRING) AS id "
+            f"FROM {table} WHERE `{tenant_col}` IS NOT NULL "
+            f"ORDER BY 1"
+        )
+
+    clients: list[dict] = []
+    for row in _admin_sql(sql):
+        tid = str(row[0]).strip() if row and row[0] is not None else ""
+        if not tid:
+            continue
+        label = ""
+        if label_col and len(row) > 1 and row[1] is not None:
+            label = str(row[1]).strip()
+        clients.append(
+            {
+                "tenant_id": tid,
+                "display_name": label or tid,
+                "onboarded": tid in onboarded,
+            }
+        )
+
+    return {"configured": True, "source_table": table, "clients": clients}

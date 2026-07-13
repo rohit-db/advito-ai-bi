@@ -22,8 +22,8 @@ def resolve_genie(request: Request) -> tuple[str, str, str | None]:
     """Resolve (bearer_token, token_type, space_id_override) for a Genie turn.
 
     Multi-tenant path first: if the logged-in white-label session maps to a
-    tenant Service Principal (``external_value`` == a registered tenant), Genie
-    runs AS THAT SP, so ``session_user()`` resolves to the SP and the Unity
+    tenant Service Principal (session ``tenant_id`` matches a registered tenant),
+    Genie runs AS THAT SP, so ``session_user()`` resolves to the SP and the Unity
     Catalog row filter scopes results to the tenant. A per-tenant Genie space
     override (``client_registry.genie_space_id``) is returned when set.
 

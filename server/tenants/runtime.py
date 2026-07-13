@@ -26,6 +26,7 @@ from .minter import TokenMinter
 logger = logging.getLogger("server.tenants.runtime")
 
 _minter: Optional[TokenMinter] = None
+_admin_client = None
 _warehouse_id: Optional[str] = None
 
 
@@ -42,11 +43,15 @@ def invalidate_minter(sp_app_id: str) -> None:
 
 def admin_client():
     """WorkspaceClient for SP lifecycle / admin SQL (needs workspace-admin)."""
-    if TENANTS_ADMIN_PROFILE:
-        from databricks.sdk import WorkspaceClient
+    global _admin_client
+    if _admin_client is None:
+        if TENANTS_ADMIN_PROFILE:
+            from databricks.sdk import WorkspaceClient
 
-        return WorkspaceClient(profile=TENANTS_ADMIN_PROFILE)
-    return get_workspace_client()
+            _admin_client = WorkspaceClient(profile=TENANTS_ADMIN_PROFILE)
+        else:
+            _admin_client = get_workspace_client()
+    return _admin_client
 
 
 def secret_for_sp(sp_app_id: str) -> Optional[str]:

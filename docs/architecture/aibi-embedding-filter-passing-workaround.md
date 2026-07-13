@@ -83,56 +83,19 @@ exchange:
 
 The 3-step exchange, verified:
 
-```81:129:server/routes/embed.py
+```81:130:server/routes/embed.py
 def _mint_embed_token(
     dashboard_id: str,
     viewer_id: str,
-    external_value: str | None,
+    tenant_id: str | None,
     credentials: tuple[str, str] | None = None,
 ) -> dict:
-    instance = WORKSPACE_URL.rstrip("/")
-    cid, csec = credentials or _sp_credentials()
-    basic = base64.b64encode(f"{cid}:{csec}".encode()).decode()
-
-    # 1) broadly-scoped all-apis token for the SP
-    r1 = requests.post(
-        f"{instance}/oidc/v1/token",
-        headers={"Authorization": f"Basic {basic}",
-                 "Content-Type": "application/x-www-form-urlencoded"},
-        data={"grant_type": "client_credentials", "scope": "all-apis"},
-        timeout=_TIMEOUT,
-    )
-    r1.raise_for_status()
-    oidc_token = r1.json()["access_token"]
-
+    ...
     # 2) tokeninfo scoped to this published dashboard + viewer
     params = {"external_viewer_id": viewer_id}
-    if external_value is not None:
-        params["external_value"] = external_value
-    r2 = requests.get(
-        f"{instance}/api/2.0/lakeview/dashboards/{dashboard_id}/published/tokeninfo"
-        f"?{urllib.parse.urlencode(params)}",
-        headers={"Authorization": f"Bearer {oidc_token}"},
-        timeout=_TIMEOUT,
-    )
-    r2.raise_for_status()
-    token_info = r2.json()
-
-    # 3) re-issue as a tightly-scoped, browser-safe token
-    body = dict(token_info)
-    authorization_details = body.pop("authorization_details", None)
-    body["grant_type"] = "client_credentials"
-    body["authorization_details"] = json.dumps(authorization_details)
-    r3 = requests.post(
-        f"{instance}/oidc/v1/token",
-        headers={"Authorization": f"Basic {basic}",
-                 "Content-Type": "application/x-www-form-urlencoded"},
-        data=body,
-        timeout=_TIMEOUT,
-    )
-    r3.raise_for_status()
-    payload = r3.json()
-    return {"token": payload["access_token"], "expires_in": int(payload.get("expires_in", 3600))}
+    # Databricks' embed API still names this param external_value; we map tenant_id.
+    if tenant_id is not None:
+        params["external_value"] = tenant_id
 ```
 
 **Which SP mints the token (multi-tenant).** `_resolve_embed_credentials(request)`
@@ -163,9 +126,10 @@ def _resolve_embed_credentials(request: Request) -> tuple[str, str]:
 ```
 
 The route (`GET /embed/token`, called by the browser as `/api/embed/token`)
-derives `viewer_id` / `external_value` from the **server-side session identity**
+derives `viewer_id` / `tenant_id` from the **server-side session identity**
 (`request.state.identity`), so the browser can't spoof its own scope. It resolves
-credentials, mints, and returns `{ ok, dashboard_id, token, expires_in }`
+credentials, mints (mapping `tenant_id` → Databricks' `external_value` at the
+API boundary), and returns `{ ok, dashboard_id, token, expires_in }`
 (`server/routes/embed.py` lines 132–164). The default dashboard id and workspace
 host come from `DASHBOARD_URL` / `WORKSPACE_URL` in `server/config.py`.
 
