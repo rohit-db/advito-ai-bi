@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>APEX — Architecture Overview</title>
+<style>
+  :root {
+    --indigo: #4f46e5;
+    --indigo-dark: #211d52;
+    --violet: #7c3aed;
+    --ink: #0f172a;
+    --slate: #475569;
+    --slate-light: #64748b;
+    --line: #e2e8f0;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --emerald: #10b981;
+    --amber: #d97706;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+  }
+  a { color: var(--indigo); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Sticky nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+  nav .brand { font-weight: 800; letter-spacing: -0.02em; color: var(--indigo-dark); }
+  nav .links { display: flex; gap: 18px; margin-left: auto; flex-wrap: wrap; }
+  nav .links a { font-size: 13.5px; font-weight: 600; color: var(--slate); }
+  nav .links a:hover { color: var(--indigo); text-decoration: none; }
+
+  /* ── Hero ───────────────────────────────────────────────── */
+  header.hero {
+    background: linear-gradient(135deg, #211d52 0%, #2d2a6e 45%, #4f46e5 100%);
+    color: white; padding: 72px 0 64px;
+    position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -120px;
+    width: 380px; height: 380px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(167,139,250,0.35), transparent 70%);
+  }
+  .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px;
+    font-weight: 700; color: #c7d2fe; margin-bottom: 14px;
+  }
+  header.hero h1 { font-size: 44px; line-height: 1.1; margin: 0 0 16px; font-weight: 800; letter-spacing: -0.03em; }
+  header.hero p { font-size: 18px; max-width: 720px; color: #dbeafe; margin: 0; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; position: relative; z-index: 1; }
+  .pill {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+    padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── Sections ───────────────────────────────────────────── */
+  section { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  section h2 {
+    font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px;
+    color: var(--indigo-dark);
+  }
+  section .lead { font-size: 16.5px; color: var(--slate); max-width: 760px; margin: 0 0 28px; }
+  h3 { font-size: 18px; margin: 28px 0 6px; color: var(--ink); }
+
+  /* ── Diagram card ───────────────────────────────────────── */
+  .diagram {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px; box-shadow: 0 1px 3px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.04);
+    overflow-x: auto;
+  }
+  .diagram .mermaid { display: flex; justify-content: center; }
+  .caption { font-size: 13px; color: var(--slate-light); text-align: center; margin-top: 12px; font-style: italic; }
+
+  /* ── Cards grid ─────────────────────────────────────────── */
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 8px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  }
+  .card .ico { font-size: 22px; }
+  .card h4 { margin: 10px 0 6px; font-size: 16px; }
+  .card p { margin: 0; font-size: 14px; color: var(--slate); }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 3px 8px; border-radius: 6px; margin-top: 12px;
+    background: #eef2ff; color: var(--indigo);
+  }
+
+  /* ── Callout ────────────────────────────────────────────── */
+  .callout {
+    background: linear-gradient(135deg, #eef2ff, #faf5ff);
+    border: 1px solid #ddd6fe; border-left: 4px solid var(--violet);
+    border-radius: 12px; padding: 18px 22px; margin: 8px 0; font-size: 15px;
+  }
+  .callout strong { color: var(--indigo-dark); }
+
+  /* ── Steps ──────────────────────────────────────────────── */
+  ol.steps { counter-reset: step; list-style: none; padding: 0; margin: 8px 0 0; }
+  ol.steps li {
+    position: relative; padding: 12px 0 12px 46px; border-bottom: 1px dashed var(--line);
+    font-size: 15px; color: var(--slate);
+  }
+  ol.steps li:last-child { border-bottom: none; }
+  ol.steps li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 12px; width: 28px; height: 28px;
+    background: var(--indigo); color: white; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+  }
+  ol.steps li b { color: var(--ink); }
+  code {
+    background: #f1f5f9; border: 1px solid var(--line); border-radius: 5px;
+    padding: 1px 6px; font-size: 13px; font-family: "SF Mono", Menlo, Consolas, monospace;
+    color: #be185d;
+  }
+
+  footer { padding: 40px 0 64px; color: var(--slate-light); font-size: 13.5px; }
+  .kbd { font-size: 12px; color: var(--slate-light); }
+</style>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    themeVariables: {
+      primaryColor: "#e0e7ff",
+      primaryBorderColor: "#4f46e5",
+      primaryTextColor: "#1e1b4b",
+      lineColor: "#64748b",
+      secondaryColor: "#f0fdf4",
+      tertiaryColor: "#fffbeb",
+      fontfamily: "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif",
+    },
+    flowchart: { curve: "basis", useMaxWidth: true },
+    sequence: { useMaxWidth: true, mirrorActors: false },
+  });
+</script>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">APEX · Architecture</span>
+    <span class="links">
+      <a href="#system">System</a>
+      <a href="#whitelabel">White-label</a>
+      <a href="#askapex">Ask APEX</a>
+      <a href="#isolation">Isolation</a>
+      <a href="#hosting">Hosting</a>
+    </span>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Reference Architecture</div>
+    <h1>White-label analytics,<br/>powered by Databricks.</h1>
+    <p>
+      APEX is a reference app showing that <strong>Databricks is all you need</strong> to build
+      customer-facing analytical applications — embedded AI/BI dashboards, an agentic
+      &ldquo;Ask&rdquo; experience, governed metrics, per-tenant data isolation, and your own
+      identity layer, with no third-party BI tool.
+    </p>
+    <div class="pill-row">
+      <span class="pill">📊 Embedded AI/BI</span>
+      <span class="pill">🤖 Genie MCP</span>
+      <span class="pill">🔐 Per-tenant isolation</span>
+      <span class="pill">☁️ Deploy anywhere</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── SYSTEM ─────────────────────────────────────────────── -->
+<section id="system">
+  <div class="wrap">
+    <h2>The system at a glance</h2>
+    <p class="lead">
+      A React frontend and a FastAPI backend sit between your users and the Databricks
+      workspace. The backend authenticates to Databricks as a <b>Service Principal</b> —
+      so end users never see a Databricks login. Everything below is either the app you
+      deploy (indigo) or native Databricks capabilities (amber/green) it orchestrates.
+    </p>
+
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart LR
+    U["👤 Client Users<br/><small>no Databricks login</small>"]
+
+    subgraph App["🔵 APEX App — Databricks App OR external Docker host"]
+      direction TB
+      subgraph UI["React Frontend"]
+        DASH["📊 Dashboard Embed<br/><small>SDK + f_ filters · logo hidden</small>"]
+        GENIE_UI["✨ Ask APEX<br/><small>Genie One MCP</small>"]
+        EXEC["📄 Executive Summary<br/><small>per-space Genie MCP</small>"]
+      end
+      subgraph BE["FastAPI Backend"]
+        API_EMBED["/api/embed/token"]
+        API_MCP["/api/genie-mcp/*<br/><small>SSE stream</small>"]
+        API_APEX["/api/apex/*<br/><small>history · prefs</small>"]
+        API_AUTH["/login · /logout<br/><small>white-label IdP</small>"]
+      end
+    end
+
+    subgraph Platform["🟡 Databricks Workspace"]
+      direction TB
+      LV["📊 AI/BI Dashboard"]
+      MCP["🔮 Managed Genie MCP"]
+      GS["🧠 Genie Space"]
+      MV["📐 Metric View<br/><small>governed measures</small>"]
+      SRC["📦 Source Table<br/><small>UC row filter</small>"]
+      LB[("🐘 Lakebase<br/>Postgres")]
+    end
+
+    SP{{"🔑 Service Principal<br/><small>per-tenant · M2M</small>"}}
+
+    U --> DASH & GENIE_UI & EXEC
+    API_AUTH -.->|"signed cookie"| U
+    BE -->|"auth as"| SP --> Platform
+
+    DASH --> API_EMBED -->|"scoped CAN_RUN token"| LV
+    GENIE_UI --> API_MCP
+    EXEC --> API_MCP -->|"MCP tools"| MCP --> GS
+    API_APEX --> LB
+
+    LV --> MV
+    GS --> MV --> SRC
+
+    classDef app fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b;
+    classDef plat fill:#fffbeb,stroke:#d97706,color:#78350f;
+    classDef data fill:#f0fdf4,stroke:#16a34a,color:#14532d;
+    classDef auth fill:#fef2f2,stroke:#dc2626,color:#7f1d1d;
+    class DASH,GENIE_UI,EXEC,API_EMBED,API_MCP,API_APEX,API_AUTH app;
+    class LV,MCP,GS plat;
+    class MV,SRC,LB data;
+    class SP auth;
+      </pre>
+      <div class="caption">End-to-end: your app (indigo) orchestrates native Databricks services (amber/green) as a Service Principal.</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="ico">📊</div>
+        <h4>White-label dashboards</h4>
+        <p>Embedded AI/BI with filters passed in, the &ldquo;Powered by Databricks&rdquo; logo &amp; page headers hidden, and the filter panel collapsed by default.</p>
+        <span class="tag">Capability 1</span>
+      </div>
+      <div class="card">
+        <div class="ico">🤖</div>
+        <h4>Ask APEX</h4>
+        <p>Agentic Q&amp;A over the managed Genie MCP — streamed reasoning, SQL, tables &amp; deep links. Plus an Executive Summary from a preset prompt.</p>
+        <span class="tag">Capability 2</span>
+      </div>
+      <div class="card">
+        <div class="ico">🔐</div>
+        <h4>Auth &amp; isolation</h4>
+        <p>Self-hosted login, per-tenant Service Principals, Unity Catalog row-level security, and an operator Admin page to manage SPs &amp; access.</p>
+        <span class="tag">Capability 3</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHITE-LABEL EMBEDDING ──────────────────────────────── -->
+<section id="whitelabel">
+  <div class="wrap">
+    <h2>White-label dashboard embedding</h2>
+    <p class="lead">
+      Dashboards embed with a <b>Service-Principal-scoped token</b> (no Databricks login),
+      the SDK's <code>hideDatabricksLogo</code> flag, and the documented <code>f_…</code> URL
+      params for filters. The SDK has no filter API yet, so the app rebuilds the embed URL
+      itself and re-applies the logo config after each reload.
+    </p>
+
+    <div class="diagram">
+      <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant UI as React UI
+    participant BE as FastAPI /api/embed/token
+    participant SP as Tenant Service Principal
+    participant DB as Databricks OAuth
+    participant IF as Embed iframe
+
+    UI->>BE: request embed token (dashboard id)
+    BE->>SP: resolve tenant SP creds
+    BE->>DB: 3-step OAuth exchange (authorize, token, scoped)
+    DB-->>BE: scoped CAN_RUN embed token
+    BE-->>UI: token
+    UI->>IF: load embed URL with token hash + f_ filter params
+    Note over IF: SDK config hides logo, CSS crops page header
+    UI->>IF: on filter or page change, rebuild URL (keeps filters + logo)
+      </pre>
+      <div class="caption">Token mint runs as the tenant SP, so the embed is scoped to that tenant's data by the UC row filter.</div>
+    </div>
+
+    <div class="callout">
+      <strong>Why rebuild the URL?</strong> Native SDK filter passing is on the roadmap
+      (<a href="https://databrickinternal.ideas.aha.io/ideas/DB-I-14988">DB-I-14988</a>).
+      Until then, we keep the SDK for auth, token-refresh, and logo-hiding, and apply
+      filters via the documented <code>f_&lt;field&gt;</code> URL params — a fully supported path today.
+    </div>
+  </div>
+</section>
+
+<!-- ── ASK APEX / GENIE MCP ───────────────────────────────── -->
+<section id="askapex">
+  <div class="wrap">
+    <h2>Ask APEX — agentic Q&amp;A via Genie MCP</h2>
+    <p class="lead">
+      &ldquo;Ask APEX&rdquo; talks to the <b>managed Genie MCP server</b> (Genie One MCP). The
+      backend streams the model's reasoning, generated SQL, result tables, tool calls,
+      and deep links back to the browser over Server-Sent Events — <b>Agent mode, out of
+      the box, today</b>.
+    </p>
+
+    <div class="diagram">
+      <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant UI as React UI (Ask APEX)
+    participant BE as FastAPI /api/genie-mcp
+    participant MCP as Managed Genie MCP
+    participant GS as Genie Space + Metric View
+
+    UI->>BE: POST question (SSE opens)
+    BE->>MCP: connect as tenant SP, discover tools
+    MCP->>GS: run tool, MEASURE() SQL
+    GS-->>MCP: rows + SQL + metadata
+    MCP-->>BE: stream reasoning, tool calls, results
+    BE-->>UI: SSE reasoning, SQL, table, deep links
+    Note over UI: renders live, history saved to Lakebase
+      </pre>
+      <div class="caption">The same MCP path powers the per-dashboard Executive Summary using a preset prompt (Overview · KPIs · Strategic Insights).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ISOLATION ──────────────────────────────────────────── -->
+<section id="isolation">
+  <div class="wrap">
+    <h2>Multi-tenant data isolation</h2>
+    <p class="lead">
+      Each tenant gets its <b>own Service Principal</b>. Both Genie and the dashboards run
+      <b>as that SP</b>, and a <b>Unity Catalog row filter</b> is the load-bearing control —
+      isolation is enforced in the data plane, not the app code. The app can never
+      accidentally leak another tenant's rows.
+    </p>
+
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart TB
+    L["👤 User logs in<br/><small>white-label IdP</small>"]
+    C["🍪 HMAC-signed session cookie<br/><small>external_value = tenant_id</small>"]
+    R{"🧭 resolver.resolve_tenant_sp(request)"}
+    T["🔑 Tenant Service Principal<br/><small>secret AES-GCM encrypted in Lakebase</small>"]
+    A["🔑 App Service Principal<br/><small>fallback: operator / no Lakebase</small>"]
+    Q["🔮 Genie MCP &amp; 📊 AI/BI embed<br/><small>run AS the SP</small>"]
+    F["🛡️ Unity Catalog row filter<br/><small>tenant_row_filter · client_access_filter</small>"]
+    D[("📦 Governed data<br/><small>only this tenant's rows</small>")]
+
+    L --> C --> R
+    R -->|"tenant_id present"| T
+    R -->|"external_value = *"| A
+    T --> Q
+    A --> Q
+    Q --> F --> D
+
+    classDef auth fill:#fef2f2,stroke:#dc2626,color:#7f1d1d;
+    classDef app fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b;
+    classDef data fill:#f0fdf4,stroke:#16a34a,color:#14532d;
+    class T,A,F auth;
+    class L,C,R,Q app;
+    class D data;
+      </pre>
+      <div class="caption">The login's <code>external_value</code> IS the tenant key — no separate user→tenant table. Operators (<code>*</code>) bypass to the app SP.</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="ico">🧑‍💼</div>
+        <h4>Operator Admin page</h4>
+        <p>Create / rotate / deactivate tenant SPs, and a &ldquo;Manage access&rdquo; dialog to grant or revoke per-resource <code>CAN_RUN</code> — all audited.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🔒</div>
+        <h4>Secrets, encrypted</h4>
+        <p>SP client secrets are AES-GCM encrypted in Lakebase and only ever returned once, at onboard or rotate.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🪶</div>
+        <h4>Fail-soft by design</h4>
+        <p>Before any tenant is onboarded — or with Lakebase off — the app degrades gracefully to the app SP and JSON/in-memory stores.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOSTING ────────────────────────────────────────────── -->
+<section id="hosting">
+  <div class="wrap">
+    <h2>Deploy anywhere — no Databricks App required</h2>
+    <p class="lead">
+      The <b>same</b> FastAPI + React app runs on the Databricks Apps platform <b>or</b> fully
+      externally (EC2 / ECS / any Docker host), reaching Databricks purely via a Service
+      Principal (M2M). Embedding, Genie MCP, auth, and isolation behave identically in both.
+    </p>
+
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart LR
+    subgraph Opt1["Option A — Databricks Apps"]
+      A1["APEX app"] -->|"injected SP creds"| A2["Databricks Workspace"]
+    end
+    subgraph Opt2["Option B — External host (EC2 / ECS / Docker)"]
+      B1["APEX container"] -->|"DATABRICKS_HOST +<br/>CLIENT_ID / SECRET"| B2["Databricks Workspace"]
+    end
+    classDef app fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b;
+    classDef plat fill:#fffbeb,stroke:#d97706,color:#78350f;
+    class A1,B1 app;
+    class A2,B2 plat;
+      </pre>
+      <div class="caption">One codebase, one auth path (Service Principal). Packaged with a Dockerfile + docker-compose for external hosting.</div>
+    </div>
+
+    <ol class="steps">
+      <li><b>Data plane</b> — Unity Catalog metric view over your governed source table, with a row filter for tenant isolation.</li>
+      <li><b>Auth</b> — app authenticates as a Service Principal; end users sign in through the white-label login (or SSO at your edge).</li>
+      <li><b>Runtime</b> — FastAPI serves the built React bundle and the <code>/api/*</code> routes (embed tokens, Genie MCP SSE, persistence).</li>
+      <li><b>Persistence</b> — Lakebase (managed Postgres) stores conversation history, filter prefs, and the tenant/SP registry.</li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    APEX reference app · architecture overview. &nbsp;For the full technique-by-technique
+    walkthrough with code citations, see <code>docs/handoff/</code> and the root
+    <code>README.md</code>.
+    <div class="kbd" style="margin-top:8px">Tip: open this file in a browser during the demo — diagrams render from the Mermaid CDN.</div>
+  </div>
+</footer>
+
+</body>
+</html>
