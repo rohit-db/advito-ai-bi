@@ -1,0 +1,39 @@
+---
+description: Per-tenant Service Principal isolation (Genie + AI/BI dashboards run as the tenant SP; UC row filter enforces isolation). Read before editing server/tenants, the tenant admin API/UI, or the Genie/embed auth seams.
+globs: server/tenants/**,server/routes/tenants.py,server/routes/embed.py,server/routes/genie_mcp/**,frontend/src/pages/AdminPage.tsx,frontend/src/components/admin/**,scripts/tenants/**,sql/tenants/**
+alwaysApply: false
+---
+
+# Multi-tenant per-SP isolation
+
+Full architecture + code map: `docs/handoff/multi-tenant-isolation.md`.
+Operator steps: `docs/handoff/tenant-isolation-runbook.md`.
+
+## Invariants (do not break)
+- **Join key:** the white-label login's `external_value` **is** the `tenant_id`
+  in `apex_client_registry`. Do not introduce a separate user→tenant table.
+- **Identity:** each tenant has its own Service Principal. Genie MCP and the AI/BI
+  embed run **as that SP** so `session_user()` == `sp_app_id`, and the UC
+  `tenant_row_filter` (joined via `sp_tenant_mapping`) is the load-bearing control.
+- **The seam:** `server/tenants/resolver.resolve_tenant_sp(request)` returns
+  `(token, TenantRow)` or `None`. On `None` (operator `external_value="*"`, no
+  Lakebase, or pre-onboarding) callers MUST fall back to the app SP — never fail.
+  It's used by `genie_mcp/auth.resolve_genie()` and `embed._resolve_embed_credentials()`.
+- **Secrets:** SP client secrets are AES-GCM encrypted (`AES_KEY_BASE64`) in
+  Lakebase (`apex_sp_credentials`). Never log or return them except once at
+  onboard/rotate. Go through `registry.put_secret/get_secret`.
+- **Admin API/UI is operator-only** (`role == "operator"` from the session).
+
+## Where things live
+- `server/tenants/`: `crypto`, `registry` (Lakebase tables), `minter` (per-SP OAuth
+  cache), `runtime` (singletons), `resolver` (seam), `sp_lifecycle` (SDK), 
+  `unity_catalog` (mapping + verify), `audit`, `service` (orchestration+grants).
+- `server/routes/tenants.py` → mounted at `/api/tenants/*`.
+- Admin UI: `frontend/src/pages/AdminPage.tsx` (route `/admin`, operator nav only).
+- SQL/scripts: `sql/tenants/row_filter.sql`, `scripts/tenants/*`.
+
+## Prereqs when testing
+Creating SPs + minting secrets needs **workspace-admin**. Use
+`TENANTS_ADMIN_PROFILE` to run lifecycle ops as an admin CLI profile without
+making the app SP an admin. Row-filter isolation needs `UC_CATALOG`/`UC_SCHEMA` +
+a fact table with a `tenant_id` column (`VERIFY_TABLE`).

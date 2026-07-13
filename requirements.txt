@@ -4,5 +4,6 @@ databricks-sdk
 pydantic
 python-dotenv
 requests
+cryptography
 mcp
 psycopg[binary]

@@ -53,9 +53,39 @@ def _sp_credentials() -> tuple[str, str]:
     return cid, csec
 
 
-def _mint_embed_token(dashboard_id: str, viewer_id: str, external_value: str | None) -> dict:
+def _resolve_embed_credentials(request: Request) -> tuple[str, str]:
+    """Prefer the logged-in tenant's Service Principal, else the app SP.
+
+    When the white-label session maps to a registered tenant, the embed token is
+    minted with THAT SP's credentials — so the dashboard's warehouse queries run
+    AS the tenant SP and the same Unity Catalog row filter that governs Genie
+    (``session_user()`` == the SP) scopes the dashboard rows. Falls back to the
+    app SP so embedding keeps working before any tenant is onboarded.
+    """
+    try:
+        from ..tenants import registry, runtime
+        from ..tenants.resolver import tenant_id_for_request
+
+        tid = tenant_id_for_request(request)
+        if tid:
+            row = registry.get_tenant(tid)
+            if row and row.status == "active":
+                secret = runtime.secret_for_sp(row.sp_app_id)
+                if secret:
+                    return row.sp_app_id, secret
+    except Exception:  # noqa: BLE001 - never block embedding on the isolation layer
+        pass
+    return _sp_credentials()
+
+
+def _mint_embed_token(
+    dashboard_id: str,
+    viewer_id: str,
+    external_value: str | None,
+    credentials: tuple[str, str] | None = None,
+) -> dict:
     instance = WORKSPACE_URL.rstrip("/")
-    cid, csec = _sp_credentials()
+    cid, csec = credentials or _sp_credentials()
     basic = base64.b64encode(f"{cid}:{csec}".encode()).decode()
 
     # 1) broadly-scoped all-apis token for the SP
@@ -124,7 +154,8 @@ def embed_token(request: Request,
             external_value = identity.get("external_value")
 
     try:
-        result = _mint_embed_token(did, viewer_id, external_value)
+        credentials = _resolve_embed_credentials(request)
+        result = _mint_embed_token(did, viewer_id, external_value, credentials)
         return JSONResponse({"ok": True, "dashboard_id": did, **result})
     except requests.HTTPError as e:
         body = e.response.text[:400] if e.response is not None else str(e)

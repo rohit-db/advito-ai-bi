@@ -49,6 +49,22 @@ MULTI_PAGE_DASHBOARD_URL = os.environ.get(
 )
 GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "01f127092d2219f3be10180d79b2ee5d")
 
+# ── Multi-tenant per-SP isolation (see server/tenants/) ──────────────────────
+# Unity Catalog catalog/schema holding the governed tables, the
+# ``tenant_row_filter`` function, and the ``sp_tenant_mapping`` lookup joined by
+# that filter. WAREHOUSE_NAME is resolved to an id at runtime for admin SQL.
+UC_CATALOG = os.environ.get("UC_CATALOG", "").strip()
+UC_SCHEMA = os.environ.get("UC_SCHEMA", "").strip()
+WAREHOUSE_NAME = os.environ.get("WAREHOUSE_NAME", "Serverless Starter Warehouse").strip()
+# Account group whose members bypass the tenant row filter (admins/back-office).
+TENANT_ADMIN_GROUP = os.environ.get("TENANT_ADMIN_GROUP", "admins").strip()
+# Display-name prefix for onboarded per-tenant Service Principals.
+TENANT_SP_PREFIX = os.environ.get("TENANT_SP_PREFIX", "apex-tenant").strip()
+# Optional CLI profile used ONLY for SP lifecycle (create/rotate/delete), which
+# requires workspace-admin. Lets you onboard locally as an admin without making
+# the app SP an admin. Falls back to the app SP client when unset.
+TENANTS_ADMIN_PROFILE = os.environ.get("TENANTS_ADMIN_PROFILE", "").strip()
+
 
 def get_workspace_client() -> WorkspaceClient:
     """Workspace client that works inside Databricks Apps *and* on any external host.

@@ -8,6 +8,7 @@ import DashboardWorkspace from "@/components/DashboardWorkspace";
 import CustomDashboard from "@/pages/CustomDashboard";
 import GenieMcpExperience from "@/pages/GenieMcpExperience";
 import Placeholder from "@/pages/Placeholder";
+import AdminPage, { ADMIN_ROUTE_PATH } from "@/pages/AdminPage";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -190,6 +191,9 @@ export default function App() {
           <main className="flex-1 flex flex-col min-w-0">
             <Routes>
               <Route path="/" element={<Navigate to="/spend-custom" replace />} />
+              {/* Operator-only Service Principal management. The page self-guards
+                  via 401/403; the nav entry is hidden for non-operators. */}
+              <Route path={ADMIN_ROUTE_PATH} element={<AdminPage />} />
               {ROUTES.map((route) => (
                 <Route
                   key={route.path}

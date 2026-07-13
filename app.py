@@ -19,6 +19,10 @@ app.include_router(genie_mcp_router, prefix="/api")
 from server.routes.embed import router as embed_router
 app.include_router(embed_router, prefix="/api")
 
+# Per-tenant Service Principal isolation: operator API to manage tenant SPs.
+from server.routes.tenants import router as tenants_router
+app.include_router(tenants_router, prefix="/api")
+
 # Conversation history + user filter preferences, persisted in Lakebase.
 from server.routes.apex import router as apex_router
 app.include_router(apex_router, prefix="/api/apex")
@@ -36,6 +40,18 @@ def _ensure_lakebase_schema() -> None:
         import logging
 
         logging.getLogger("app").warning("Lakebase schema init skipped: %s", exc)
+
+    # Per-tenant SP registry + audit tables (best-effort; no-op without Lakebase).
+    try:
+        from server.tenants import registry as _tenant_registry
+        from server.tenants import audit as _tenant_audit
+
+        _tenant_registry.ensure_schema()
+        _tenant_audit.ensure_schema()
+    except Exception as exc:  # noqa: BLE001
+        import logging
+
+        logging.getLogger("app").warning("Tenant schema init skipped: %s", exc)
 
 # Login/logout/identity routes. Mounted WITHOUT an /api prefix (so /login and
 # /logout are top-level), and BEFORE the SPA catch-all so they aren't swallowed

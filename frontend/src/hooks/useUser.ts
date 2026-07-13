@@ -4,6 +4,7 @@ interface User {
   displayName: string;
   email: string;
   initials: string;
+  role: string;
 }
 
 interface UseUserResult {
@@ -42,6 +43,7 @@ export function useUser(): UseUserResult {
                 displayName,
                 email: s.email || "",
                 initials: initialsFrom(displayName, s.email || ""),
+                role: s.role || "user",
               });
             }
             return;
@@ -52,9 +54,14 @@ export function useUser(): UseUserResult {
         if (!response.ok) {
           throw new Error(`Failed to fetch user: ${response.status}`);
         }
-        const data: User = await response.json();
+        const data = await response.json();
         if (!cancelled) {
-          setUser(data);
+          setUser({
+            displayName: data.displayName,
+            email: data.email,
+            initials: data.initials,
+            role: data.role || "user",
+          });
         }
       } catch (err) {
         if (!cancelled) {

@@ -18,6 +18,31 @@ from databricks.sdk import WorkspaceClient
 from ...config import IS_DATABRICKS_APP, get_sp_bearer
 
 
+def resolve_genie(request: Request) -> tuple[str, str, str | None]:
+    """Resolve (bearer_token, token_type, space_id_override) for a Genie turn.
+
+    Multi-tenant path first: if the logged-in white-label session maps to a
+    tenant Service Principal (``external_value`` == a registered tenant), Genie
+    runs AS THAT SP, so ``session_user()`` resolves to the SP and the Unity
+    Catalog row filter scopes results to the tenant. A per-tenant Genie space
+    override (``client_registry.genie_space_id``) is returned when set.
+
+    Falls back to the standard resolution (OBO → app SP → PAT) with no space
+    override, so health checks and pre-onboarding requests still work.
+    """
+    try:
+        from ...tenants.resolver import resolve_tenant_sp
+
+        hit = resolve_tenant_sp(request)
+        if hit:
+            token, row = hit
+            return token, "tenant_sp", (row.genie_space_id or None)
+    except Exception:  # noqa: BLE001 - never block on the isolation layer
+        pass
+    token, token_type = resolve_token(request)
+    return token, token_type, None
+
+
 def resolve_token(request: Request) -> tuple[str, str]:
     """Return (bearer_token, token_type). OBO user token first, SP/PAT fallback."""
     obo = request.headers.get("x-forwarded-access-token")

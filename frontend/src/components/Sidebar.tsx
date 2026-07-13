@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { ROUTES, ICON_MAP } from "@/config";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PanelLeftClose, PanelLeft } from "lucide-react";
+import { useUser } from "@/hooks/useUser";
+import { ADMIN_ROUTE_PATH } from "@/pages/AdminPage";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -13,6 +15,8 @@ interface SidebarProps {
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useUser();
+  const isOperator = user?.role === "operator";
 
   const insightsRoutes = ROUTES.filter((r) => r.section === "insights");
   const explorationRoutes = ROUTES.filter((r) => r.section === "exploration");
@@ -164,6 +168,20 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             ))}
           </div>
         </div>
+
+        {/* Administration (operators only) — manage per-tenant Service Principals */}
+        {isOperator && (
+          <div className="mt-4">
+            {!collapsed && (
+              <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
+                Administration
+              </div>
+            )}
+            <div className="flex flex-col gap-0.5">
+              <NavItem path={ADMIN_ROUTE_PATH} label="Service Principals" icon="ShieldCheck" />
+            </div>
+          </div>
+        )}
       </ScrollArea>
     </aside>
   );

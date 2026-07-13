@@ -23,6 +23,7 @@ Two supporting capabilities the team will also want to reuse:
 
 | Capability | Deep-dive doc |
 |---|---|
+| **Multi-tenant isolation** — each tenant gets its own Service Principal; Genie **and** dashboards run as that SP, with a Unity Catalog row filter (`session_user()`) enforcing isolation in the data plane; plus an operator page to manage SPs | [`multi-tenant-isolation.md`](./multi-tenant-isolation.md) · [`tenant-isolation-runbook.md`](./tenant-isolation-runbook.md) |
 | **Own your front door** — white-label custom login (PBKDF2 + HMAC-signed session cookie), the edge-gateway vs external-host hosting models, and Docker packaging | [`whitelabel-auth-and-hosting.md`](./whitelabel-auth-and-hosting.md) |
 | **Persistence + reuse** — Lakebase (managed Postgres) for conversation history & per-user filter prefs, and the config-driven dashboard/filter registry that makes adding a dashboard declarative | [`lakebase-persistence-and-config.md`](./lakebase-persistence-and-config.md) |
 
@@ -161,6 +162,8 @@ infra beyond a Service Principal and a Genie space.
 | [root `README.md`](../../README.md) | App overview, structure, run/deploy |
 | [`../architecture/aibi-embedding-filter-passing-workaround.md`](../architecture/aibi-embedding-filter-passing-workaround.md) | White-label SDK embedding + `f_` filter passing + 3-step token minting |
 | [`ask-apex-genie-mcp.md`](./ask-apex-genie-mcp.md) | Ask APEX over the managed Genie MCP server (SSE, auth, tool discovery, parsing, Executive Summary) |
+| [`multi-tenant-isolation.md`](./multi-tenant-isolation.md) | Per-tenant Service Principals for Genie + dashboards; UC row-filter isolation; the `server/tenants/` package + admin UI |
+| [`tenant-isolation-runbook.md`](./tenant-isolation-runbook.md) | Operator runbook: apply the row filter, onboard tenants, verify isolation |
 | [`whitelabel-auth-and-hosting.md`](./whitelabel-auth-and-hosting.md) | Custom login (PBKDF2 + signed cookie), edge-gateway vs external-host, Docker |
 | [`lakebase-persistence-and-config.md`](./lakebase-persistence-and-config.md) | Lakebase history + filter prefs, and the config-driven dashboard/filter registry |
 | [`../architecture/external-hosting.md`](../architecture/external-hosting.md) | Running fully outside Databricks via a Service Principal |

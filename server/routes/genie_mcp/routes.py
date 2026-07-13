@@ -24,7 +24,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
 from ...config import GENIE_SPACE_ID
-from .auth import resolve_token
+from .auth import resolve_genie
 from .urls import normalize_mode, resolve_genie_mcp_url, MODE_SPACE
 from .service import probe_health, run_genie_turn
 from .sse import sse
@@ -51,11 +51,11 @@ async def health(request: Request):
       mode=multi           -> workspace-wide Genie MCP
     """
     mode = normalize_mode(request.query_params.get("mode"))
-    space_id = GENIE_SPACE_ID or None
     server_url: Optional[str] = None
     try:
+        token, token_type, space_override = resolve_genie(request)
+        space_id = space_override or GENIE_SPACE_ID or None
         server_url = resolve_genie_mcp_url(space_id, mode)
-        token, token_type = resolve_token(request)
         return await probe_health(token=token, token_type=token_type, space_id=space_id, mode=mode)
     except Exception as e:  # noqa: BLE001 - surface any connection/auth failure
         logger.exception("genie-mcp health check failed")
@@ -72,12 +72,12 @@ async def ask(req: AskRequest, request: Request):
     Emits `data: {json}\\n\\n` frames (meta | status | sql | table | text |
     deep_link | tool_call | error) and terminates with `data: [DONE]`.
     """
-    space_id = GENIE_SPACE_ID or None
     mode = normalize_mode(req.mode)
 
     async def event_stream():
         try:
-            token, token_type = resolve_token(request)
+            token, token_type, space_override = resolve_genie(request)
+            space_id = space_override or GENIE_SPACE_ID or None
         except Exception as e:  # noqa: BLE001
             yield sse({"type": "error", "content": str(e)})
             yield sse("[DONE]")
