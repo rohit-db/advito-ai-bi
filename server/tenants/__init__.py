@@ -14,7 +14,7 @@ Layout:
   * ``service``       — onboard/rotate/... orchestration + grants + audit.
   * ``resolver``      — session identity → tenant SP token (used by genie/embed).
 
-The tenant join key is the white-label user's ``external_value`` (e.g.
+The tenant join key is the white-label user's ``tenant_id`` (e.g.
 "acme-travel"): it equals ``apex_client_registry.tenant_id``, so a logged-in
 user resolves to their SP with no extra mapping table.
 """

@@ -10,13 +10,13 @@ Full architecture + code map: `docs/handoff/multi-tenant-isolation.md`.
 Operator steps: `docs/handoff/tenant-isolation-runbook.md`.
 
 ## Invariants (do not break)
-- **Join key:** the white-label login's `external_value` **is** the `tenant_id`
+- **Join key:** the white-label login's `tenant_id` **is** the `tenant_id`
   in `apex_client_registry`. Do not introduce a separate user→tenant table.
 - **Identity:** each tenant has its own Service Principal. Genie MCP and the AI/BI
   embed run **as that SP** so `session_user()` == `sp_app_id`, and the UC
   `tenant_row_filter` (joined via `sp_tenant_mapping`) is the load-bearing control.
 - **The seam:** `server/tenants/resolver.resolve_tenant_sp(request)` returns
-  `(token, TenantRow)` or `None`. On `None` (operator `external_value="*"`, no
+  `(token, TenantRow)` or `None`. On `None` (operator `tenant_id="*"`, no
   Lakebase, or pre-onboarding) callers MUST fall back to the app SP — never fail.
   It's used by `genie_mcp/auth.resolve_genie()` and `embed._resolve_embed_credentials()`.
 - **Secrets:** SP client secrets are AES-GCM encrypted (`AES_KEY_BASE64`) in

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { DatabricksDashboard } from "@databricks/aibi-client";
-import { WORKSPACE, ORG, DEFAULT_FILTERS, buildTokenEmbedUrl, fetchEmbedToken } from "@/config";
+import { WORKSPACE, ORG, buildTokenEmbedUrl, fetchEmbedToken, shouldPassEmbedFilters } from "@/config";
 import type { DashboardSpec, FilterState, PageConfig } from "@/config";
 
 // Config payload that hides the "Powered by Databricks" footer. Mirrors what
@@ -27,18 +27,8 @@ interface CustomDashboardProps {
   spec: DashboardSpec;
   pages: PageConfig[];
   filters: FilterState;
+  filtersReady?: boolean;
   activePageId?: string;
-}
-
-function filtersAreDefault(f: FilterState): boolean {
-  return (
-    f.currentPeriodFrom === DEFAULT_FILTERS.currentPeriodFrom &&
-    f.currentPeriodTo === DEFAULT_FILTERS.currentPeriodTo &&
-    f.previousPeriodFrom === DEFAULT_FILTERS.previousPeriodFrom &&
-    f.previousPeriodTo === DEFAULT_FILTERS.previousPeriodTo &&
-    !f.travelSector &&
-    !f.destinationRegion
-  );
 }
 
 /**
@@ -56,6 +46,7 @@ export default function CustomDashboard({
   spec,
   pages,
   filters,
+  filtersReady = true,
   activePageId,
 }: CustomDashboardProps) {
   const dashboardId = spec.id;
@@ -66,9 +57,10 @@ export default function CustomDashboard({
   const containerRef = useRef<HTMLDivElement>(null);
   const dashRef = useRef<DatabricksDashboard | null>(null);
   const tokenRef = useRef<string>("");
-  const readyRef = useRef(false);
   const pageRef = useRef(currentPageId);
   pageRef.current = currentPageId;
+
+  const [embedReady, setEmbedReady] = useState(false);
 
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
@@ -112,17 +104,16 @@ export default function CustomDashboard({
   // Create the SDK dashboard once per dashboard.
   useEffect(() => {
     let cancelled = false;
-    readyRef.current = false;
+    setEmbedReady(false);
     setPhase("loading");
     setError(null);
 
     const onFirstReady = (e: MessageEvent) => {
       if (!fromEmbed(e)) return;
-      if (e.data?.type === "DATABRICKS_EMBED_READY" && !readyRef.current) {
-        readyRef.current = true;
+      if (e.data?.type === "DATABRICKS_EMBED_READY") {
+        setEmbedReady(true);
         setPhase("ready");
-        // Apply any non-default initial filters (e.g. restored from Lakebase).
-        if (!filtersAreDefault(filters)) reloadWithFilters(pageRef.current, filters);
+        window.removeEventListener("message", onFirstReady);
       }
     };
     window.addEventListener("message", onFirstReady);
@@ -171,25 +162,15 @@ export default function CustomDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardId]);
 
-  // Page switch → reload the embed on the new page. We deliberately do NOT use
-  // the SDK's navigate(): in the token-embed context it only fires a postMessage
-  // and resolves even when the embed ignores it (so the page silently doesn't
-  // change), and it wouldn't carry the f_ filter params. Rebuilding the iframe
-  // URL reliably switches the page AND keeps the active filters + hide-logo config.
+  // Apply filters / page changes once the embed is ready. Restored prefs often
+  // arrive after the iframe mounts (async Lakebase fetch in App), so we key off
+  // `embedReady` + `filtersReady` + `filters` rather than only the first READY.
   useEffect(() => {
-    if (!readyRef.current) return;
-    // Only carry f_ params across the page switch when the user actually has
-    // non-default filters; otherwise load the clean page (panel stays collapsed).
-    reloadWithFilters(currentPageId, filtersAreDefault(filters) ? undefined : filters);
+    if (!embedReady || !filtersReady) return;
+    const embedFilters = shouldPassEmbedFilters(spec, filters) ? filters : undefined;
+    reloadWithFilters(currentPageId, embedFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPageId]);
-
-  // Filter change → reload the current page with f_ params.
-  useEffect(() => {
-    if (!readyRef.current) return;
-    reloadWithFilters(pageRef.current, filters);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  }, [embedReady, filtersReady, currentPageId, filters]);
 
   if (pages.length === 0) {
     return (

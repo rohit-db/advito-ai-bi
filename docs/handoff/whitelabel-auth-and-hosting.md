@@ -8,7 +8,7 @@ tenant resolution — plus the two hosting models and Docker packaging.
 
 > **Companion docs (don't duplicate — read them for their topics):**
 > - [`multi-tenant-isolation.md`](./multi-tenant-isolation.md) — what happens
->   *after* identity: `external_value` → tenant Service Principal → UC row filter.
+>   *after* identity: `tenant_id` → tenant Service Principal → UC row filter.
 >   This doc hands off there.
 > - [`../architecture/aibi-embedding-filter-passing-workaround.md`](../architecture/aibi-embedding-filter-passing-workaround.md)
 >   — owns the embed-token exchange + `f_` filter-passing details.
@@ -31,16 +31,15 @@ Browser sends cookie on every request
    │
    ▼
 SessionGateMiddleware  (server/auth/middleware.py)   [no-op if AUTH_ENABLED off]
-   │  verify_session() → request.state.identity = {email, tenant, external_value, role}
+   │  verify_session() → request.state.identity = {email, tenant, tenant_id, role}
    ▼
 Route handlers read the identity:
-   ├── embed.py            external_value → scoped embed token   (row scoping)
-   └── tenants/resolver.py external_value → tenant SP            (see isolation doc)
+   ├── embed.py            tenant_id → tenant SP credentials (+ maps to Databricks external_value at token mint)
+   └── tenants/resolver.py tenant_id → tenant SP            (see isolation doc)
 ```
 
-Everything downstream keys on **`external_value`** — the non-PII handle carried in
-the signed cookie. It is the row-scoping value for the dashboard embed **and** the
-join key that selects a tenant Service Principal.
+Everything downstream keys on **`tenant_id`** — the join key carried in the signed
+cookie. It selects the per-tenant Service Principal for Genie and dashboard embeds.
 
 ---
 
@@ -85,7 +84,7 @@ constant-time, then `exp` is checked.
 def create_session(identity: dict, ttl_seconds: int | None = None) -> str:
     """Build a signed cookie value from an identity dict.
 
-    ``identity`` should contain at least ``email``; ``tenant``, ``external_value``,
+    ``identity`` should contain at least ``email``; ``tenant``, ``tenant_id``,
     ``display_name`` and ``role`` are carried through when present.
     """
     ttl = SESSION_TTL_SECONDS if ttl_seconds is None else ttl_seconds
@@ -93,7 +92,7 @@ def create_session(identity: dict, ttl_seconds: int | None = None) -> str:
         "email": identity.get("email"),
         "name": identity.get("display_name") or identity.get("name"),
         "tenant": identity.get("tenant"),
-        "ext": identity.get("external_value"),
+        "tenant_id": identity.get("tenant_id"),
         "role": identity.get("role", "user"),
         "exp": int(time.time()) + int(ttl),
     }
@@ -103,8 +102,8 @@ def create_session(identity: dict, ttl_seconds: int | None = None) -> str:
 
 - **Signing key:** `AUTH_SESSION_SECRET` (falls back to a clearly-marked dev
   default — set a real one in production).
-- **Payload fields:** `email`, `name`, `tenant`, `ext` (=`external_value`), `role`,
-  `exp`. `verify_session` normalizes `ext` back to `external_value`.
+- **Payload fields:** `email`, `name`, `tenant`, `tenant_id`, `role`, `exp`.
+  Legacy cookies used `ext` (normalized to `tenant_id` on read).
 - **TTL:** `AUTH_SESSION_TTL_SECONDS` (default **28800s = 8h**).
 - **Cookie name:** `AUTH_SESSION_COOKIE` (default `apex_session`).
 
@@ -122,10 +121,10 @@ request arrived over TLS (or when `AUTH_COOKIE_SECURE` forces it) — see
 
 `role` rides in the session. Two values matter:
 
-- **`user`** — a normal tenant viewer. Their `external_value` scopes their data.
+- **`user`** — a normal tenant viewer. Their `tenant_id` selects their SP.
 - **`operator`** — back-office / admin. Gates the Service Principal admin API
   (`role == "operator"` in `server/routes/tenants.py`) and the **Administration →
-  Service Principals** nav entry. Operators typically have `external_value = "*"`
+  Service Principals** nav entry. Operators typically have `tenant_id = "*"`
   (all rows) and are members of `TENANT_ADMIN_GROUP` so the UC row filter lets them
   see every tenant.
 
@@ -179,25 +178,30 @@ identity, falling back to decoding the cookie directly.
 
 ## From identity → tenant resolution (the hand-off)
 
-Two routes consume `external_value` from the session; this is where this doc ends
+Two routes consume `tenant_id` from the session; this is where this doc ends
 and [`multi-tenant-isolation.md`](./multi-tenant-isolation.md) begins:
 
-- **Embed token** — `embed.py` derives the scoped embed token's `external_value`
-  and `viewer_id` from `request.state.identity`, never from the browser:
+- **Embed token** — `embed.py` derives `tenant_id` and `viewer_id` from
+  `request.state.identity`, never from the browser. At the Databricks API boundary
+  the value is sent as the embed `external_value` param (defense-in-depth):
 
-```147:154:server/routes/embed.py
+```147:159:server/routes/embed.py
     identity = getattr(request.state, "identity", None)
     if identity:
         # Session identity wins over the default viewer; a query-param override
         # (anything other than the default) is still honored.
         if viewer_id == "apex-viewer":
             viewer_id = identity.get("email") or identity.get("tenant") or viewer_id
-        if external_value is None:
-            external_value = identity.get("external_value")
+        if tenant_id is None:
+            tenant_id = identity.get("tenant_id")
+
+    try:
+        credentials = _resolve_embed_credentials(request)
+        result = _mint_embed_token(did, viewer_id, tenant_id, credentials)
 ```
 
 - **Tenant SP** — `tenants/resolver.resolve_tenant_sp(request)` maps that same
-  `external_value` to a per-tenant Service Principal so Genie **and** the embed run
+  `tenant_id` to a per-tenant Service Principal so Genie **and** the embed run
   *as* the tenant SP (with the app SP as the safe fallback). See the isolation doc.
 
 ---
@@ -205,7 +209,7 @@ and [`multi-tenant-isolation.md`](./multi-tenant-isolation.md) begins:
 ## The user directory — Lakebase, with JSON fallback
 
 The directory is the app's **own** login store, separate from Databricks identity.
-Each user maps to a `tenant` and an `external_value`.
+Each user maps to a display `tenant` name and a `tenant_id` join key.
 
 - **Lakebase backend** (managed Postgres) when `LAKEBASE_ENABLED` is true. The
   Postgres credential is a **short-lived OAuth credential minted via the app's
@@ -239,7 +243,7 @@ When `LAKEBASE_ENABLED=false` (the default), the store is `users.seed.json` and
 **all three sample users share the password `apex`**. The login page renders
 clickable chips pre-filled from `demo_password_hint()` (JSON mode only).
 
-| Display name | Email | Password | Tenant | `external_value` | Role |
+| Display name | Email | Password | Tenant | `tenant_id` | Role |
 |---|---|---|---|---|---|
 | Alice Chen | `alice@acmetravel.com` | `apex` | Acme Travel | `acme-travel` | user |
 | Ben Ortiz | `ben@globex.com` | `apex` | Globex | `globex` | user |
@@ -376,7 +380,7 @@ Authoritative against `.env.example`, `server/config.py`, `server/lakebase.py`,
 | `server/config.py` | `get_workspace_client()` / `get_sp_bearer()` — SP-first Databricks auth. |
 | `server/lakebase.py` | Shared Lakebase connection + short-lived Postgres credential minting. |
 | `server/routes/embed.py` | `/api/embed/token` — SP-minted scoped embed token; consumes session identity. |
-| `server/tenants/resolver.py` | `external_value` → tenant SP (the isolation hand-off). |
+| `server/tenants/resolver.py` | `tenant_id` → tenant SP (the isolation hand-off). |
 | `app.py` | FastAPI entry: adds middleware, wires routers, serves `frontend/dist`. |
 | `Dockerfile` / `docker-compose.yml` / `.dockerignore` / `.env.example` | Container packaging + env contract. |
 

@@ -2,8 +2,8 @@
 
 This is the app's *own* user directory — the customer-facing login store,
 deliberately separate from Databricks workspace identity. Each user maps to a
-``tenant`` and an ``external_value`` (the handle passed to the AI/BI embed token
-so Unity Catalog row filters scope the dashboard per tenant).
+display ``tenant`` name and a ``tenant_id`` join key that selects the per-tenant
+Service Principal in ``apex_client_registry``.
 
 Two backends:
   * **Lakebase** (Databricks managed Postgres) when ``LAKEBASE_ENABLED`` is true.
@@ -51,7 +51,7 @@ class UserRow:
     password_hash: str
     display_name: str
     tenant: str
-    external_value: str
+    tenant_id: str
     role: str = "user"
 
 
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS {USERS_TABLE} (
     password_hash   TEXT NOT NULL,
     display_name    VARCHAR(255) NOT NULL,
     tenant          VARCHAR(255) NOT NULL,
-    external_value  VARCHAR(255) NOT NULL DEFAULT '*',
+    tenant_id       VARCHAR(255) NOT NULL DEFAULT '*',
     role            VARCHAR(50)  NOT NULL DEFAULT 'user',
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     last_login_at   TIMESTAMPTZ
@@ -75,19 +75,40 @@ CREATE TABLE IF NOT EXISTS {USERS_TABLE} (
 CREATE INDEX IF NOT EXISTS idx_{USERS_TABLE}_email ON {USERS_TABLE}(email);
 """
 
-_COLS = "email, password_hash, display_name, tenant, external_value, role"
+_COLS = "email, password_hash, display_name, tenant, tenant_id, role"
 
 
 def _row(r) -> UserRow:
     return UserRow(
         email=r[0], password_hash=r[1], display_name=r[2],
-        tenant=r[3], external_value=r[4], role=r[5],
+        tenant=r[3], tenant_id=r[4], role=r[5],
     )
+
+
+_MIGRATE_EXTERNAL_VALUE_SQL = f"""
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = current_schema()
+      AND table_name = '{USERS_TABLE}'
+      AND column_name = 'external_value'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = current_schema()
+      AND table_name = '{USERS_TABLE}'
+      AND column_name = 'tenant_id'
+  ) THEN
+    ALTER TABLE {USERS_TABLE} RENAME COLUMN external_value TO tenant_id;
+  END IF;
+END $$;
+"""
 
 
 def ensure_schema() -> None:
     with _connection() as conn:
         conn.execute(SCHEMA_SQL)
+        conn.execute(_MIGRATE_EXTERNAL_VALUE_SQL)
         conn.commit()
 
 
@@ -111,16 +132,16 @@ def _lakebase_upsert(u: UserRow) -> None:
     with _connection() as conn:
         conn.execute(
             f"INSERT INTO {USERS_TABLE} "
-            "(email, password_hash, display_name, tenant, external_value, role) "
+            "(email, password_hash, display_name, tenant, tenant_id, role) "
             "VALUES (%s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (email) DO UPDATE SET "
             "  password_hash = EXCLUDED.password_hash, "
             "  display_name  = EXCLUDED.display_name, "
             "  tenant        = EXCLUDED.tenant, "
-            "  external_value = EXCLUDED.external_value, "
+            "  tenant_id     = EXCLUDED.tenant_id, "
             "  role          = EXCLUDED.role",
             (u.email.lower(), u.password_hash, u.display_name, u.tenant,
-             u.external_value, u.role),
+             u.tenant_id, u.role),
         )
         conn.commit()
 
@@ -152,7 +173,7 @@ def _load_json_users() -> list[UserRow]:
                 password_hash=u["password_hash"],
                 display_name=u.get("display_name", u["email"]),
                 tenant=u.get("tenant", ""),
-                external_value=u.get("external_value", "*"),
+                tenant_id=u.get("tenant_id") or u.get("external_value", "*"),
                 role=u.get("role", "user"),
             ))
     except FileNotFoundError:
@@ -227,3 +248,45 @@ def demo_password_hint() -> str | None:
     except Exception:  # noqa: BLE001
         return None
     return None
+
+
+# ============================================================ operator CRUD
+def list_users() -> list[UserRow]:
+    """Return every login user (Lakebase when enabled, else JSON fallback)."""
+    if LAKEBASE_ENABLED:
+        try:
+            ensure_schema()
+            return _lakebase_list()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Lakebase user list failed, using JSON fallback: %s", e)
+    return _load_json_users()
+
+
+def save_user(user: UserRow) -> None:
+    """Create or update a login user. Requires Lakebase."""
+    if not LAKEBASE_ENABLED:
+        raise RuntimeError("User management requires LAKEBASE_ENABLED=true")
+    ensure_schema()
+    _lakebase_upsert(user)
+
+
+def delete_user(email: str) -> None:
+    """Remove a login user. Requires Lakebase."""
+    if not LAKEBASE_ENABLED:
+        raise RuntimeError("User management requires LAKEBASE_ENABLED=true")
+    em = (email or "").strip().lower()
+    if not em:
+        raise ValueError("email is required")
+    ensure_schema()
+    with _connection() as conn:
+        conn.execute(
+            f"DELETE FROM {USERS_TABLE} WHERE LOWER(email) = LOWER(%s)",
+            (em,),
+        )
+        conn.commit()
+
+
+def lakebase_writable() -> bool:
+    from ..lakebase import enabled
+
+    return enabled()

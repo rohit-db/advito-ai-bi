@@ -160,6 +160,7 @@
     <span class="brand">APEX · Architecture</span>
     <span class="links">
       <a href="#system">System</a>
+      <a href="#auth">Auth</a>
       <a href="#whitelabel">White-label</a>
       <a href="#askapex">Ask APEX</a>
       <a href="#isolation">Isolation</a>
@@ -277,6 +278,51 @@ flowchart LR
   </div>
 </section>
 
+<!-- ── AUTHENTICATION ─────────────────────────────────────── -->
+<section id="auth">
+  <div class="wrap">
+    <h2>White-label authentication</h2>
+    <p class="lead">
+      APEX is its <b>own identity provider</b>: users sign in on a branded login page with
+      email and password, receive an <b>HMAC-signed session cookie</b>, and never see a
+      Databricks login. The cookie carries <code>tenant_id</code> — the join key that
+      selects the per-tenant Service Principal for Genie and dashboard embeds.
+    </p>
+
+    <div class="diagram">
+      <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant User as 👤 Client User
+    participant Login as FastAPI /login
+    participant Dir as User directory
+    participant Gate as Session gate
+    participant DBX as Databricks
+
+    User->>Login: POST email + password
+    Login->>Dir: verify password hash (PBKDF2)
+    Dir-->>Login: tenant · tenant_id · role
+    Login-->>User: Set-Cookie apex_session (HMAC-signed)
+
+    User->>Gate: request with cookie
+    Gate->>Gate: verify signature + expiry
+    Gate->>Login: resolve tenant SP from tenant_id
+    Login->>DBX: embed / Genie as tenant SP
+    DBX-->>User: scoped data (UC row filter)
+      </pre>
+      <div class="caption">Login → signed cookie → middleware → tenant SP. Users live in Lakebase (prod) or a JSON file (demo); <code>tenant_id</code> joins directly to <code>apex_client_registry</code>.</div>
+    </div>
+
+    <div class="callout">
+      <strong>No Databricks login for end users.</strong> The app authenticates to Databricks
+      as a Service Principal on their behalf. Operators (<code>role = operator</code>,
+      <code>tenant_id = *</code>) bypass tenant scoping and can manage SPs from the
+      Admin page. Set <code>AUTH_ENABLED=true</code> in production; it is off by default
+      so local dev works without a login gate.
+    </div>
+  </div>
+</section>
+
 <!-- ── WHITE-LABEL EMBEDDING ──────────────────────────────── -->
 <section id="whitelabel">
   <div class="wrap">
@@ -367,7 +413,7 @@ sequenceDiagram
       <pre class="mermaid">
 flowchart TB
     L["👤 User logs in<br/><small>white-label IdP</small>"]
-    C["🍪 HMAC-signed session cookie<br/><small>external_value = tenant_id</small>"]
+    C["🍪 HMAC-signed session cookie<br/><small>tenant_id</small>"]
     R{"🧭 resolver.resolve_tenant_sp(request)"}
     T["🔑 Tenant Service Principal<br/><small>secret AES-GCM encrypted in Lakebase</small>"]
     A["🔑 App Service Principal<br/><small>fallback: operator / no Lakebase</small>"]
@@ -377,7 +423,7 @@ flowchart TB
 
     L --> C --> R
     R -->|"tenant_id present"| T
-    R -->|"external_value = *"| A
+    R -->|"tenant_id = *"| A
     T --> Q
     A --> Q
     Q --> F --> D
@@ -389,7 +435,7 @@ flowchart TB
     class L,C,R,Q app;
     class D data;
       </pre>
-      <div class="caption">The login's <code>external_value</code> IS the tenant key — no separate user→tenant table. Operators (<code>*</code>) bypass to the app SP.</div>
+      <div class="caption">The session's <code>tenant_id</code> joins directly to <code>apex_client_registry</code> — no separate user→tenant table. Operators (<code>*</code>) bypass to the app SP.</div>
     </div>
 
     <div class="grid">

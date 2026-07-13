@@ -71,7 +71,8 @@ origin over HTTPS). The Service Principal secret never leaves the server.
 ### 2.1 Data path — embedded dashboard
 
 1. Browser requests a dashboard page from the APEX SPA.
-2. SPA calls the backend: `GET /api/embed/token?dashboard_id=…&viewer_id=…[&external_value=…]`.
+2. SPA calls the backend: `GET /api/embed/token?dashboard_id=…&viewer_id=…` (the
+   session's `tenant_id` is applied server-side when auth is on).
 3. Backend runs the **3-step OAuth exchange as the SP** (see §4 of the
    [filter-passing workaround](./aibi-embedding-filter-passing-workaround.md))
    and returns `{ token, expires_in }`. The SP secret stays server-side.
@@ -173,12 +174,12 @@ would — there is no end-user identity backing the queries.
    DB password. (For local dev you can instead set `LAKEBASE_PROFILE` to a CLI
    profile and mint as that user before the SP role exists.)
 
-**Per-tenant scoping mechanic.** When minting an embed token, the app passes
-`external_viewer_id` (a non-PII viewer id) and, for multi-tenant isolation,
-`external_value` (e.g. the tenant id). `external_value` is the value your
-**Unity Catalog row filter** keys on, so each viewer's token can read only its
-own rows. See §4.1 of the
-[filter-passing workaround](./aibi-embedding-filter-passing-workaround.md).
+**Per-tenant scoping mechanic.** The session's `tenant_id` selects the tenant
+Service Principal used to mint the embed token. Warehouse queries run **as that
+SP**, and the Unity Catalog row filter keys on `session_user()` — the load-bearing
+control. The session `tenant_id` is also sent as Databricks' embed
+`external_value` param at token mint (defense-in-depth). See
+[`multi-tenant-isolation.md`](../handoff/multi-tenant-isolation.md).
 
 ---
 
@@ -277,36 +278,31 @@ logins from `AUTH_USERS_FILE` so you can sign in immediately. Switch to
 
 ## 7. Per-tenant data isolation
 
-Each tenant sees only its own rows because the logged-in user's `external_value`
-flows from the **server-side session** into the embed-token mint:
+Each tenant sees only its own rows because the logged-in user's `tenant_id`
+selects the **per-tenant Service Principal** used for Genie and embed queries:
 
 ```
-custom login (server/auth/)        embed-token mint (server/routes/embed.py)
+custom login (server/auth/)        tenant resolution (server/tenants/resolver.py)
 ┌──────────────────────────┐       ┌─────────────────────────────────────────┐
-│ user signs in            │       │ GET /api/embed/token?dashboard_id=…&      │
-│ session stores:          │  ───▶ │     viewer_id=<from session>&             │
-│  • viewer_id             │       │     external_value=<tenant from session>  │
-│  • external_value (tenant)│      │                                           │
-└──────────────────────────┘       │ 3-step OAuth as SP:                       │
-                                    │  tokeninfo?external_viewer_id=…           │
-                                    │           &external_value=<tenant>        │
-                                    │  → scoped token bound to that tenant      │
+│ user signs in            │       │ session.tenant_id → apex_client_registry │
+│ session stores:          │  ───▶ │ mint OAuth token as tenant SP            │
+│  • tenant_id             │       │                                           │
+└──────────────────────────┘       │ Genie MCP + embed run AS that SP          │
                                     └─────────────────────────────────────────┘
                                                   │
-                                                  ▼   #token=<scopedToken>
-                                    Unity Catalog row filter keys on
-                                    external_value → tenant sees only its rows
+                                                  ▼
+                                    Unity Catalog row filter:
+                                    session_user() == sp_app_id → tenant rows only
 ```
 
 Key points:
 
-- `viewer_id` / `external_value` are derived from **your authenticated session**,
-  **never** from anything the browser can spoof.
-- `external_value` is the value Unity Catalog **row-level security** policies key
-  on — the real security boundary. The `f_` URL filters are a UI convenience, not
-  a security boundary.
-- The minted token is short-lived (~1h) and scoped to exactly one dashboard +
-  one viewer, so it is safe to hand to the browser.
+- `tenant_id` is derived from **your authenticated session**, never from anything
+  the browser can spoof.
+- Isolation is enforced in the **data plane** via the UC row filter on
+  `session_user()` — not via `f_` URL filters (those are UI only).
+- The minted embed token is short-lived (~1h) and scoped to exactly one dashboard
+  + one viewer, so it is safe to hand to the browser.
 
 ---
 
@@ -326,7 +322,7 @@ Key points:
   minutes before expiry. Session TTL is `AUTH_SESSION_TTL_SECONDS`.
 - **Authorization still applies.** Removing the *login* does not remove
   *authorization* — the SP must hold warehouse + UC `SELECT`, and UC row filters
-  govern what each `external_value` can read.
+  govern what each tenant SP can read via the UC row filter on `session_user()`.
 
 ---
 

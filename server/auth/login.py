@@ -146,7 +146,7 @@ async def login_post(request: Request) -> Response:
         "email": user.email,
         "display_name": user.display_name,
         "tenant": user.tenant,
-        "external_value": user.external_value,
+        "tenant_id": user.tenant_id,
         "role": user.role,
     }
     resp = RedirectResponse(next_url, status_code=303)
@@ -183,6 +183,6 @@ async def auth_me(request: Request) -> Response:
         "email": identity.get("email"),
         "display_name": identity.get("display_name"),
         "tenant": identity.get("tenant"),
-        "external_value": identity.get("external_value"),
+        "tenant_id": identity.get("tenant_id"),
         "role": identity.get("role", "user"),
     })

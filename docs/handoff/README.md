@@ -107,7 +107,7 @@ cd frontend && npm install && npm run dev
 `LAKEBASE_ENABLED=true`, a Lakebase-backed directory (`AUTH_USERS_TABLE`)
 overrides this file — that's where you'd seed real tenant/operator accounts.
 
-| Email | Tenant | Role | Row scope (`external_value`) |
+| Email | Tenant | Role | Row scope (`tenant_id`) |
 |---|---|---|---|
 | `alice@acmetravel.com` | Acme Travel | user | `acme-travel` |
 | `ben@globex.com` | Globex | user | `globex` |

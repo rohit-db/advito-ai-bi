@@ -81,7 +81,8 @@ export default function TenantTable(props: TenantTableProps) {
                 <th className="px-4 py-2.5 font-semibold">Status</th>
                 <th className="px-4 py-2.5 font-semibold">Service Principal</th>
                 <th className="px-4 py-2.5 font-semibold">Updated</th>
-                <th className="px-5 py-2.5 font-semibold text-right">Actions</th>
+                <th className="px-4 py-2.5 font-semibold">Access</th>
+                <th className="px-5 py-2.5 font-semibold text-right">More</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -136,13 +137,30 @@ function TenantRow({
           {relativeTime(tenant.updated_at)}
         </span>
       </td>
+      <td className="px-4 py-3 align-top">
+        {active ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => onManageAccess(tenant)}
+            className="h-8 gap-1.5 border-indigo-200 bg-indigo-50/50 text-indigo-800 hover:bg-indigo-100 hover:text-indigo-900"
+            aria-label={`Manage dashboard and Genie access for ${tenant.display_name || tenant.tenant_id}`}
+          >
+            <KeyRound size={13} />
+            Manage access
+          </Button>
+        ) : (
+          <span className="text-xs text-slate-400">Reactivate to edit</span>
+        )}
+      </td>
       <td className="px-5 py-3 align-top text-right">
         <div className="flex items-center justify-end gap-1">
           {busy && <Spinner size={14} />}
           <RowActions
             active={active}
             disabled={busy}
-            onManageAccess={() => onManageAccess(tenant)}
             onHistory={() => onHistory(tenant)}
             onRotate={() => onRotate(tenant)}
             onDeactivate={() => onDeactivate(tenant)}
@@ -158,7 +176,6 @@ function TenantRow({
 function RowActions({
   active,
   disabled,
-  onManageAccess,
   onHistory,
   onRotate,
   onDeactivate,
@@ -167,7 +184,6 @@ function RowActions({
 }: {
   active: boolean;
   disabled: boolean;
-  onManageAccess: () => void;
   onHistory: () => void;
   onRotate: () => void;
   onDeactivate: () => void;
@@ -219,15 +235,6 @@ function RowActions({
 
       {open && (
         <div className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
-          {active && (
-            <button
-              className={cn(item, "text-slate-700 hover:bg-slate-50")}
-              onClick={pick(onManageAccess)}
-            >
-              <KeyRound size={15} className="text-slate-400" />
-              Manage access
-            </button>
-          )}
           <button className={cn(item, "text-slate-700 hover:bg-slate-50")} onClick={pick(onHistory)}>
             <History size={15} className="text-slate-400" />
             View history

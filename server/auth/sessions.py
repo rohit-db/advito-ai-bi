@@ -9,8 +9,8 @@ Stdlib-only crypto (no extra deps):
   * HMAC-SHA256 over a base64url payload for the signed session cookie.
 
 The cookie payload carries the authenticated identity ({email, tenant,
-external_value, display_name, role, exp}) so the embed-token route can scope
-dashboard rows per tenant.
+tenant_id, display_name, role, exp}) so tenant resolution can select the
+per-tenant Service Principal.
 
 Ported from ``edge/auth.py`` — same proven scheme, adapted to the env contract
 of the external-host app (AUTH_SESSION_* variables).
@@ -81,7 +81,7 @@ def _sign(payload_b64: str) -> str:
 def create_session(identity: dict, ttl_seconds: int | None = None) -> str:
     """Build a signed cookie value from an identity dict.
 
-    ``identity`` should contain at least ``email``; ``tenant``, ``external_value``,
+    ``identity`` should contain at least ``email``; ``tenant``, ``tenant_id``,
     ``display_name`` and ``role`` are carried through when present.
     """
     ttl = SESSION_TTL_SECONDS if ttl_seconds is None else ttl_seconds
@@ -89,7 +89,7 @@ def create_session(identity: dict, ttl_seconds: int | None = None) -> str:
         "email": identity.get("email"),
         "name": identity.get("display_name") or identity.get("name"),
         "tenant": identity.get("tenant"),
-        "ext": identity.get("external_value"),
+        "tenant_id": identity.get("tenant_id"),
         "role": identity.get("role", "user"),
         "exp": int(time.time()) + int(ttl),
     }
@@ -114,7 +114,7 @@ def verify_session(cookie: str | None) -> dict | None:
         "email": data.get("email"),
         "display_name": data.get("name"),
         "tenant": data.get("tenant"),
-        "external_value": data.get("ext"),
+        "tenant_id": data.get("tenant_id") or data.get("ext"),
         "role": data.get("role", "user"),
         "exp": data.get("exp"),
     }

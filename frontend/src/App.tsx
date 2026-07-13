@@ -20,8 +20,7 @@ import {
   getDashboardGenie,
   getSupportedFilterKeys,
   DEFAULT_FILTERS,
-  DEFAULT_PREFS_KEY,
-  fetchFilterPrefs,
+  loadEffectiveFilterPrefs,
   saveFilterPrefs,
 } from "@/config";
 import type { FilterState, RouteConfig } from "@/config";
@@ -29,6 +28,7 @@ import type { FilterState, RouteConfig } from "@/config";
 function RouteRenderer({
   route,
   filters,
+  filtersReady,
   activePageId,
   railOpen,
   onRailOpenChange,
@@ -37,6 +37,7 @@ function RouteRenderer({
 }: {
   route: RouteConfig;
   filters: FilterState;
+  filtersReady: boolean;
   activePageId?: string;
   railOpen: boolean;
   onRailOpenChange: (open: boolean) => void;
@@ -59,6 +60,7 @@ function RouteRenderer({
           spec={spec!}
           pages={route.pages || []}
           filters={filters}
+          filtersReady={filtersReady}
           activePageId={activePageId}
         />
       );
@@ -93,6 +95,7 @@ function RouteRenderer({
 export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [filtersReady, setFiltersReady] = useState(false);
   const [activePageId, setActivePageId] = useState<string | undefined>();
   const [railOpen, setRailOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -105,27 +108,35 @@ export default function App() {
   const currentDashboardId = currentDashboard?.id;
   const filterKeys = getSupportedFilterKeys(currentDashboard);
 
-  // Restore the filter selection for the current dashboard (persisted in
-  // Lakebase). Precedence: dashboard-specific saved selection → the user's
-  // global default (set on the "My Filters" page) → app defaults.
+  // Restore filters: My Filters defaults, with per-dashboard FilterBar overrides on top.
+  const loadFilterPrefs = useCallback(async (): Promise<FilterState | null> => {
+    if (!currentDashboardId) return null;
+    return loadEffectiveFilterPrefs(currentDashboardId);
+  }, [currentDashboardId]);
+
   useEffect(() => {
-    if (!currentDashboardId) return;
     let cancelled = false;
-    (async () => {
-      const perDashboard = await fetchFilterPrefs(currentDashboardId);
+    setFiltersReady(false);
+    loadFilterPrefs().then((next) => {
       if (cancelled) return;
-      if (perDashboard) {
-        setFilters({ ...DEFAULT_FILTERS, ...perDashboard });
-        return;
-      }
-      const globalDefault = await fetchFilterPrefs(DEFAULT_PREFS_KEY);
-      if (cancelled) return;
-      setFilters({ ...DEFAULT_FILTERS, ...(globalDefault || {}) });
-    })();
+      if (next) setFilters(next);
+      setFiltersReady(true);
+    });
     return () => {
       cancelled = true;
     };
-  }, [currentDashboardId]);
+  }, [currentDashboardId, location.pathname, loadFilterPrefs]);
+
+  // Re-apply when global defaults are saved on the Preferences page.
+  useEffect(() => {
+    const onPrefsSaved = () => {
+      void loadFilterPrefs().then((next) => {
+        if (next) setFilters(next);
+      });
+    };
+    window.addEventListener("apex:filter-prefs-saved", onPrefsSaved);
+    return () => window.removeEventListener("apex:filter-prefs-saved", onPrefsSaved);
+  }, [loadFilterPrefs]);
 
   // Apply + persist the user's filter selection.
   const handleFilterChange = useCallback(
@@ -214,6 +225,7 @@ export default function App() {
                     <RouteRenderer
                       route={route}
                       filters={filters}
+                      filtersReady={filtersReady}
                       activePageId={effectivePageId}
                       railOpen={railOpen}
                       onRailOpenChange={setRailOpen}

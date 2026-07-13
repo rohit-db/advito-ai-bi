@@ -5,7 +5,7 @@ Two tables (created lazily by :func:`ensure_schema`):
     dedicated Service Principal (``sp_app_id``) + optional per-tenant Genie space.
   * ``apex_sp_credentials``  — the SP's OAuth client_secret, AES-GCM encrypted.
 
-``tenant_id`` is the SAME value as the white-label user's ``external_value``
+``tenant_id`` is the SAME value stored on the white-label user record
 (e.g. "acme-travel"), so a logged-in user resolves to their SP directly.
 
 Everything degrades gracefully when Lakebase is disabled (returns empty / None),

@@ -2,11 +2,11 @@
 
 This is the seam wired into the Genie MCP auth and the AI/BI embed route. Given
 a request's signed session identity, it looks up the tenant SP (by the user's
-``external_value`` == ``apex_client_registry.tenant_id``), mints an M2M token for
+``tenant_id`` == ``apex_client_registry.tenant_id``), mints an M2M token for
 that SP, and returns ``(bearer_token, TenantRow)``.
 
 Returns ``None`` when there is no session, the user is an operator/all-rows
-(``external_value`` empty or ``*``), the tenant is not onboarded, or its SP is
+(``tenant_id`` empty or ``*``), the tenant is not onboarded, or its SP is
 inactive. Callers then fall back to the app Service Principal, so the app keeps
 working before any tenant has been onboarded (graceful degradation).
 """
@@ -30,17 +30,17 @@ def session_identity(request: Request) -> Optional[dict]:
 
 
 def tenant_id_for_request(request: Request) -> Optional[str]:
-    """The tenant key for this request: the session's ``external_value``.
+    """The tenant key for this request: the session's ``tenant_id``.
 
     ``*`` (all-rows / operator) and empty values are not tenant SPs.
     """
     ident = session_identity(request)
     if not ident:
         return None
-    ext = (ident.get("external_value") or "").strip()
-    if not ext or ext == "*":
+    tid = (ident.get("tenant_id") or "").strip()
+    if not tid or tid == "*":
         return None
-    return ext
+    return tid
 
 
 def resolve_tenant_sp(request: Request) -> Optional[Tuple[str, TenantRow]]:

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { ShieldCheck, LockKeyhole, Users, Clock, ShieldX, RefreshCw } from "lucide-react";
 import * as adminApi from "@/lib/adminApi";
-import type { AuditRow, TenantOut, OnboardBody } from "@/lib/adminApi";
+import type { AppUserCreateBody, AppUserOut, AppUserUpdateBody, AuditRow, TenantOut, OnboardBody } from "@/lib/adminApi";
 import { isAdminApiError } from "@/lib/adminApi";
 import StatCard from "@/components/admin/StatCard";
 import SecretAlert, { type SecretAlertData } from "@/components/admin/SecretAlert";
@@ -13,6 +13,8 @@ import VerifyModal from "@/components/admin/VerifyModal";
 import HistoryDrawer from "@/components/admin/HistoryDrawer";
 import ActivityFeed from "@/components/admin/ActivityFeed";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import UsersTable from "@/components/admin/UsersTable";
+import UserDialog from "@/components/admin/UserDialog";
 import { relativeTime } from "@/components/admin/shared";
 
 /** Route path the parent should register this page at (operator-gated). */
@@ -44,6 +46,13 @@ export default function AdminPage() {
   const [auditLoading, setAuditLoading] = useState(true);
   const [auditError, setAuditError] = useState<string | null>(null);
   const [auditRefreshing, setAuditRefreshing] = useState(false);
+
+  const [appUsers, setAppUsers] = useState<AppUserOut[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [usersWritable, setUsersWritable] = useState(false);
+  const [userDialog, setUserDialog] = useState<AppUserOut | null | "create">(null);
+  const [busyUserEmail, setBusyUserEmail] = useState<string | null>(null);
 
   // Access gate (401 not-logged-in / 403 not-operator).
   const [accessError, setAccessError] = useState<AccessError | null>(null);
@@ -103,16 +112,33 @@ export default function AdminPage() {
     [handleAccess]
   );
 
+  const loadAppUsers = useCallback(async () => {
+    try {
+      const res = await adminApi.listAppUsers();
+      setAppUsers(res?.users ?? []);
+      setUsersWritable(!!res?.writable);
+      setUsersError(null);
+    } catch (err) {
+      handleAccess(err);
+      setUsersError(err instanceof Error ? err.message : "Could not load users");
+      setUsersWritable(false);
+    } finally {
+      setUsersLoading(false);
+    }
+  }, [handleAccess]);
+
   const refreshAll = useCallback(() => {
     loadTenants();
     loadAudit(true);
-  }, [loadTenants, loadAudit]);
+    loadAppUsers();
+  }, [loadTenants, loadAudit, loadAppUsers]);
 
   // Initial load.
   useEffect(() => {
     loadTenants();
     loadAudit();
-  }, [loadTenants, loadAudit]);
+    loadAppUsers();
+  }, [loadTenants, loadAudit, loadAppUsers]);
 
   // Poll the global audit feed (paused once the page is gated).
   useEffect(() => {
@@ -135,6 +161,7 @@ export default function AdminPage() {
           { label: "Client ID", value: res.client_id },
           { label: "Client secret", value: res.client_secret },
         ],
+        onManageAccess: () => setAccessTenant(res.tenant),
       });
       refreshAll();
     },
@@ -256,6 +283,44 @@ export default function AdminPage() {
     [openConfirm]
   );
 
+  const saveAppUser = useCallback(
+    async (body: AppUserCreateBody | AppUserUpdateBody, isCreate: boolean) => {
+      if (isCreate) {
+        await adminApi.createAppUser(body as AppUserCreateBody);
+      } else if (userDialog && userDialog !== "create") {
+        await adminApi.updateAppUser(userDialog.email, body as AppUserUpdateBody);
+      }
+      setUserDialog(null);
+      await loadAppUsers();
+    },
+    [loadAppUsers, userDialog]
+  );
+
+  const onDeleteUser = useCallback(
+    (u: AppUserOut) =>
+      openConfirm({
+        title: "Delete login user",
+        tone: "danger",
+        confirmLabel: "Delete user",
+        message: (
+          <>
+            Remove <strong>{u.display_name}</strong> ({u.email})? They will no longer be able to
+            sign in.
+          </>
+        ),
+        action: async () => {
+          setBusyUserEmail(u.email);
+          try {
+            await adminApi.deleteAppUser(u.email);
+            await loadAppUsers();
+          } finally {
+            setBusyUserEmail(null);
+          }
+        },
+      }),
+    [openConfirm, loadAppUsers]
+  );
+
   // ─── Derived stats ───────────────────────────────────────────────────────────
   const activeCount = tenants.filter((t) => t.status === "active").length;
   const lastActivityIso =
@@ -346,6 +411,21 @@ export default function AdminPage() {
           />
         </div>
 
+        {/* Login users */}
+        <div className="mb-5">
+          <UsersTable
+            users={appUsers}
+            tenants={tenants}
+            loading={usersLoading}
+            error={usersError}
+            writable={usersWritable}
+            busyEmail={busyUserEmail}
+            onAdd={() => setUserDialog("create")}
+            onEdit={(u) => setUserDialog(u)}
+            onDelete={onDeleteUser}
+          />
+        </div>
+
         {/* Activity feed */}
         <ActivityFeed
           rows={audit}
@@ -370,6 +450,14 @@ export default function AdminPage() {
           tenant={historyTenant}
           run={(id) => adminApi.history(id, 50)}
           onClose={() => setHistoryTenant(null)}
+        />
+      )}
+      {userDialog && (
+        <UserDialog
+          tenants={tenants}
+          user={userDialog === "create" ? null : userDialog}
+          onSubmit={saveAppUser}
+          onClose={() => setUserDialog(null)}
         />
       )}
       {confirm && (

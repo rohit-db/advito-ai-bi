@@ -57,6 +57,21 @@ def list_resources() -> dict:
     return resources.catalog()
 
 
+def available_clients() -> dict:
+    """Tenant keys present in the governed data table (for the onboard picker)."""
+    try:
+        return unity_catalog.list_available_clients()
+    except Exception as e:  # noqa: BLE001
+        logger.warning("available_clients query failed: %s", e)
+        target = os.environ.get("VERIFY_TABLE", "").strip() or None
+        return {
+            "configured": bool(target),
+            "source_table": target,
+            "clients": [],
+            "error": str(e),
+        }
+
+
 def get_access(tenant_id: str) -> dict:
     """Current resource access for one tenant's Service Principal."""
     row = registry.get_tenant(tenant_id)
@@ -103,12 +118,17 @@ def set_access(
 
 
 # ----------------------------------------------------------------- grants
+_PERM_TYPES = frozenset({"dashboards", "genie"})
+
+
 def _permissions_patch(path: str, sp_app_id: str, permission_level: str) -> None:
     """PATCH a permissions object to add CAN_RUN for the SP.
 
-    Prefers the admin client's ``api_client.do``; falls back to a direct REST
+    Prefers the admin client's permissions service; falls back to a direct REST
     call authenticated with the app SP bearer token.
     """
+    from databricks.sdk.service.iam import AccessControlRequest
+
     body = {
         "access_control_list": [
             {
@@ -118,11 +138,30 @@ def _permissions_patch(path: str, sp_app_id: str, permission_level: str) -> None
         ]
     }
     w = runtime.admin_client()
-    try:
-        w.api_client.do("PATCH", path, body=body)
-        return
-    except Exception as e:  # noqa: BLE001 - fall back to a plain REST call
-        logger.debug("api_client.do PATCH %s failed (%s); trying requests", path, e)
+    # path is /api/2.0/permissions/<type>/<id>
+    parts = path.strip("/").split("/")
+    if len(parts) >= 2 and parts[-2] in _PERM_TYPES:
+        obj_type, obj_id = parts[-2], parts[-1]
+        try:
+            w.permissions.update(
+                obj_type,
+                obj_id,
+                access_control_list=[
+                    AccessControlRequest(
+                        service_principal_name=sp_app_id,
+                        permission_level=permission_level,
+                    )
+                ],
+            )
+            return
+        except Exception as e:  # noqa: BLE001 - fall back to a plain REST call
+            logger.debug("permissions.update %s failed (%s); trying requests", path, e)
+    else:
+        try:
+            w.api_client.do("PATCH", path, body=body)
+            return
+        except Exception as e:  # noqa: BLE001
+            logger.debug("api_client.do PATCH %s failed (%s); trying requests", path, e)
 
     import requests
 

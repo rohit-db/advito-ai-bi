@@ -6,8 +6,8 @@ users" (https://docs.databricks.com/aws/en/dashboards/share/embedding/external-e
     1. Exchange the app Service Principal's client_id/secret for a broadly
        scoped ``all-apis`` OAuth token.
     2. Call the published dashboard's ``/tokeninfo`` with that token, passing a
-       non-PII ``external_viewer_id`` (+ optional ``external_value`` for UC
-       row-level scoping).
+       non-PII ``external_viewer_id`` (+ optional Databricks ``external_value``
+       param, mapped from session ``tenant_id``).
     3. Re-POST to ``/oidc/v1/token`` echoing the tokeninfo fields to obtain a
        tightly-scoped, browser-safe token.
 
@@ -81,7 +81,7 @@ def _resolve_embed_credentials(request: Request) -> tuple[str, str]:
 def _mint_embed_token(
     dashboard_id: str,
     viewer_id: str,
-    external_value: str | None,
+    tenant_id: str | None,
     credentials: tuple[str, str] | None = None,
 ) -> dict:
     instance = WORKSPACE_URL.rstrip("/")
@@ -101,8 +101,9 @@ def _mint_embed_token(
 
     # 2) tokeninfo scoped to this published dashboard + viewer
     params = {"external_viewer_id": viewer_id}
-    if external_value is not None:
-        params["external_value"] = external_value
+    # Databricks' embed API still names this param external_value; we map tenant_id.
+    if tenant_id is not None:
+        params["external_value"] = tenant_id
     r2 = requests.get(
         f"{instance}/api/2.0/lakeview/dashboards/{dashboard_id}/published/tokeninfo"
         f"?{urllib.parse.urlencode(params)}",
@@ -133,11 +134,11 @@ def _mint_embed_token(
 def embed_token(request: Request,
                 dashboard_id: str | None = None,
                 viewer_id: str = "apex-viewer",
-                external_value: str | None = None) -> JSONResponse:
+                tenant_id: str | None = None) -> JSONResponse:
     """Return a scoped, browser-safe embed token for the given dashboard.
 
     When a white-label session is present (``request.state.identity``, set by the
-    auth middleware), the logged-in tenant's ``external_value`` and a stable
+    auth middleware), the logged-in user's ``tenant_id`` and a stable
     ``viewer_id`` derived from the session take precedence over the query-param
     defaults — so each tenant automatically gets row-scoped data without the
     caller having to pass anything. Explicit query params still override when set.
@@ -150,12 +151,12 @@ def embed_token(request: Request,
         # (anything other than the default) is still honored.
         if viewer_id == "apex-viewer":
             viewer_id = identity.get("email") or identity.get("tenant") or viewer_id
-        if external_value is None:
-            external_value = identity.get("external_value")
+        if tenant_id is None:
+            tenant_id = identity.get("tenant_id")
 
     try:
         credentials = _resolve_embed_credentials(request)
-        result = _mint_embed_token(did, viewer_id, external_value, credentials)
+        result = _mint_embed_token(did, viewer_id, tenant_id, credentials)
         return JSONResponse({"ok": True, "dashboard_id": did, **result})
     except requests.HTTPError as e:
         body = e.response.text[:400] if e.response is not None else str(e)

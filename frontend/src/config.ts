@@ -233,8 +233,31 @@ function embedOrgParam(spec: DashboardSpec): string {
 
 export function buildPageEmbedUrl(spec: DashboardSpec, pageId: string, filters?: FilterState): string {
   let url = `${embedRoot(spec)}/pages/${pageId}?${embedOrgParam(spec)}`;
-  if (filters) url += `&${buildFilterParams(spec, filters)}`;
+  if (filters) {
+    const fp = buildFilterParams(spec, filters);
+    if (fp) url += `&${fp}`;
+  }
   return url;
+}
+
+/** True when any supported filter differs from the app default (dates included). */
+export function shouldPassEmbedFilters(spec: DashboardSpec, filters: FilterState): boolean {
+  for (const key of getSupportedFilterKeys(spec)) {
+    const def = FILTERS[key];
+    if (def.kind === "dateRange") {
+      const from = filters[def.fromField] as string | undefined;
+      const to = filters[def.toField] as string | undefined;
+      if (
+        from !== DEFAULT_FILTERS[def.fromField] ||
+        to !== DEFAULT_FILTERS[def.toField]
+      ) {
+        return true;
+      }
+    } else if (filters[def.field]) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -433,6 +456,20 @@ export async function saveFilterPrefs(dashboardId: string, filters: FilterState)
   } catch {
     /* fail soft */
   }
+}
+
+function hasSavedFilterPrefs(prefs: Partial<FilterState> | null): prefs is Partial<FilterState> {
+  return !!prefs && Object.keys(prefs).length > 0;
+}
+
+/** Merge My Filters defaults with any per-dashboard overrides from the FilterBar. */
+export async function loadEffectiveFilterPrefs(dashboardId: string): Promise<FilterState> {
+  const globalDefault = await fetchFilterPrefs(DEFAULT_PREFS_KEY);
+  const base = { ...DEFAULT_FILTERS, ...(globalDefault || {}) };
+  const perDashboard = await fetchFilterPrefs(dashboardId);
+  if (!hasSavedFilterPrefs(perDashboard)) return base;
+  // Per-dashboard keys overlay the global default; omitted keys inherit from My Filters.
+  return { ...base, ...perDashboard };
 }
 
 /**
