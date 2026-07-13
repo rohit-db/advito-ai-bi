@@ -6,6 +6,13 @@ a Service Principal (SP), `session_user()` equals that SP's `application_id`. A
 lookup table `sp_tenant_mapping(sp_app_id, tenant_id, active)` joins the SP to
 exactly one tenant, so each tenant SP only ever sees its own rows.
 
+> **Companion docs:** [`multi-tenant-isolation.md`](./multi-tenant-isolation.md)
+> is the architecture + code map + admin (incl. the "Manage access" feature and
+> **reusing an existing customer filter**, e.g. Advito). For how a login becomes
+> the `external_value`/`tenant_id` join key, see
+> [`whitelabel-auth-and-hosting.md`](./whitelabel-auth-and-hosting.md). This doc
+> stays a practical, numbered runbook.
+
 ## How isolation is enforced
 
 - Each tenant gets a **dedicated SP**. The app mints an OAuth (M2M) token per SP,
@@ -75,6 +82,12 @@ Set `UC_CATALOG=main`, `UC_SCHEMA=apex`, `VERIFY_TABLE=main.apex.bookings`,
 Creates `sp_tenant_mapping`, the `tenant_row_filter` function, and attaches the
 filter to each table in `ISOLATED_TABLES` (defaults to `VERIFY_TABLE`).
 
+> **Reusing an existing customer filter?** Skip this step. Set the `MAPPING_*` /
+> `FILTER_FUNCTION` / `TENANT_COLUMN` env instead so onboarding writes the SP app
+> id into the customer's existing mapping table and their function enforces
+> isolation. See the Advito example in
+> [`multi-tenant-isolation.md`](./multi-tenant-isolation.md#reusing-an-existing-customer-row-filter-verified-advito).
+
 ```bash
 # preview the SQL
 python scripts/tenants/apply_row_filter.py --dry-run
@@ -103,6 +116,12 @@ TENANTS_ADMIN_PROFILE=my-admin \
 
 The `client_id` / `client_secret` are printed **once** — capture the secret
 immediately (it is also encrypted at rest in the registry).
+
+> **Dashboard grants matter.** Onboarding best-effort grants the tenant SP
+> `CAN_RUN` on each id in `DASHBOARD_IDS`. An SP **needs** `CAN_RUN` on a
+> dashboard for its embed token to mint — otherwise the exchange fails with
+> `invalid_authorization_details`. Adjust grants later in `/admin` → tenant row →
+> **Manage access** (dashboards + Genie spaces).
 
 ### 3. Verify isolation
 
@@ -141,3 +160,6 @@ same string the identity provider emits as `external_value`.
 - **`session_user()` is a user, not an app id** — the connection isn't
   authenticated via OAuth M2M as the SP; verify the token was minted for the
   tenant SP.
+- **Embed token fails with `invalid_authorization_details`** — the tenant SP
+  lacks `CAN_RUN` on that dashboard. Grant it in `/admin` → **Manage access**, or
+  add the id to `DASHBOARD_IDS` and re-onboard.

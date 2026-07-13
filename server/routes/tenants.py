@@ -7,6 +7,9 @@ the operator's email is threaded through to the service layer as the audit
 
 Endpoints:
   GET    /tenants                        list tenants
+  GET    /tenants/resources              grantable dashboards + Genie spaces
+  GET    /tenants/{id}/access            resource access for one tenant SP
+  POST   /tenants/{id}/access            grant/revoke a resource for a tenant SP
   POST   /tenants/onboard                create tenant SP (returns secret once)
   POST   /tenants/{id}/rotate            rotate SP secret
   POST   /tenants/{id}/deactivate        disable SP
@@ -52,6 +55,12 @@ class OnboardIn(BaseModel):
     tenant_id: str
     display_name: str
     genie_space_id: Optional[str] = None
+
+
+class AccessIn(BaseModel):
+    resource_type: str  # "dashboard" | "genie_space"
+    resource_id: str
+    grant: bool
 
 
 class TenantOut(BaseModel):
@@ -108,6 +117,36 @@ def _tenant_out(tenant_id: str) -> TenantOut:
 def list_tenants(request: Request):
     _require_operator(request)
     return {"tenants": service.list_tenants()}
+
+
+@router.get("/tenants/resources")
+def list_resources(request: Request):
+    """Catalog of grantable dashboards + Genie spaces."""
+    _require_operator(request)
+    return service.list_resources()
+
+
+@router.get("/tenants/{tenant_id}/access")
+def tenant_access(request: Request, tenant_id: str):
+    """Which catalog resources this tenant's SP currently has CAN_RUN on."""
+    _require_operator(request)
+    try:
+        return service.get_access(tenant_id)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/tenants/{tenant_id}/access")
+def set_tenant_access(request: Request, tenant_id: str, body: AccessIn):
+    """Grant or revoke CAN_RUN for a tenant SP on one resource."""
+    ident = _require_operator(request)
+    try:
+        return service.set_access(
+            tenant_id, body.resource_type, body.resource_id, body.grant,
+            actor=ident.get("email"),
+        )
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/tenants/onboard")

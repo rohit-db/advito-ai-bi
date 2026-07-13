@@ -23,9 +23,9 @@ Two supporting capabilities the team will also want to reuse:
 
 | Capability | Deep-dive doc |
 |---|---|
-| **Multi-tenant isolation** — each tenant gets its own Service Principal; Genie **and** dashboards run as that SP, with a Unity Catalog row filter (`session_user()`) enforcing isolation in the data plane; plus an operator page to manage SPs | [`multi-tenant-isolation.md`](./multi-tenant-isolation.md) · [`tenant-isolation-runbook.md`](./tenant-isolation-runbook.md) |
+| **Multi-tenant isolation** — each tenant gets its own Service Principal; Genie **and** dashboards run as that SP, with a Unity Catalog row filter enforcing isolation in the data plane; plus an operator **Admin** page to manage SPs and a **"Manage access"** dialog to grant/revoke per-resource `CAN_RUN` | [`multi-tenant-isolation.md`](./multi-tenant-isolation.md) · [`tenant-isolation-runbook.md`](./tenant-isolation-runbook.md) |
 | **Own your front door** — white-label custom login (PBKDF2 + HMAC-signed session cookie), the edge-gateway vs external-host hosting models, and Docker packaging | [`whitelabel-auth-and-hosting.md`](./whitelabel-auth-and-hosting.md) |
-| **Persistence + reuse** — Lakebase (managed Postgres) for conversation history & per-user filter prefs, and the config-driven dashboard/filter registry that makes adding a dashboard declarative | [`lakebase-persistence-and-config.md`](./lakebase-persistence-and-config.md) |
+| **Persistence + reuse** — Lakebase (managed Postgres) for conversation history, per-user filter prefs, and the user-facing **"My Filters"** default-filter page; plus the config-driven dashboard/filter registry that makes adding a dashboard declarative | [`lakebase-persistence-and-config.md`](./lakebase-persistence-and-config.md) |
 
 Also referenced (kept current): [`../architecture/external-hosting.md`](../architecture/external-hosting.md)
 — running the app fully outside Databricks via a Service Principal.
@@ -102,14 +102,19 @@ python -m uvicorn app:app --host 0.0.0.0 --port 8000
 cd frontend && npm install && npm run dev
 ```
 
-**Demo logins** (only when `AUTH_ENABLED=true`; from `server/auth/users.seed.json`,
-password is `apex` for all three):
+**Demo logins** (only when `AUTH_ENABLED=true`; the shipped JSON directory
+`server/auth/users.seed.json`, password `apex` for all). When
+`LAKEBASE_ENABLED=true`, a Lakebase-backed directory (`AUTH_USERS_TABLE`)
+overrides this file — that's where you'd seed real tenant/operator accounts.
 
-| Email | Tenant | Row scope (`external_value`) |
-|---|---|---|
-| `alice@acmetravel.com` | Acme Travel | `acme-travel` |
-| `ben@globex.com` | Globex | `globex` |
-| `dana@advito.com` | Advito (operator) | `*` (sees all rows) |
+| Email | Tenant | Role | Row scope (`external_value`) |
+|---|---|---|---|
+| `alice@acmetravel.com` | Acme Travel | user | `acme-travel` |
+| `ben@globex.com` | Globex | user | `globex` |
+| `dana@advito.com` | Advito | **operator** (sees Admin) | `*` (sees all rows) |
+
+The **operator** role is what unlocks the Admin (Service Principal management)
+page and the "Manage access" dialog.
 
 ---
 
@@ -135,8 +140,12 @@ These are real quirks in the current code that will otherwise cost you an hour:
   how filters re-apply. The dashboard's own in-frame filter widgets stay
   interactive without a reload.
 - **Removing the login screen does not remove authorization.** The SP still needs
-  warehouse + UC `SELECT`; Unity Catalog RLS (keyed on `external_value`) governs
-  what each viewer can see.
+  warehouse + UC `SELECT`; Unity Catalog RLS (keyed on the SQL caller identity)
+  governs what each viewer can see.
+- **A tenant SP without `CAN_RUN` on the dashboard fails the embed-token mint**
+  with `invalid_authorization_details`. Onboarding auto-grants the dashboards in
+  `DASHBOARD_IDS`; operators can adjust later via the Admin **"Manage access"**
+  dialog. Same applies to Genie spaces the tenant should reach.
 
 ---
 

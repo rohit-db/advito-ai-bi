@@ -17,6 +17,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const { user } = useUser();
   const isOperator = user?.role === "operator";
+  const clientName = user?.tenant || "All clients";
 
   const insightsRoutes = ROUTES.filter((r) => r.section === "insights");
   const explorationRoutes = ROUTES.filter((r) => r.section === "exploration");
@@ -117,13 +118,13 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </span>
             <div className="min-w-0">
               <div className="text-[9px] text-white/35 tracking-[0.14em] uppercase leading-none">Client</div>
-              <div className="text-xs font-semibold text-white/85 truncate mt-0.5">CloudVenture</div>
+              <div className="text-xs font-semibold text-white/85 truncate mt-0.5">{clientName}</div>
             </div>
           </div>
         </div>
       ) : (
         <div className="py-2.5 border-b border-white/10 shrink-0 flex justify-center">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" title="CloudVenture" />
+          <span className="w-2 h-2 rounded-full bg-emerald-400" title={clientName} />
         </div>
       )}
 

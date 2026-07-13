@@ -12,6 +12,8 @@ import {
   UsersRound,
   Bot,
   Sparkles,
+  SlidersHorizontal,
+  LayoutDashboard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,10 +30,14 @@ import {
 // =============================================================================
 
 // ─── Workspace constants ───────────────────────────────────────────────────────
-// Global defaults. A dashboard may override these per-entry (see DashboardSpec).
+// Global defaults. Build-time overridable via Vite env (frontend/.env):
+//   VITE_WORKSPACE_URL, VITE_WORKSPACE_ORG
+// The literals below are the demo fallback so local dev works with no env set.
+// A dashboard may also override these per-entry (see DashboardSpec).
 
-export const WORKSPACE = "https://dbc-1e27e56a-90cd.cloud.databricks.com";
-export const ORG = "1048934788948873";
+export const WORKSPACE =
+  import.meta.env.VITE_WORKSPACE_URL ?? "https://dbc-1e27e56a-90cd.cloud.databricks.com";
+export const ORG = import.meta.env.VITE_WORKSPACE_ORG ?? "1048934788948873";
 
 // Genie space backing the global "Ask APEX" experience.
 export const GENIE_SPACE_ID = "01f127092d2219f3be10180d79b2ee5d";
@@ -52,6 +58,8 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   UsersRound,
   Bot,
   Sparkles,
+  SlidersHorizontal,
+  LayoutDashboard,
 };
 
 // ─── Filter state ───────────────────────────────────────────────────────────
@@ -256,6 +264,69 @@ export async function fetchEmbedToken(dashboardId: string): Promise<EmbedTokenRe
   return (await res.json()) as EmbedTokenResponse;
 }
 
+// ─── Landing-page KPIs (live, per-tenant, row-scoped) ─────────────────────────
+// Headline metrics for the Home page. The backend runs a MEASURE() query on the
+// travel_metrics metric view AS the logged-in tenant's Service Principal, so the
+// numbers respect the same row-level isolation as the dashboards. Fails soft.
+
+export interface KpiValues {
+  spend: number | null;
+  emissions: number | null;
+  travelers: number | null;
+  trips: number | null;
+}
+
+export interface KpiResponse {
+  ok: boolean;
+  current?: KpiValues;
+  previous?: KpiValues;
+  error?: string;
+}
+
+export async function fetchKpis(filters?: FilterState): Promise<KpiResponse> {
+  try {
+    const f = filters ?? DEFAULT_FILTERS;
+    const qs = new URLSearchParams({
+      current_from: f.currentPeriodFrom,
+      current_to: f.currentPeriodTo,
+      previous_from: f.previousPeriodFrom,
+      previous_to: f.previousPeriodTo,
+    });
+    const res = await fetch(`/api/kpis?${qs.toString()}`);
+    if (!res.ok) return { ok: false };
+    return (await res.json()) as KpiResponse;
+  } catch {
+    return { ok: false };
+  }
+}
+
+export interface TrendPoint {
+  month: string; // "yyyy-MM"
+  spend: number | null;
+  emissions: number | null;
+}
+
+export interface TrendResponse {
+  ok: boolean;
+  series?: TrendPoint[];
+  error?: string;
+}
+
+export async function fetchKpiTrend(filters?: FilterState): Promise<TrendResponse> {
+  try {
+    const f = filters ?? DEFAULT_FILTERS;
+    const qs = new URLSearchParams({
+      date_from: f.currentPeriodFrom,
+      date_to: f.currentPeriodTo,
+    });
+    const res = await fetch(`/api/kpis/trend?${qs.toString()}`);
+    if (!res.ok) return { ok: false };
+    return (await res.json()) as TrendResponse;
+  } catch {
+    return { ok: false };
+  }
+}
+
 // ─── APEX persistence API (Lakebase-backed) ──────────────────────────────────
 // Conversation history + per-user dashboard filter preferences. Every helper
 // fails soft (returns empty/null) so the UI still works when Lakebase is off.
@@ -335,6 +406,11 @@ export async function deleteConversation(id: string): Promise<boolean> {
     return false;
   }
 }
+
+// Sentinel "dashboard id" under which a user's GLOBAL default filter selection
+// is stored (set on the Preferences page). Applied to any dashboard the user
+// hasn't saved a dashboard-specific selection for.
+export const DEFAULT_PREFS_KEY = "__default__";
 
 export async function fetchFilterPrefs(dashboardId: string): Promise<Partial<FilterState> | null> {
   try {
@@ -451,6 +527,13 @@ export interface RouteConfig {
 
 export const ROUTES: RouteConfig[] = [
   {
+    path: "/",
+    label: "Home",
+    icon: "LayoutDashboard",
+    section: "insights",
+    mode: "react",
+  },
+  {
     path: "/spend-custom",
     label: "Spend",
     icon: "DollarSign",
@@ -480,6 +563,13 @@ export const ROUTES: RouteConfig[] = [
     path: "/genie-mcp",
     label: "Ask APEX",
     icon: "Sparkles",
+    section: "exploration",
+    mode: "react",
+  },
+  {
+    path: "/preferences",
+    label: "My Filters",
+    icon: "SlidersHorizontal",
     section: "exploration",
     mode: "react",
   },

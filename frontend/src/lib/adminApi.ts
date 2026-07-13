@@ -71,6 +71,35 @@ export interface OkResult {
   tenant_id: string;
 }
 
+// ─── Resource access (dashboards + Genie spaces) ─────────────────────────────
+
+export interface ResourceItem {
+  id: string;
+  name: string;
+}
+
+export interface ResourceCatalog {
+  dashboards: ResourceItem[];
+  genie_spaces: ResourceItem[];
+}
+
+export interface TenantAccess {
+  tenant_id: string;
+  sp_app_id: string;
+  access: {
+    dashboards: Record<string, boolean>;
+    genie_spaces: Record<string, boolean>;
+  };
+}
+
+export type ResourceType = "dashboard" | "genie_space";
+
+export interface SetAccessBody {
+  resource_type: ResourceType;
+  resource_id: string;
+  grant: boolean;
+}
+
 // ─── Error handling ──────────────────────────────────────────────────────────
 
 /**
@@ -192,4 +221,19 @@ export function verify(): Promise<{ results: VerifyRow[] }> {
 
 export function audit(limit = 20): Promise<{ rows: AuditRow[] }> {
   return request<{ rows: AuditRow[] }>(`/api/tenants/audit?limit=${encodeURIComponent(limit)}`);
+}
+
+export function resources(): Promise<ResourceCatalog> {
+  return request<ResourceCatalog>("/api/tenants/resources");
+}
+
+export function access(tenantId: string): Promise<TenantAccess> {
+  return request<TenantAccess>(`/api/tenants/${encodeURIComponent(tenantId)}/access`);
+}
+
+export function setAccess(tenantId: string, body: SetAccessBody): Promise<OkResult> {
+  return request<OkResult>(`/api/tenants/${encodeURIComponent(tenantId)}/access`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }

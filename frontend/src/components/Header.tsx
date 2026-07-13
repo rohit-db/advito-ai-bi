@@ -32,7 +32,7 @@ export default function Header() {
   const email = user?.email;
 
   return (
-    <header className="h-14 bg-white/90 backdrop-blur-sm border-b border-slate-200 flex items-center justify-between px-5 shrink-0">
+    <header className="relative z-40 h-14 bg-white/90 backdrop-blur-sm border-b border-slate-200 flex items-center justify-between px-5 shrink-0">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 min-w-0" aria-label="Breadcrumb">
         {sectionLabel && (

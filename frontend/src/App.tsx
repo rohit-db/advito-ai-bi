@@ -7,6 +7,8 @@ import FilterBar from "@/components/FilterBar";
 import DashboardWorkspace from "@/components/DashboardWorkspace";
 import CustomDashboard from "@/pages/CustomDashboard";
 import GenieMcpExperience from "@/pages/GenieMcpExperience";
+import HomePage from "@/pages/HomePage";
+import PreferencesPage from "@/pages/PreferencesPage";
 import Placeholder from "@/pages/Placeholder";
 import AdminPage, { ADMIN_ROUTE_PATH } from "@/pages/AdminPage";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,7 @@ import {
   getDashboardGenie,
   getSupportedFilterKeys,
   DEFAULT_FILTERS,
+  DEFAULT_PREFS_KEY,
   fetchFilterPrefs,
   saveFilterPrefs,
 } from "@/config";
@@ -77,7 +80,9 @@ function RouteRenderer({
       );
     }
     case "react":
+      if (route.path === "/") return <HomePage />;
       if (route.path === "/genie-mcp") return <GenieMcpExperience />;
+      if (route.path === "/preferences") return <PreferencesPage />;
       return <Placeholder />;
     case "placeholder":
     default:
@@ -100,15 +105,23 @@ export default function App() {
   const currentDashboardId = currentDashboard?.id;
   const filterKeys = getSupportedFilterKeys(currentDashboard);
 
-  // Restore this user's saved filter selection for the current dashboard
-  // (persisted in Lakebase). Falls back to defaults when none is stored.
+  // Restore the filter selection for the current dashboard (persisted in
+  // Lakebase). Precedence: dashboard-specific saved selection → the user's
+  // global default (set on the "My Filters" page) → app defaults.
   useEffect(() => {
     if (!currentDashboardId) return;
     let cancelled = false;
-    fetchFilterPrefs(currentDashboardId).then((saved) => {
-      if (cancelled || !saved) return;
-      setFilters({ ...DEFAULT_FILTERS, ...saved });
-    });
+    (async () => {
+      const perDashboard = await fetchFilterPrefs(currentDashboardId);
+      if (cancelled) return;
+      if (perDashboard) {
+        setFilters({ ...DEFAULT_FILTERS, ...perDashboard });
+        return;
+      }
+      const globalDefault = await fetchFilterPrefs(DEFAULT_PREFS_KEY);
+      if (cancelled) return;
+      setFilters({ ...DEFAULT_FILTERS, ...(globalDefault || {}) });
+    })();
     return () => {
       cancelled = true;
     };
@@ -190,7 +203,6 @@ export default function App() {
         <div className="flex-1 flex min-h-0">
           <main className="flex-1 flex flex-col min-w-0">
             <Routes>
-              <Route path="/" element={<Navigate to="/spend-custom" replace />} />
               {/* Operator-only Service Principal management. The page self-guards
                   via 401/403; the nav entry is hidden for non-operators. */}
               <Route path={ADMIN_ROUTE_PATH} element={<AdminPage />} />
@@ -211,6 +223,7 @@ export default function App() {
                   }
                 />
               ))}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>

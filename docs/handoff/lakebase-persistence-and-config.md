@@ -379,7 +379,7 @@ Indexed by `(conversation_id, seq)` for ordered replay.
 | Column | Type | Notes |
 |---|---|---|
 | `user_email` | `VARCHAR(255)` | part of composite PK |
-| `dashboard_id` | `VARCHAR(255)` | part of composite PK — the Lakeview dashboard id |
+| `dashboard_id` | `VARCHAR(255)` | part of composite PK — the Lakeview dashboard id, or the sentinel `"__default__"` for the user's global "My Filters" default |
 | `filters` | **`JSONB`** | the saved `FilterState` object |
 | `updated_at` | `TIMESTAMPTZ` | |
 | **PK** | `(user_email, dashboard_id)` | enables clean upsert |
@@ -768,28 +768,45 @@ See `listConversations` (returns `[]`), `getConversation`/`fetchFilterPrefs`
 
 ### The net effect in the UI
 
-The filter-restore effect in `App.tsx` simply does nothing when there's no saved
-state — it only overrides defaults *if* something comes back:
+The filter-restore effect in `App.tsx` applies a **three-level precedence** and
+does nothing when nothing is saved — it only overrides defaults *if* something
+comes back:
 
-```112:124:frontend/src/App.tsx
-  // Restore this user's saved filter selection for the current dashboard
-  // (persisted in Lakebase). Falls back to defaults when none is stored.
+```109:126:frontend/src/App.tsx
   useEffect(() => {
     if (!currentDashboardId) return;
     let cancelled = false;
-    fetchFilterPrefs(currentDashboardId).then((saved) => {
-      if (cancelled || !saved) return;
-      setFilters({ ...DEFAULT_FILTERS, ...saved });
-    });
+    (async () => {
+      const perDashboard = await fetchFilterPrefs(currentDashboardId);
+      if (cancelled) return;
+      if (perDashboard) {
+        setFilters({ ...DEFAULT_FILTERS, ...perDashboard });
+        return;
+      }
+      const globalDefault = await fetchFilterPrefs(DEFAULT_PREFS_KEY);
+      if (cancelled) return;
+      setFilters({ ...DEFAULT_FILTERS, ...(globalDefault || {}) });
+    })();
     return () => {
       cancelled = true;
     };
   }, [currentDashboardId]);
 ```
 
-So with Lakebase off: `fetchFilterPrefs` returns `null` → the effect is a no-op →
-the UI runs on `DEFAULT_FILTERS`. Filtering still works within the session; it's
-just not *remembered* across visits.
+Precedence: **dashboard-specific saved selection → the user's global default →
+app defaults.** So with Lakebase off: both `fetchFilterPrefs` calls return `null`
+→ the UI runs on `DEFAULT_FILTERS`. Filtering still works within the session;
+it's just not *remembered* across visits.
+
+### "My Filters" — the user's global default selection
+
+The same `apex_filter_prefs` table also stores each user's **global default**
+filters under a sentinel `dashboard_id = DEFAULT_PREFS_KEY` (`"__default__"`,
+from `frontend/src/config.ts`). The user sets these on the **"My Filters"** page
+(`frontend/src/pages/PreferencesPage.tsx`, route `/preferences`), which reuses
+the same `fetchFilterPrefs` / `saveFilterPrefs` helpers — no new table, no new
+endpoint. Those defaults apply to any dashboard the user hasn't saved a
+dashboard-specific selection for (the middle rung of the precedence above).
 
 ---
 

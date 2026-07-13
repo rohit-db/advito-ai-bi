@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Send, Plus, Sparkles, MessageSquare, Trash2, History, ArrowUp } from "lucide-react";
 import {
   useGenieMcpChat,
@@ -29,12 +30,25 @@ export default function GenieMcpExperience() {
   const [openSql, setOpenSql] = useState<Record<string, boolean>>({});
   const [openTools, setOpenTools] = useState<Record<string, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const seededRef = useRef(false);
 
   const empty = messages.length === 0;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  // Seed an initial question handed off from the Home page (/genie-mcp?q=…),
+  // then strip it from the URL so a refresh doesn't re-ask.
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (!q || seededRef.current || isLoading) return;
+    seededRef.current = true;
+    sendMessage(q);
+    searchParams.delete("q");
+    setSearchParams(searchParams, { replace: true });
+  }, [searchParams, isLoading, sendMessage, setSearchParams]);
 
   const submit = () => {
     if (!input.trim() || isLoading) return;

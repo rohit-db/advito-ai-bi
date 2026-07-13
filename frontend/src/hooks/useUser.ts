@@ -5,6 +5,7 @@ interface User {
   email: string;
   initials: string;
   role: string;
+  tenant?: string;
 }
 
 interface UseUserResult {
@@ -44,6 +45,7 @@ export function useUser(): UseUserResult {
                 email: s.email || "",
                 initials: initialsFrom(displayName, s.email || ""),
                 role: s.role || "user",
+                tenant: s.tenant || undefined,
               });
             }
             return;

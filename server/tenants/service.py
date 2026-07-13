@@ -22,7 +22,7 @@ import time
 from typing import Optional
 
 from ..config import GENIE_SPACE_ID, WORKSPACE_URL, get_sp_bearer
-from . import audit, registry, runtime, sp_lifecycle, unity_catalog
+from . import audit, registry, resources, runtime, sp_lifecycle, unity_catalog
 from .registry import TenantRow
 
 logger = logging.getLogger("server.tenants.service")
@@ -49,6 +49,57 @@ def list_tenants() -> list[dict]:
 def verify() -> list[dict]:
     target = os.environ.get("VERIFY_TABLE", "").strip() or None
     return unity_catalog.verify_all(target)
+
+
+# ----------------------------------------------------------------- resource access
+def list_resources() -> dict:
+    """The catalog of grantable dashboards + Genie spaces."""
+    return resources.catalog()
+
+
+def get_access(tenant_id: str) -> dict:
+    """Current resource access for one tenant's Service Principal."""
+    row = registry.get_tenant(tenant_id)
+    if not row:
+        raise RuntimeError(f"tenant {tenant_id} not found")
+    return {
+        "tenant_id": tenant_id,
+        "sp_app_id": row.sp_app_id,
+        "access": resources.tenant_access(row.sp_app_id),
+    }
+
+
+def set_access(
+    tenant_id: str,
+    resource_type: str,
+    resource_id: str,
+    grant: bool,
+    actor: Optional[str] = None,
+) -> dict:
+    """Grant or revoke CAN_RUN for a tenant SP on one resource; audit the change."""
+    row = registry.get_tenant(tenant_id)
+    if not row:
+        raise RuntimeError(f"tenant {tenant_id} not found")
+    started = time.time()
+    action = "grant_access" if grant else "revoke_access"
+    try:
+        if grant:
+            resources.grant(row.sp_app_id, resource_type, resource_id)
+        else:
+            resources.revoke(row.sp_app_id, resource_type, resource_id)
+    except Exception as e:  # noqa: BLE001
+        audit.log(
+            action, tenant_id=tenant_id, actor=actor, sp_app_id=row.sp_app_id,
+            status="error", detail=f"{resource_type}:{resource_id} — {e}",
+            latency_ms=int((time.time() - started) * 1000),
+        )
+        raise
+    audit.log(
+        action, tenant_id=tenant_id, actor=actor, sp_app_id=row.sp_app_id,
+        status="ok", detail=f"{resource_type}:{resource_id}",
+        latency_ms=int((time.time() - started) * 1000),
+    )
+    return {"ok": True, "tenant_id": tenant_id}
 
 
 # ----------------------------------------------------------------- grants
@@ -249,7 +300,7 @@ def reactivate(tenant_id: str, actor: Optional[str] = None) -> str:
         raise
     if sp_app_id:
         _best_effort(
-            unity_catalog.activate_mapping, sp_app_id,
+            unity_catalog.activate_mapping, sp_app_id, tenant_id,
             action="activate_mapping", tenant_id=tenant_id, actor=actor,
         )
     audit.log(

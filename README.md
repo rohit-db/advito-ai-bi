@@ -1,25 +1,55 @@
 # APEX — White-Label Corporate Travel Intelligence
 
-A reference implementation of a **customer-facing, white-label analytics application** built entirely on the Databricks Data Intelligence Platform. Originally built for Advito (BCD Travel) to replace QuickSight, it doubles as a blueprint for any OEM/embedded-analytics use case.
+A reference implementation of a **customer-facing, white-label analytics application** built entirely on the Databricks Data Intelligence Platform. Originally built for Advito (BCD Travel) to replace QuickSight, it doubles as a blueprint for any OEM / embedded-analytics use case.
 
-The thesis: **Databricks is all you need to build white-label analytical applications** — embedded AI/BI dashboards, an agentic "Ask" experience, governed metrics, and your own identity layer, with no third-party BI tool.
+The thesis: **Databricks is all you need to build white-label analytical applications** — embedded AI/BI dashboards, an agentic "Ask" experience, governed metrics, per-tenant data isolation, and your own identity layer, with no third-party BI tool.
 
-## What it does
+> **Deploy it anywhere — no Databricks App required.** The *same* FastAPI + React
+> app runs either on the Databricks Apps platform **or** fully **externally**
+> (EC2 / ECS / any Docker host), reaching Databricks purely via a Service
+> Principal (M2M). Embedding, Genie MCP, auth, and isolation behave identically
+> in both. See [Hosting models](#hosting-models) and
+> [`docs/architecture/external-hosting.md`](docs/architecture/external-hosting.md).
 
-- **White-label AI/BI dashboards** — Databricks AI/BI dashboards embedded with the host app controlling tabs and filters. Filters are pushed in via `f_` URL parameters (see the workaround doc below), and the "Powered by Databricks" logo is hidden using the `@databricks/aibi-client` SDK.
-- **"Ask APEX" (Genie One MCP)** — an agentic chat experience over the managed Genie MCP server. Streams reasoning, SQL, result tables, and deep links via SSE, with an "under the hood" view of MCP tool calls. Defaults to the multi-space **Genie One MCP** ("Agent mode out of the box").
-- **Executive Summary** — one click generates a structured (Overview / KPIs / Strategic Insights) summary for the current dashboard page via the workspace-wide **Genie One MCP** (`multi` mode).
-- **Per-user personalization** — conversation history and saved dashboard filter preferences persist in **Lakebase** (Databricks managed Postgres).
-- **Own your front door** — an optional in-process **white-label login** (Lakebase/JSON user directory + HMAC-signed session cookies) so end users never see a Databricks login screen.
+---
+
+## What the team asked for → where it's solved
+
+This repo exists so your team can copy three specific techniques. Start with the row that matches your question, then open the linked deep-dive.
+
+| # | What you want to do | How APEX does it | Deep-dive |
+|---|---|---|---|
+| **1** | **White-label a dashboard** — hide the "Powered by Databricks" logo, push filters in, hide page headers, hide the native filter pane | Token-based external embedding with an SP-scoped token + the `@databricks/aibi-client` SDK for logo hiding; filters pushed via `f_` URL params; page headers & filter pane hidden by DOM/URL control | [`docs/architecture/aibi-embedding-filter-passing-workaround.md`](docs/architecture/aibi-embedding-filter-passing-workaround.md) |
+| **2** | **"Ask APEX"** — a Genie Q&A rail next to each dashboard, a one-click **Executive Summary**, and a full **standalone chat** | Agentic chat over the **managed Genie MCP server** (SSE-streamed reasoning, SQL, tables, deep links). Executive Summary uses a fixed **Overview / KPIs / Strategic Insights** prompt via Genie One MCP; the standalone page defaults to Genie One MCP | [`docs/handoff/ask-apex-genie-mcp.md`](docs/handoff/ask-apex-genie-mcp.md) |
+| **3** | **Auth + isolation + admin** — sign users in without a Databricks login, isolate each tenant's data, manage Service Principals, enforce row-level security | White-label login (PBKDF2 + signed cookie) → each tenant maps to its **own Service Principal**; Genie **and** dashboards run *as that SP*; a Unity Catalog **row filter** enforces isolation; an operator **Admin** page manages SPs and per-resource access | [`docs/handoff/multi-tenant-isolation.md`](docs/handoff/multi-tenant-isolation.md) · [`docs/handoff/whitelabel-auth-and-hosting.md`](docs/handoff/whitelabel-auth-and-hosting.md) |
+
+> **Handing this off?** The [**Engineering Handoff Guide**](docs/handoff/README.md) is the guided,
+> read-in-order version of the table above — every technique cited to exact files.
+
+---
+
+## What it does (features)
+
+- **White-label AI/BI dashboards** — Databricks AI/BI dashboards embedded with the host app controlling tabs and filters. Filters are pushed in via `f_` URL parameters, the "Powered by Databricks" logo is hidden via the SDK, and page headers / the native filter pane are hidden so the app owns the chrome.
+- **"Ask APEX" (Genie MCP)** — agentic chat over the managed Genie MCP server. Streams reasoning, SQL, result tables, and deep links over SSE, with an "under the hood" view of MCP tool calls. Lives both as an **in-dashboard rail** and a **standalone page** (defaults to workspace-wide **Genie One MCP** — "agent mode out of the box").
+- **Executive Summary** — one click generates a structured **Overview / KPIs / Strategic Insights** brief for the current dashboard page via Genie One MCP.
+- **Multi-tenant isolation** — each tenant runs as its own Service Principal; a Unity Catalog row filter (keyed on the SQL caller identity) enforces data isolation for both dashboards and Genie. Reuses an existing customer filter when one already exists (verified against Advito's `client_access_filter`).
+- **Operator Admin** — a Service-Principal management page: onboard / rotate / deactivate / delete tenant SPs (secrets encrypted at rest), an audit trail, and a **"Manage access"** dialog to grant/revoke a tenant SP's `CAN_RUN` on individual dashboards and Genie spaces.
+- **Per-user personalization** — conversation history and saved dashboard filters persist in **Lakebase** (Databricks managed Postgres); a **"My Filters"** page lets each user set global default filter selections.
+- **Own your front door** — an optional in-process **white-label login** so end users never see a Databricks login screen.
+
+---
 
 ## Hosting models
 
-This codebase runs in two ways from the **same** FastAPI + React app:
+The **same** FastAPI + React app runs two ways:
 
-1. **Databricks App** — deployed on the Databricks Apps platform (`app.yaml` / `databricks.yml`). The app's own service principal authenticates to the platform.
-2. **External host** (EC2 / ECS / generic Docker) — reaches Databricks purely via a **Service Principal (M2M)** using standard SDK env vars. No Databricks Apps platform required. See `docs/architecture/external-hosting.md`.
+1. **Databricks App** — deployed on the Databricks Apps platform (`app.yaml` / `databricks.yml`); the app's own service principal authenticates to the platform.
+2. **External host** (EC2 / ECS / generic Docker) — reaches Databricks purely via a **Service Principal (M2M)** using standard SDK env vars; no Databricks Apps platform required. See [`docs/architecture/external-hosting.md`](docs/architecture/external-hosting.md).
 
-Auth, embedding, Genie MCP, and Lakebase all behave identically across both — the difference is just where credentials come from.
+Auth, embedding, Genie MCP, isolation, and Lakebase behave identically across both — only where credentials come from changes.
+
+---
 
 ## Architecture
 
@@ -30,39 +60,45 @@ Browser
 React UI (Vite + Tailwind)
   │  /api/*  (SSE for chat)
   ▼
-FastAPI backend ──────────────► Databricks (via Service Principal / app identity)
-  ├── /api/embed/token            AI/BI scoped embed token (CAN_RUN)
-  ├── /api/genie-mcp/*            managed Genie MCP server (Genie One + per-space)
-  ├── /api/apex/*                 conversation history + filter prefs  ── Lakebase (Postgres)
-  ├── /api/{health,config,me}     app config + identity
-  └── /login /logout              white-label IdP (session gate middleware)
+FastAPI backend ─────────────► Databricks (as the tenant's Service Principal, or the app SP)
+  ├── /api/embed/token           AI/BI scoped embed token (CAN_RUN), minted as the tenant SP
+  ├── /api/genie-mcp/*           managed Genie MCP server (Genie One + per-space), run as the tenant SP
+  ├── /api/apex/*                conversation history + filter prefs ── Lakebase (Postgres)
+  ├── /api/tenants/*             operator admin: SP lifecycle, audit, resource access
+  ├── /api/{health,me}           app health + Databricks identity
+  ├── /api/auth/me               white-label session identity
+  └── /login /logout             white-label IdP (session gate middleware)
                                        │
                                        ▼
-                     AI/BI Dashboard · Genie Space · Metric View (Unity Catalog)
+              AI/BI Dashboard · Genie Space · Metric View + Row Filter (Unity Catalog)
 ```
 
-See [`docs/architecture/apex_architecture.mmd`](docs/architecture/apex_architecture.mmd) for the
-editable Mermaid architecture diagram (render with `npx @mermaid-js/mermaid-cli -i docs/architecture/apex_architecture.mmd -o apex_architecture.png`).
+The one non-obvious idea: **the browser never touches Databricks credentials.** The server mints a short-lived, dashboard-scoped token as the tenant's Service Principal and hands only that to the iframe; the SP secret stays server-side, and a Unity Catalog row filter scopes what that SP can see.
+
+See [`docs/architecture/apex_architecture.mmd`](docs/architecture/apex_architecture.mmd) for the editable Mermaid diagram (render with `npx @mermaid-js/mermaid-cli -i docs/architecture/apex_architecture.mmd -o apex_architecture.png`).
+
+---
 
 ## Project structure
 
 ```
 advito-ai-bi/
 ├── app.py                       # FastAPI entry: routers, session gate, SPA serving
-├── app.yaml                     # Databricks App config
-├── databricks.yml               # Asset Bundle config
-├── requirements.txt             # Python dependencies
+├── app.yaml / databricks.yml    # Databricks App + Asset Bundle config
+├── requirements.txt
 ├── Dockerfile / docker-compose.yml / .dockerignore   # external-host packaging
-├── .env.example                 # env contract for external hosting
+├── .env.example                 # full env contract (auth, Lakebase, tenants, RLS)
 │
 ├── frontend/                    # React + Vite + Tailwind v4
 │   └── src/
-│       ├── App.tsx              # Shell + config-driven routing + filter prefs
-│       ├── config.ts            # Routes, dashboard IDs, filter (f_) URL helpers
-│       ├── components/          # Sidebar, Header, FilterBar, DashboardWorkspace,
+│       ├── App.tsx              # Shell + config-driven routing + filter-pref precedence
+│       ├── config.ts            # Routes, dashboard specs, f_ filter helpers, Genie prompts
+│       ├── components/
 │       │   ├── genie/           #   Ask APEX chat (messages, SQL, tables, tool calls)
+│       │   ├── admin/           #   SP management table + AccessDialog ("Manage access")
 │       │   └── ui/              #   shadcn-style primitives
-│       ├── pages/               # NativeDashboard, CustomDashboard (SDK embed), GenieMcpExperience
+│       ├── pages/               # CustomDashboard (SDK embed), GenieMcpExperience (Ask APEX),
+│       │   │                    #   AdminPage (SP management), PreferencesPage (My Filters)
 │       └── hooks/               # useGenieMcpChat (SSE + Lakebase persist), useUser
 │
 ├── server/                      # FastAPI backend
@@ -70,33 +106,40 @@ advito-ai-bi/
 │   ├── lakebase.py              # Shared Lakebase (Postgres) connection + credential minting
 │   ├── persistence.py           # Schema + CRUD: conversations, messages, filter prefs
 │   ├── auth/                    # White-label IdP: login, sessions, middleware, user dir
+│   ├── tenants/                 # Per-tenant SP isolation: registry, lifecycle, RLS, resources, audit
 │   └── routes/
-│       ├── api.py               # /health, /config, /me
+│       ├── api.py               # /health, /me
 │       ├── embed.py             # /embed/token (SP-minted scoped embed token)
 │       ├── apex.py              # /apex/* (conversation history + filter prefs)
+│       ├── tenants.py           # /tenants/* (SP lifecycle + resource access)
 │       └── genie_mcp/           # Genie MCP client, SSE, parsing, auth
 │
-├── src/sql/                     # Metric view DDL + validation queries
-├── resources/metric_views.yml   # DABs job resource for the metric view
-└── docs/                        # architecture, data, requirements, screenshots
+├── sql/tenants/ · scripts/tenants/   # Row-filter DDL + onboard/verify tooling
+├── src/sql/ · resources/metric_views.yml   # Metric view DDL + DABs resource
+└── docs/                        # handoff guides, architecture, data, requirements
 ```
+
+---
 
 ## Configuration
 
-All runtime config is environment-driven. Copy `.env.example` to `.env` and fill in:
+All runtime config is environment-driven. Copy `.env.example` to `.env` and fill in. The headline groups:
 
-| Variable | Purpose |
-|----------|---------|
-| `DATABRICKS_HOST` | Workspace URL |
-| `DATABRICKS_CLIENT_ID` / `DATABRICKS_CLIENT_SECRET` | Service Principal (M2M) — embed token minting + all API calls when hosted externally |
-| `GENIE_SPACE_ID` | Genie space backing Ask APEX / Executive Summary |
-| `DASHBOARD_URL` | AI/BI dashboard embed URL |
-| `AUTH_ENABLED` | Toggle the white-label login (no-op default when off) |
-| `AUTH_SESSION_SECRET` / `AUTH_SESSION_*` | Session cookie signing + TTL |
-| `LAKEBASE_ENABLED` | Toggle Lakebase; when off, app runs in-memory + JSON (zero setup) |
-| `LAKEBASE_ENDPOINT_PATH` / `PGHOST` / `PGUSER` / ... | Lakebase Postgres connection + credential minting |
+| Group | Key variables | Purpose |
+|-------|---------------|---------|
+| **Databricks** | `DATABRICKS_HOST`, `DATABRICKS_CLIENT_ID`, `DATABRICKS_CLIENT_SECRET` | Service Principal (M2M) — embed-token minting + all API calls when hosted externally |
+| **Data assets** | `GENIE_SPACE_ID`, `DASHBOARD_URL` | Genie space (Ask APEX / Exec Summary) + AI/BI dashboard embed URL |
+| **White-label login** | `AUTH_ENABLED`, `AUTH_SESSION_SECRET`, `AUTH_USERS_FILE` / `AUTH_USERS_TABLE` | Toggle + sign the session cookie + choose the user directory |
+| **Lakebase** | `LAKEBASE_ENABLED`, `LAKEBASE_ENDPOINT_PATH`, `PGHOST` / `PGUSER` / … | Managed Postgres for user dir + history + filter prefs (off ⇒ in-memory + JSON, zero setup) |
+| **Multi-tenant isolation** | `AES_KEY_BASE64`, `UC_CATALOG` / `UC_SCHEMA`, `VERIFY_TABLE` / `TENANT_COLUMN`, `DASHBOARD_IDS`, `TENANTS_ADMIN_PROFILE` | Per-tenant SPs + row-filter enforcement + auto-grant CAN_RUN on onboard |
+| **Reuse existing filter** | `MAPPING_TABLE` / `MAPPING_*_COLUMN`, `FILTER_FUNCTION` | Point onboarding at a customer's existing RLS table/function (e.g. Advito's `client_access_filter`) |
+| **Admin resource catalog** | `RESOURCE_DASHBOARDS`, `RESOURCE_GENIE_SPACES` | `id:Label` pairs shown in the "Manage access" dialog (falls back to `DASHBOARD_IDS` / `GENIE_SPACE_ID`) |
 
-> Frontend dashboard/workspace IDs live in `frontend/src/config.ts`. Server data assets resolve from env.
+> Frontend dashboard specs, filter grammar, and Genie prompts live in `frontend/src/config.ts`. Server data assets resolve from env.
+>
+> **Frontend build-time config:** the shared workspace host + org are env-driven via `VITE_WORKSPACE_URL` / `VITE_WORKSPACE_ORG` (copy `frontend/.env.example` → `frontend/.env`, then rebuild). They fall back to demo defaults when unset. Dashboard ids themselves live in the `DASHBOARDS` registry in `config.ts`. *(A future admin UI could manage these instead of env.)*
+
+---
 
 ## Local development
 
@@ -108,52 +151,57 @@ python -m uvicorn app:app --host 0.0.0.0 --port 8000
 cd frontend && npm install && npm run dev
 ```
 
-Requires a `.env` (see above). With `LAKEBASE_ENABLED=false` and `AUTH_ENABLED=false` you can run with just `DATABRICKS_HOST` + SP creds + `GENIE_SPACE_ID`.
+**Fastest demo** (embedding + Ask APEX, no infra beyond an SP + Genie space): set `DATABRICKS_HOST`, `DATABRICKS_CLIENT_ID/SECRET`, `GENIE_SPACE_ID`, `DASHBOARD_URL`, and leave `LAKEBASE_ENABLED=false` and `AUTH_ENABLED=false`. Persistence and login both fail *soft*, so nothing hard-breaks when they're off.
 
-## Deploy — external host (Docker)
+**Demo logins** (only when `AUTH_ENABLED=true`; the shipped JSON directory `server/auth/users.seed.json`, password `apex` for all). A Lakebase-backed directory (`AUTH_USERS_TABLE`) overrides this when `LAKEBASE_ENABLED=true`.
+
+| Email | Tenant | Row scope (`external_value`) |
+|---|---|---|
+| `alice@acmetravel.com` | Acme Travel | `acme-travel` |
+| `ben@globex.com` | Globex | `globex` |
+| `dana@advito.com` | Advito (operator) | `*` (sees all rows) |
+
+---
+
+## Deploy
+
+**External host (Docker):**
 
 ```bash
-cp .env.example .env          # fill in SP creds, Genie space, Lakebase, auth secret
-docker compose up --build
+cp .env.example .env          # fill in SP creds, Genie space, dashboard, (optional) Lakebase + auth
+docker compose up --build     # builds the frontend + serves SPA + API from one FastAPI process
 ```
 
-The container builds the frontend and serves the SPA + API from one FastAPI process on `APP_PORT`. See `docs/architecture/external-hosting.md` for ECS/EC2 notes.
-
-## Deploy — Databricks App
+**Databricks App:**
 
 ```bash
 cd frontend && npx vite build && cd ..
-databricks bundle deploy   # uses databricks.yml
-# or import-dir + databricks apps deploy for the source-code workflow
+databricks bundle deploy       # uses databricks.yml
 ```
 
-## Key documentation
+See [`docs/architecture/external-hosting.md`](docs/architecture/external-hosting.md) for ECS/EC2 notes.
 
-> **Handing this off to another team?** Start with the
-> [**Engineering Handoff Guide**](docs/handoff/README.md) — a guided walkthrough
-> mapping each blocker (SDK filter passing, white-label embedding, Ask APEX via
-> Genie MCP) to the exact code that solves it.
+---
 
-**Handoff guides** (`docs/handoff/`) — start here:
+## Documentation
 
-| Doc | What it covers |
-|-----|----------------|
-| [`docs/handoff/README.md`](docs/handoff/README.md) | **Start-here index** — the three headline blockers, reading order, prerequisites, demo logins, and gotchas |
-| [`docs/handoff/ask-apex-genie-mcp.md`](docs/handoff/ask-apex-genie-mcp.md) | Ask APEX over the managed Genie MCP server — SSE streaming, auth, tool discovery, artifact parsing, Executive Summary |
-| [`docs/handoff/whitelabel-auth-and-hosting.md`](docs/handoff/whitelabel-auth-and-hosting.md) | Custom white-label login (PBKDF2 + signed cookie), edge-gateway vs external-host models, Docker |
-| [`docs/handoff/lakebase-persistence-and-config.md`](docs/handoff/lakebase-persistence-and-config.md) | Lakebase history + filter prefs, and the config-driven dashboard/filter registry |
+**Start here:** the [**Engineering Handoff Guide**](docs/handoff/README.md) maps every blocker to the code that solves it.
 
-**Architecture & reference:**
+**Deep-dives** (`docs/`):
 
-| Doc | What it covers |
-|-----|----------------|
-| [`docs/architecture/aibi-embedding-filter-passing-workaround.md`](docs/architecture/aibi-embedding-filter-passing-workaround.md) | **The SDK technique** — white-label embedding + pushing `f_` filter params into embedded dashboards + hiding the logo (the core method) |
-| [`docs/architecture/external-hosting.md`](docs/architecture/external-hosting.md) | Running outside Databricks Apps; SP (M2M) auth; per-tenant embed scoping |
-| [`docs/architecture/apex_architecture.mmd`](docs/architecture/apex_architecture.mmd) | Editable Mermaid architecture diagram (current) |
-| [`docs/data/genie-space-config.md`](docs/data/genie-space-config.md) | Genie space setup + instructions for the metric view |
-| [`docs/data/summarydataset_analysis.md`](docs/data/summarydataset_analysis.md) | Source data lineage analysis |
-| [`docs/data/metric-view-validation-results.md`](docs/data/metric-view-validation-results.md) | Metric-view validation snapshot (incl. carbon-budget NULL gap) |
+| Doc | Covers |
+|-----|--------|
+| [`docs/architecture/aibi-embedding-filter-passing-workaround.md`](docs/architecture/aibi-embedding-filter-passing-workaround.md) | **Theme 1** — white-label embedding: hide logo, pass `f_` filters, hide page headers, hide native filter pane, 3-step token minting |
+| [`docs/handoff/ask-apex-genie-mcp.md`](docs/handoff/ask-apex-genie-mcp.md) | **Theme 2** — Ask APEX rail, Executive Summary (Overview/KPIs/Strategic Insights), standalone chat, SSE + tool discovery + parsing |
+| [`docs/handoff/multi-tenant-isolation.md`](docs/handoff/multi-tenant-isolation.md) | **Theme 3** — per-tenant SPs, run Genie + dashboards as the SP, UC row-filter isolation, Admin + "Manage access" |
+| [`docs/handoff/tenant-isolation-runbook.md`](docs/handoff/tenant-isolation-runbook.md) | **Theme 3** — operator runbook: apply the row filter, onboard tenants, verify isolation |
+| [`docs/handoff/whitelabel-auth-and-hosting.md`](docs/handoff/whitelabel-auth-and-hosting.md) | **Theme 3** — white-label login (PBKDF2 + signed cookie), edge-gateway vs external-host, Docker |
+| [`docs/handoff/lakebase-persistence-and-config.md`](docs/handoff/lakebase-persistence-and-config.md) | Lakebase history + filter prefs (incl. "My Filters"), and the config-driven dashboard registry |
+| [`docs/architecture/external-hosting.md`](docs/architecture/external-hosting.md) | Running fully outside Databricks via a Service Principal |
+| [`docs/data/*`](docs/data/) | Genie space setup, source-data lineage, metric-view validation |
 | [`docs/requirements.md`](docs/requirements.md) | Original customer requirements (historical) |
+
+---
 
 ## Known gaps / roadmap
 

@@ -8,6 +8,7 @@ import StatCard from "@/components/admin/StatCard";
 import SecretAlert, { type SecretAlertData } from "@/components/admin/SecretAlert";
 import TenantTable from "@/components/admin/TenantTable";
 import OnboardDialog from "@/components/admin/OnboardDialog";
+import AccessDialog from "@/components/admin/AccessDialog";
 import VerifyModal from "@/components/admin/VerifyModal";
 import HistoryDrawer from "@/components/admin/HistoryDrawer";
 import ActivityFeed from "@/components/admin/ActivityFeed";
@@ -51,6 +52,7 @@ export default function AdminPage() {
   const [secret, setSecret] = useState<SecretAlertData | null>(null);
   const [showOnboard, setShowOnboard] = useState(false);
   const [showVerify, setShowVerify] = useState(false);
+  const [accessTenant, setAccessTenant] = useState<TenantOut | null>(null);
   const [historyTenant, setHistoryTenant] = useState<TenantOut | null>(null);
   const [busyTenantId, setBusyTenantId] = useState<string | null>(null);
 
@@ -335,6 +337,7 @@ export default function AdminPage() {
             busyTenantId={busyTenantId}
             onOnboard={() => setShowOnboard(true)}
             onVerify={() => setShowVerify(true)}
+            onManageAccess={(t) => setAccessTenant(t)}
             onHistory={(t) => setHistoryTenant(t)}
             onRotate={onRotate}
             onDeactivate={onDeactivate}
@@ -358,6 +361,9 @@ export default function AdminPage() {
       )}
       {showVerify && (
         <VerifyModal run={() => adminApi.verify()} onClose={() => setShowVerify(false)} />
+      )}
+      {accessTenant && (
+        <AccessDialog tenant={accessTenant} onClose={() => setAccessTenant(null)} />
       )}
       {historyTenant && (
         <HistoryDrawer

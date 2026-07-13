@@ -7,6 +7,7 @@ import {
   Play,
   Trash2,
   ServerCog,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export interface TenantTableProps {
   busyTenantId?: string | null;
   onOnboard: () => void;
   onVerify: () => void;
+  onManageAccess: (t: TenantOut) => void;
   onHistory: (t: TenantOut) => void;
   onRotate: (t: TenantOut) => void;
   onDeactivate: (t: TenantOut) => void;
@@ -97,6 +99,7 @@ export default function TenantTable(props: TenantTableProps) {
 function TenantRow({
   tenant,
   busy,
+  onManageAccess,
   onHistory,
   onRotate,
   onDeactivate,
@@ -104,7 +107,7 @@ function TenantRow({
   onDelete,
 }: { tenant: TenantOut; busy: boolean } & Pick<
   TenantTableProps,
-  "onHistory" | "onRotate" | "onDeactivate" | "onReactivate" | "onDelete"
+  "onManageAccess" | "onHistory" | "onRotate" | "onDeactivate" | "onReactivate" | "onDelete"
 >) {
   const active = tenant.status === "active";
   return (
@@ -139,6 +142,7 @@ function TenantRow({
           <RowActions
             active={active}
             disabled={busy}
+            onManageAccess={() => onManageAccess(tenant)}
             onHistory={() => onHistory(tenant)}
             onRotate={() => onRotate(tenant)}
             onDeactivate={() => onDeactivate(tenant)}
@@ -154,6 +158,7 @@ function TenantRow({
 function RowActions({
   active,
   disabled,
+  onManageAccess,
   onHistory,
   onRotate,
   onDeactivate,
@@ -162,6 +167,7 @@ function RowActions({
 }: {
   active: boolean;
   disabled: boolean;
+  onManageAccess: () => void;
   onHistory: () => void;
   onRotate: () => void;
   onDeactivate: () => void;
@@ -213,6 +219,15 @@ function RowActions({
 
       {open && (
         <div className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+          {active && (
+            <button
+              className={cn(item, "text-slate-700 hover:bg-slate-50")}
+              onClick={pick(onManageAccess)}
+            >
+              <KeyRound size={15} className="text-slate-400" />
+              Manage access
+            </button>
+          )}
           <button className={cn(item, "text-slate-700 hover:bg-slate-50")} onClick={pick(onHistory)}>
             <History size={15} className="text-slate-400" />
             View history

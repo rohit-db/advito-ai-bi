@@ -49,7 +49,8 @@ function filtersAreDefault(f: FilterState): boolean {
  * plus token mint/refresh. The SDK has no filter API, so we apply the dashboard
  * `f_…` filter widgets by reloading the embed iframe with the documented URL
  * params — and re-push the hide-logo config after each reload (the SDK only
- * sends it once). Page switches use the SDK's smooth `navigate()`.
+ * sends it once). Page switches also reload the iframe (the SDK's navigate()
+ * only posts a message and silently no-ops in the token-embed context).
  */
 export default function CustomDashboard({
   spec,
@@ -98,7 +99,10 @@ export default function CustomDashboard({
     setTimeout(() => window.removeEventListener("message", onReady), 20000);
   };
 
-  const reloadWithFilters = (pageId: string, f: FilterState) => {
+  // Reload the embed iframe on `pageId`. When `f` is omitted we load the plain
+  // page URL (no f_ params) — this keeps the dashboard's filter panel collapsed
+  // for the default browsing case. Pass filters to apply them.
+  const reloadWithFilters = (pageId: string, f?: FilterState) => {
     const iframe = containerRef.current?.querySelector("iframe");
     if (!iframe || !tokenRef.current) return;
     reapplyConfigOnNextReady();
@@ -167,13 +171,16 @@ export default function CustomDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardId]);
 
-  // Page switch (no filter change) → smooth in-place navigate.
+  // Page switch → reload the embed on the new page. We deliberately do NOT use
+  // the SDK's navigate(): in the token-embed context it only fires a postMessage
+  // and resolves even when the embed ignores it (so the page silently doesn't
+  // change), and it wouldn't carry the f_ filter params. Rebuilding the iframe
+  // URL reliably switches the page AND keeps the active filters + hide-logo config.
   useEffect(() => {
-    if (!readyRef.current || !dashRef.current) return;
-    dashRef.current.navigate({ dashboardId, pageId: currentPageId }).catch(() => {
-      // Fall back to a reload if navigate isn't available yet.
-      reloadWithFilters(currentPageId, filters);
-    });
+    if (!readyRef.current) return;
+    // Only carry f_ params across the page switch when the user actually has
+    // non-default filters; otherwise load the clean page (panel stays collapsed).
+    reloadWithFilters(currentPageId, filtersAreDefault(filters) ? undefined : filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPageId]);
 

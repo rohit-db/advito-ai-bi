@@ -26,27 +26,48 @@ from typing import Optional
 
 import requests
 
-from ..config import UC_CATALOG, UC_SCHEMA, WORKSPACE_URL
+from ..config import (
+    MAPPING_ACTIVE_COLUMN,
+    MAPPING_TABLE,
+    MAPPING_TENANT_COLUMN,
+    MAPPING_TS_COLUMN,
+    MAPPING_USER_COLUMN,
+    TENANT_COLUMN,
+    UC_CATALOG,
+    UC_SCHEMA,
+    WORKSPACE_URL,
+)
 from . import registry, runtime
 from .registry import TenantRow
 
 logger = logging.getLogger("server.tenants.unity_catalog")
 
-mapping_table_name = "sp_tenant_mapping"
+# The mapping table + its column shape are configurable so this app can either
+# create its own ``sp_tenant_mapping`` or REUSE an existing customer filter table
+# (e.g. Advito's ``user_client_access(user_email, client_id, granted_at)``).
+mapping_table_name = MAPPING_TABLE
+_USER_COL = MAPPING_USER_COLUMN
+_TENANT_COL = MAPPING_TENANT_COLUMN
+_ACTIVE_COL = MAPPING_ACTIVE_COLUMN or None
+_TS_COL = MAPPING_TS_COLUMN or None
 
 
 # ----------------------------------------------------------------- helpers
 def fq(name: str) -> str:
-    """Fully-qualify a table name as ``catalog.schema.name``.
+    """Fully-qualify a bare table name as ``catalog.schema.name``.
 
-    Raises when UC_CATALOG / UC_SCHEMA are unset — UC row-filter isolation is
-    impossible without a governed catalog/schema to hold the mapping table.
+    Names that are already qualified (contain a ``.``, e.g. a fully-qualified
+    ``VERIFY_TABLE``) are returned unchanged. Bare names require UC_CATALOG /
+    UC_SCHEMA — without a governed catalog/schema UC row-filter isolation is
+    impossible, so this raises a clear error.
     """
+    if "." in name:
+        return name
     if not UC_CATALOG or not UC_SCHEMA:
         raise RuntimeError(
             "UC row-filter isolation requires UC_CATALOG and UC_SCHEMA to be set "
             "(mapping table + governed tables live there). Set them in the env "
-            "to enable sp_tenant_mapping and verification."
+            "to enable the tenant mapping and verification."
         )
     return f"{UC_CATALOG}.{UC_SCHEMA}.{name}"
 
@@ -104,28 +125,52 @@ def _error_detail(resp) -> str:
 
 # ----------------------------------------------------------------- mapping CRUD
 def insert_mapping(sp_app_id: str, tenant_id: str) -> None:
-    """Upsert an active mapping row for a tenant SP (dedupe by sp_app_id)."""
+    """Upsert a mapping row for a tenant SP (dedupe by the user/identity column).
+
+    Writes the configured columns only, so it works against both this app's
+    ``sp_tenant_mapping(sp_app_id, tenant_id, active)`` and an existing customer
+    table such as ``user_client_access(user_email, client_id, granted_at)``.
+    """
     table = fq(mapping_table_name)
-    _admin_sql(f"DELETE FROM {table} WHERE sp_app_id = '{sp_app_id}'")
+    _admin_sql(f"DELETE FROM {table} WHERE {_USER_COL} = '{sp_app_id}'")
+    cols = [_USER_COL, _TENANT_COL]
+    vals = [f"'{sp_app_id}'", f"'{tenant_id}'"]
+    if _ACTIVE_COL:
+        cols.append(_ACTIVE_COL)
+        vals.append("true")
+    if _TS_COL:
+        cols.append(_TS_COL)
+        vals.append("current_timestamp()")
     _admin_sql(
-        f"INSERT INTO {table} (sp_app_id, tenant_id, active) "
-        f"VALUES ('{sp_app_id}', '{tenant_id}', true)"
+        f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({', '.join(vals)})"
     )
 
 
 def deactivate_mapping(sp_app_id: str) -> None:
+    """Disable a mapping: flip ``active`` if the table has it, else delete the row."""
     table = fq(mapping_table_name)
-    _admin_sql(f"UPDATE {table} SET active = false WHERE sp_app_id = '{sp_app_id}'")
+    if _ACTIVE_COL:
+        _admin_sql(
+            f"UPDATE {table} SET {_ACTIVE_COL} = false WHERE {_USER_COL} = '{sp_app_id}'"
+        )
+    else:
+        _admin_sql(f"DELETE FROM {table} WHERE {_USER_COL} = '{sp_app_id}'")
 
 
-def activate_mapping(sp_app_id: str) -> None:
+def activate_mapping(sp_app_id: str, tenant_id: Optional[str] = None) -> None:
+    """Re-enable a mapping: flip ``active`` if present, else re-insert the row."""
     table = fq(mapping_table_name)
-    _admin_sql(f"UPDATE {table} SET active = true WHERE sp_app_id = '{sp_app_id}'")
+    if _ACTIVE_COL:
+        _admin_sql(
+            f"UPDATE {table} SET {_ACTIVE_COL} = true WHERE {_USER_COL} = '{sp_app_id}'"
+        )
+    elif tenant_id:
+        insert_mapping(sp_app_id, tenant_id)
 
 
 def delete_mapping(sp_app_id: str) -> None:
     table = fq(mapping_table_name)
-    _admin_sql(f"DELETE FROM {table} WHERE sp_app_id = '{sp_app_id}'")
+    _admin_sql(f"DELETE FROM {table} WHERE {_USER_COL} = '{sp_app_id}'")
 
 
 # ----------------------------------------------------------------- run-as-SP
@@ -210,7 +255,9 @@ def verify_tenant(row: TenantRow, target_table: Optional[str] = None) -> dict:
             )
         token = runtime.minter().get_token(row.sp_app_id, secret)
 
-        distinct_rows = run_sql_as(token, f"SELECT DISTINCT tenant_id FROM {table}")
+        distinct_rows = run_sql_as(
+            token, f"SELECT DISTINCT {TENANT_COLUMN} FROM {table}"
+        )
         distinct_ids = [r[0] for r in distinct_rows if r]
         out["distinct_tenant_ids"] = distinct_ids
         out["visible_row_count"] = len(distinct_rows)

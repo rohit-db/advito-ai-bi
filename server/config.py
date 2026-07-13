@@ -65,6 +65,30 @@ TENANT_SP_PREFIX = os.environ.get("TENANT_SP_PREFIX", "apex-tenant").strip()
 # the app SP an admin. Falls back to the app SP client when unset.
 TENANTS_ADMIN_PROFILE = os.environ.get("TENANTS_ADMIN_PROFILE", "").strip()
 
+# ── Row-filter mapping shape ─────────────────────────────────────────────────
+# The isolation control is a UC row filter that joins governed tables to a
+# mapping table keyed on the SQL caller identity. Defaults match this app's
+# built-in ``sp_tenant_mapping`` (created by scripts/tenants/apply_row_filter.py).
+# Override these to REUSE an existing customer filter table/function instead of
+# creating our own — e.g. Advito's ``user_client_access(user_email, client_id)``
+# joined by ``client_access_filter`` on ``current_user()``.
+#
+#   MAPPING_TABLE          table the filter function joins (in UC_CATALOG.UC_SCHEMA)
+#   MAPPING_USER_COLUMN    column holding the caller identity (the SP app id)
+#   MAPPING_TENANT_COLUMN  column holding the tenant key
+#   MAPPING_ACTIVE_COLUMN  boolean "active" column, or "" if the table has none
+#                          (when absent, deactivate = delete the mapping row)
+#   MAPPING_TS_COLUMN      optional timestamp column to stamp on insert (e.g. granted_at)
+#   TENANT_COLUMN          the tenant column on the GOVERNED FACT TABLE (for verify)
+#   FILTER_FUNCTION        the row-filter function name to attach (apply script)
+MAPPING_TABLE = os.environ.get("MAPPING_TABLE", "sp_tenant_mapping").strip()
+MAPPING_USER_COLUMN = os.environ.get("MAPPING_USER_COLUMN", "sp_app_id").strip()
+MAPPING_TENANT_COLUMN = os.environ.get("MAPPING_TENANT_COLUMN", "tenant_id").strip()
+MAPPING_ACTIVE_COLUMN = os.environ.get("MAPPING_ACTIVE_COLUMN", "active").strip()
+MAPPING_TS_COLUMN = os.environ.get("MAPPING_TS_COLUMN", "").strip()
+TENANT_COLUMN = os.environ.get("TENANT_COLUMN", "tenant_id").strip()
+FILTER_FUNCTION = os.environ.get("FILTER_FUNCTION", "tenant_row_filter").strip()
+
 
 def get_workspace_client() -> WorkspaceClient:
     """Workspace client that works inside Databricks Apps *and* on any external host.

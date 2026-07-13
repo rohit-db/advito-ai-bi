@@ -19,6 +19,10 @@ app.include_router(genie_mcp_router, prefix="/api")
 from server.routes.embed import router as embed_router
 app.include_router(embed_router, prefix="/api")
 
+# Live headline KPIs for the landing page (per-tenant, row-scoped; fails soft).
+from server.routes.kpis import router as kpis_router
+app.include_router(kpis_router, prefix="/api")
+
 # Per-tenant Service Principal isolation: operator API to manage tenant SPs.
 from server.routes.tenants import router as tenants_router
 app.include_router(tenants_router, prefix="/api")
