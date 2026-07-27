@@ -61,6 +61,10 @@ def _render_login_page(error: str | None = None, next_url: str = "/", mode: str 
             for u in users_repo.list_logins()
         )
     error_html = f'<div class="error">{html.escape(error)}</div>' if error else ""
+    chips_block = (
+        f'\n    <div class="divider">Sample logins</div>\n    <div class="chips">{chips}</div>'
+        if show_demo else ""
+    )
     return f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -126,8 +130,7 @@ def _render_login_page(error: str | None = None, next_url: str = "/", mode: str 
     <input id="p" name="password" type="password" autocomplete="current-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" required>
     <button class="submit" type="submit">Sign in</button>
 
-    <div class="divider">Sample logins</div>
-    <div class="chips">{chips}</div>
+    {chips_block}
     <div class="foot">Custom authentication &middot; powered by Databricks behind the scenes</div>
   </form>
   <script>

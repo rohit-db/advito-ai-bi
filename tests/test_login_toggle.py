@@ -53,3 +53,26 @@ def test_demo_logins_gate_hides_chips(monkeypatch):
     assert 'class="chip"' not in html_out
     # But the sign-in form is still there.
     assert 'name="username"' in html_out
+
+
+def test_mode_cannot_escalate_role(monkeypatch):
+    monkeypatch.setattr(users_repo, "LAKEBASE_ENABLED", False)
+    monkeypatch.setenv("AUTH_ENABLED", "true")
+    from fastapi.testclient import TestClient
+    from app import app
+    from server.auth.sessions import verify_session, SESSION_COOKIE
+    client = TestClient(app, raise_server_exceptions=True)
+    # ben@globex.com is role "user"; posting mode=operator must not escalate role.
+    r = client.post(
+        "/login",
+        data={"username": "ben@globex.com", "password": "apex",
+              "mode": "operator", "next": "/"},
+        follow_redirects=False,
+    )
+    assert r.status_code in (302, 303), f"expected redirect, got {r.status_code}"
+    cookie = r.cookies.get(SESSION_COOKIE)
+    identity = verify_session(cookie)
+    assert identity is not None, "session cookie did not decode"
+    assert identity["role"] == "user", (
+        f"role escalation! expected 'user' but got {identity['role']!r}"
+    )
