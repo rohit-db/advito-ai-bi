@@ -77,7 +77,7 @@ def _render_login_page(error: str | None = None, next_url: str = "/") -> str:
   .sub {{ color:#64748b; font-size:12.5px; margin:2px 0 18px 1px; }}
   label {{ font-size:12px; font-weight:600; color:#334155; display:block; margin:12px 0 6px; }}
   input {{ width:100%; padding:11px 12px; border:1px solid #e2e8f0; border-radius:10px; font-size:14px; }}
-  input:focus {{ outline:none; border-color:var(--brand); box-shadow:0 0 0 3px rgba(79,70,229,.15); }}
+  input:focus {{ outline:none; border-color:var(--brand); box-shadow:0 0 0 3px {colors['primaryLight']}; }}
   button.submit {{ width:100%; margin-top:18px; padding:11px; border:0; border-radius:10px; color:#fff;
                   font-size:14px; font-weight:600; cursor:pointer;
                   background:linear-gradient(135deg,var(--brand),var(--brand-accent)); }}

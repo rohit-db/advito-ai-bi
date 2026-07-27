@@ -3,7 +3,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-app = FastAPI(title="APEX - Advito Practice Exchange")
+from server.brand import load_brand
+app = FastAPI(title=f"{load_brand()['identity']['appName']} API")
 
 # White-label session gate. No-op when AUTH_ENABLED is unset/false, so the
 # default Databricks-Apps behavior is unchanged.
