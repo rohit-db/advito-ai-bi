@@ -48,10 +48,21 @@ This app is a white-label reference. Rebrand it in **3 steps**:
 | Logo / favicon | files in `frontend/public/brand/` |
 | Login demo chips on/off | `AUTH_SHOW_DEMO_LOGINS` env |
 | User-facing copy (hero, cards) | *(planned: `content.config.json`, PR7)* |
-| Dashboards & Genie spaces | *(planned: `dashboards.seed.json`, PR3)* |
+| Dashboards & Genie spaces (specs, filter wiring, per-page prompts) | `server/assets/dashboards.seed.json` |
 | Which filters exist / how they render | `frontend/src/config.ts` (`FILTERS`) |
 | Nav order, labels, icons, pages | `frontend/src/config.ts` (`ROUTES`) |
 | Server data assets / SP / Lakebase / RLS | `.env` |
+
+**Dashboard registry vs. filters vs. nav.** `server/assets/dashboards.seed.json`
+owns dashboard **assets** (physical dashboard id, filter→widget wiring, pages,
+per-page Genie prompts), resolved by `server/assets/registry.py` and served at
+`GET /api/assets` (the frontend fetches it at boot and bundles a fallback copy).
+**Filter render vocabulary** (which filters exist, how they render) stays in
+`frontend/src/config.ts` `FILTERS`; the seed's `filters` map only *references*
+those keys. **Nav** (order, icons, sections, non-dashboard pages) stays in
+`config.ts` `ROUTES`; a dashboard route points at an asset via its `dashboard`
+key. `DASHBOARD_IDS` / `RESOURCE_DASHBOARDS` / `DASHBOARD_URL` remain env
+fallbacks used only when the registry is empty.
 
 ## How theming works (for agents)
 

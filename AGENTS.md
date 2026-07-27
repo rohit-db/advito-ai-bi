@@ -51,7 +51,9 @@ cd frontend && npm install && npm run dev
 ## Conventions
 - Frontend workspace host/org are build-time env vars
   (`VITE_WORKSPACE_URL`/`VITE_WORKSPACE_ORG`, see `frontend/.env.example`);
-  dashboard specs/filters/prompts live declaratively in `frontend/src/config.ts`.
+  dashboard specs + per-page Genie prompts live in `server/assets/dashboards.seed.json`
+  (resolved server-side, served at `GET /api/assets`); filter render vocabulary and
+  nav stay in `frontend/src/config.ts` (`FILTERS` + `ROUTES`).
 - Server config is env-driven (`server/config.py`); copy `.env.example` → `.env`.
 
 ## Customizing
@@ -65,7 +67,7 @@ and use `brand-*` Tailwind utilities.**
 | Colors, app name, tagline, font | `brand.config.json` |
 | Logo / favicon | files in `frontend/public/brand/` |
 | User-facing copy (hero, cards) | *(planned: `content.config.json`, PR7)* |
-| Dashboards & Genie spaces | *(planned: `dashboards.seed.json`, PR3)* |
+| Dashboards & Genie spaces (specs, wiring, prompts) | `server/assets/dashboards.seed.json` |
 | Which filters exist / how they render | `frontend/src/config.ts` (`FILTERS`) |
 | Nav order, labels, icons, pages | `frontend/src/config.ts` (`ROUTES`) |
 | Server data assets / SP / Lakebase / RLS | `.env` |
