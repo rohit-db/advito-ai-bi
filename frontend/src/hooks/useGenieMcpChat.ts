@@ -102,7 +102,9 @@ export function useGenieMcpChat(
 
   const refreshConversations = useCallback(async () => {
     if (!persist) return;
-    setConversations(await listConversations());
+    // Exclude "app_view" threads — those belong to the Ask APEX MCP View page.
+    const all = await listConversations();
+    setConversations(all.filter((c) => c.mode !== "app_view"));
   }, [persist]);
 
   useEffect(() => {

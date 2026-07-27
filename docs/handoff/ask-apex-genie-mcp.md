@@ -25,6 +25,12 @@ The app exposes this in **three** places:
 | **In-dashboard "Ask APEX" rail** | Right-hand rail next to each dashboard | `space` (per-space) | in-memory |
 | **Executive Summary** | One-click modal on a dashboard | `multi` (Genie One MCP) | none |
 | **Standalone "Ask APEX" page** | Full-page chat (`/genie-mcp`) | `multi` (Genie One MCP) | Lakebase |
+| **"Ask APEX Live" page** | Full-page chat (`/ask-apex-live`), **charts inline** | `view_ask` MCP App View (Genie One MCP) | none |
+
+> The first three surfaces use the **text-only** `genie_ask` path (SQL + markdown
+> table). **Ask APEX Live** uses Genie One MCP's `view_ask` **MCP App** path,
+> which renders Genie's own interactive **View** (charts + progress) inline. See
+> [Capability 4](#capability-4--ask-apex-live-mcp-app-view).
 
 > **Modes.** `space` = per-space server `{host}/api/2.0/mcp/genie/{spaceId}`.
 > `multi` = **Genie One MCP**, the workspace-wide server `{host}/api/2.0/mcp/genie`
@@ -605,6 +611,124 @@ GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "01f127092d2219f3be10180d79b2e
 
 ---
 
+## Capability 4 — Ask APEX Live (MCP App View)
+
+A second full-page chat at **`/ask-apex-live`** that renders Genie's answers as
+**interactive charts inline** instead of a text table. It uses Genie One MCP's
+**MCP App** path (`view_ask`), documented at
+[Genie One MCP server](https://docs.databricks.com/aws/en/agents/mcp/genie-mcp).
+It is a **new, additive** surface — the existing `genie_ask` + SSE surfaces are
+untouched.
+
+### Why it's a different code path
+
+MCP App visualizations are **not** an extra SSE event on the `genie_ask` stream.
+`view_ask` returns an [MCP Apps](https://modelcontextprotocol.org/extensions/apps/overview)
+**View**: a `ui://` HTML resource that the *host* renders in a sandboxed iframe;
+the View then polls Genie itself and draws the charts. So the app must act as an
+**MCP Apps host**, not just parse tool output. We use `@mcp-ui/client`'s
+`AppRenderer` for the host side.
+
+### Architecture (browser is the host; backend is a stateless MCP proxy)
+
+The browser cannot hold Databricks credentials or reach the managed server
+directly (CORS), so the backend proxies MCP while the browser hosts the iframe:
+
+```
+Ask APEX Live (React)            FastAPI (genie_mcp/app_view.py)        Genie One MCP
+─────────────────────            ───────────────────────────────       ─────────────
+sendMessage(q) ── POST /app/ask ──────────────────────────────►
+                                 initialize(+UI extension) ───────►     (offers view_ask)
+                                 tools/call view_ask ─────────────►
+   ◄── { resourceUri, toolResult, deepLink, conversationId } ───
+AppRenderer mounts the View:
+  onReadResource ── POST /app/read-resource {uri} ───────────────►      resources/read ui://…
+   ◄── ReadResourceResult (HTML) ──
+  (View polls / drills down)
+  onCallTool ────── POST /app/call-tool {name,args} ─────────────►      tools/call (poll, get_query_result)
+   ◄── CallToolResult ──
+```
+
+- **Auth / isolation unchanged.** Each proxy call opens a short-lived MCP session
+  via `resolve_genie(request)` (tenant SP → OBO → app SP → PAT), so the UC row
+  filter still scopes results per tenant. Proxying is **stateless** — Genie state
+  lives server-side keyed by `conversation_id`, so a fresh session per call is
+  fine.
+- **UI extension capability.** The managed server only offers `view_ask` + the
+  `ui://` resource to Apps-capable clients. The stock `ClientSession.initialize`
+  can't send the SEP-1724 `extensions` field, so `app_view._initialize_with_ui`
+  sends a capability-complete initialize advertising
+  `{"io.modelcontextprotocol/ui": {"mimeTypes": ["text/html;profile=mcp-app"]}}`.
+- **Sandbox proxy.** `AppRenderer` needs a sandbox-proxy HTML page (a distinct
+  document that hosts the View iframe). We serve `frontend/public/mcp-sandbox-proxy.html`
+  at `/mcp-sandbox-proxy.html`. It is **same-origin** (fine for the reference
+  app); for production, serve it from a separate origin/subdomain with a strict
+  CSP that still allows the View's runtime scripts.
+
+### Endpoints (`server/routes/genie_mcp/app_view.py`)
+
+| Route | Purpose |
+| --- | --- |
+| `GET /api/genie-mcp/app/health` | `initialize(+UI)` + `tools/list`; reports whether `view_ask` is offered. |
+| `POST /api/genie-mcp/app/ask` | Calls `view_ask`; returns `{ toolName, resourceUri, toolResult, conversationId, deepLink }`. |
+| `POST /api/genie-mcp/app/read-resource` | Proxies `resources/read` (the View fetches its own HTML). |
+| `POST /api/genie-mcp/app/call-tool` | Proxies `tools/call` (the View's own poll / drill-down calls). |
+
+### Frontend
+
+- `frontend/src/pages/AskApexLive.tsx` — the page (route `/ask-apex-live`, nav
+  label **"Ask APEX Live"**).
+- `frontend/src/hooks/useGenieAppView.ts` — drives `/app/ask` and exposes the
+  stable `onReadResource` / `onCallTool` proxy handlers for `AppRenderer`.
+- `@mcp-ui/client` (dep added to `frontend/package.json`) — `AppRenderer` in
+  client-less mode (`onReadResource` + `onCallTool`), so no token ever reaches
+  the browser.
+
+### Prerequisites
+
+Same as the other surfaces (see [Prerequisites](#prerequisites)), plus the
+workspace must have the **Managed MCP Servers** preview enabled and **Chat in
+Genie One** configured (that's what exposes `view_ask`). If `view_ask` isn't
+offered, `/app/health` returns `hasViewAsk: false` and the page shows an amber
+banner instead of failing.
+
+### Validated live on `e2-demo-field-eng` ✅
+
+The backend proxy chain is validated against a live App-View-enabled workspace
+(`e2-demo-field-eng`, OBO user token):
+
+- `initialize` (protocol `2025-11-25` + `extensions: io.modelcontextprotocol/ui`)
+  → server **acks** `capabilities.extensions: {io.modelcontextprotocol/ui: {}}`
+  and exposes `view_ask`, `view_poll_response`, `view_fetch_query_results`.
+- `view_ask` tool `_meta.ui.resourceUri = ui://genie/mcp-app.html`; `_resource_uri`
+  reads it correctly.
+- `resources/read ui://genie/mcp-app.html` → real View HTML
+  (`text/html;profile=mcp-app`, ~31 KB) — what `/app/read-resource` serves.
+- `view_ask` result `structuredContent` has `conversation_id` + `deep_link` —
+  what `/app/ask` extracts.
+
+**Protocol pin was essential:** the pinned `mcp` SDK (1.12.4) negotiates
+`2025-06-18`, which predates MCP Apps and yields **no** `view_ask`.
+`app_view._APP_PROTOCOL_VERSION` pins `2025-11-25`. (Consider upgrading the `mcp`
+package once Apps is GA.)
+
+### ⚠️ Not all workspaces serve the App View yet
+
+`view_ask` is Beta behind the **Managed MCP Servers** preview. Probed workspaces
+`dbc-1e27e56a-90cd` and `fevm-serverless-stable-71zsua` connect + initialize but
+only expose `genie_ask` / `genie_poll_response` (no apps/UI capability). Point
+APEX at an enabled workspace via `GENIE_MCP_SERVER_URL` to use the feature.
+
+To confirm the in-browser render on an enabled workspace, verify end-to-end:
+
+1. `curl .../api/genie-mcp/app/health` → expect `{"ok": true, "hasViewAsk": true, "resourceUri": "ui://…"}`.
+2. Load `/ask-apex-live`, ask a chart question, confirm the View iframe renders
+   and the network shows `/app/read-resource` + `/app/call-tool` calls.
+3. If the View renders blank: the sandbox proxy CSP may block the View's runtime
+   scripts — check the iframe console and relax/adjust CSP.
+4. If `hasViewAsk` is false but the preview is on: confirm the identity resolved
+   by `resolve_genie` can access Genie One (the same identity `genie_ask` uses).
+
 ## Troubleshooting
 
 Start with the health probe — it isolates connectivity/auth from a full turn:
@@ -655,13 +779,18 @@ Healthy: `{"ok": true, "auth": "service_principal"|"obo"|"tenant_sp", "tools":[�
 `service.py` (`run_genie_turn` + `probe_health`), `client.py` (unwrap + tool
 discovery + arg building), `auth.py` (`resolve_genie` → tenant SP / OBO / SP /
 PAT), `urls.py` (URL shapes + deep link + `normalize_mode`), `parsing.py`
-(artifact parsing + `normalize_state`), `sse.py` (framing). Also
+(artifact parsing + `normalize_state`), `sse.py` (framing),
+`app_view.py` (the **MCP App View** proxy: `/app/health|ask|read-resource|call-tool`
++ `_initialize_with_ui`). Also
 `server/routes/apex.py` (Lakebase history + filter prefs, `/api/apex`),
 `server/config.py` (`GENIE_SPACE_ID`, `WORKSPACE_URL`, SP creds, `get_sp_bearer`),
 `app.py` (router mounting).
 
 **Frontend** (`frontend/src/`): `pages/GenieMcpExperience.tsx` (standalone page,
-`multi` + persist), `components/DashboardWorkspace.tsx` (in-dashboard rail +
+`multi` + persist), `pages/AskApexLive.tsx` (**MCP App View** page, `/ask-apex-live`)
++ `hooks/useGenieAppView.ts` (drives `/app/ask` + `AppRenderer` proxy handlers) +
+`public/mcp-sandbox-proxy.html` (View iframe sandbox host),
+`components/DashboardWorkspace.tsx` (in-dashboard rail +
 Executive Summary trigger, `space`), `components/ExecutiveSummaryModal.tsx`
 (`multi`), `hooks/useGenieMcpChat.ts` (SSE hook + persistence),
 `components/genie/*` (message composer, reasoning, tool calls, SQL, table, deep

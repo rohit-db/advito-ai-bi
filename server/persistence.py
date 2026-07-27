@@ -217,9 +217,12 @@ def save_turn(
 ) -> dict:
     """Persist one user→assistant turn and bump the conversation.
 
-    ``assistant`` is the structured Genie message (steps, sql, toolCalls, table,
-    deepLink, status, error, content). Sets the conversation title from the first
-    user message when it's still the default placeholder.
+    ``assistant`` is the structured Genie message. For the text ``genie_ask`` path
+    that is (steps, sql, toolCalls, table, deepLink, status, error, content); for
+    the "Ask APEX MCP View" (``view_ask``) path it also carries ``ask`` (the MCP
+    App tool result + ``ui://`` resource uri) so the interactive View can be
+    replayed. Sets the conversation title from the first user message when it's
+    still the default placeholder.
     """
     if not enabled():
         return {"ok": False, "persisted": False}
@@ -227,7 +230,7 @@ def save_turn(
     assistant_content = str(assistant.get("content", "") or "")
     assistant_payload = {
         k: assistant.get(k)
-        for k in ("steps", "sql", "toolCalls", "table", "deepLink", "status", "error")
+        for k in ("steps", "sql", "toolCalls", "table", "deepLink", "status", "error", "ask")
         if assistant.get(k) is not None
     }
     with connection() as conn:

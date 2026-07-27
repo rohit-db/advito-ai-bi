@@ -7,6 +7,7 @@ import FilterBar from "@/components/FilterBar";
 import DashboardWorkspace from "@/components/DashboardWorkspace";
 import CustomDashboard from "@/pages/CustomDashboard";
 import GenieMcpExperience from "@/pages/GenieMcpExperience";
+import AskApexLive from "@/pages/AskApexLive";
 import HomePage from "@/pages/HomePage";
 import PreferencesPage from "@/pages/PreferencesPage";
 import Placeholder from "@/pages/Placeholder";
@@ -84,6 +85,7 @@ function RouteRenderer({
     case "react":
       if (route.path === "/") return <HomePage />;
       if (route.path === "/genie-mcp") return <GenieMcpExperience />;
+      if (route.path === "/ask-apex-live") return <AskApexLive />;
       if (route.path === "/preferences") return <PreferencesPage />;
       return <Placeholder />;
     case "placeholder":

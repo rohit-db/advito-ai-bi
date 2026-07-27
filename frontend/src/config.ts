@@ -14,6 +14,7 @@ import {
   Sparkles,
   SlidersHorizontal,
   LayoutDashboard,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 
@@ -60,6 +61,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   Sparkles,
   SlidersHorizontal,
   LayoutDashboard,
+  BarChart3,
 };
 
 // ─── Filter state ───────────────────────────────────────────────────────────
@@ -600,6 +602,13 @@ export const ROUTES: RouteConfig[] = [
     path: "/genie-mcp",
     label: "Ask APEX",
     icon: "Sparkles",
+    section: "exploration",
+    mode: "react",
+  },
+  {
+    path: "/ask-apex-live",
+    label: "Ask APEX MCP View",
+    icon: "BarChart3",
     section: "exploration",
     mode: "react",
   },
