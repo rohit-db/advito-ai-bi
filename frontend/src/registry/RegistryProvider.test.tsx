@@ -41,4 +41,30 @@ describe("RegistryProvider", () => {
     );
     await waitFor(() => expect(screen.getByTestId("keys")).toHaveTextContent("spend"));
   });
+
+  it("falls back to the bundled seed when GET /api/assets is non-ok", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: false, status: 403, json: async () => ({}) }))
+    );
+    render(
+      <RegistryProvider>
+        <Probe />
+      </RegistryProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("keys")).toHaveTextContent("spend"));
+  });
+
+  it("falls back to the bundled seed when the response body has no assets", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({}) }))
+    );
+    render(
+      <RegistryProvider>
+        <Probe />
+      </RegistryProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("keys")).toHaveTextContent("spend"));
+  });
 });
