@@ -72,7 +72,7 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
             return (
               <li key={idx} className="flex items-start gap-2 text-xs text-slate-700">
                 {pending ? (
-                  <span className="w-3.5 h-3.5 mt-0.5 border-2 border-brand-primary border-t-transparent rounded-full animate-spin shrink-0" />
+                  <span className="w-3.5 h-3.5 mt-0.5 border-2 border-brand-accent border-t-transparent rounded-full animate-spin shrink-0" />
                 ) : (
                   <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-emerald-600 shrink-0" />
                 )}

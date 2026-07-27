@@ -17,7 +17,7 @@ export default function GenieSqlBlock({
 }) {
   if (!blocks || blocks.length === 0) return null;
   const compact = variant === "compact";
-  const accent = compact ? "text-brand-primary" : "text-brand-primary";
+  const accent = "text-brand-accent";
   const label = compact ? "SQL" : "Generated SQL";
   const icon = compact ? "w-3.5 h-3.5" : "w-4 h-4";
   const labelText = compact ? "text-[11px]" : "text-xs";

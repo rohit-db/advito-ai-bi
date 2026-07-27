@@ -54,7 +54,7 @@ export default function GenieToolCalls({
         <div className="mt-2 space-y-2">
           {asks.map((t, i) => (
             <div key={`ask-${i}`} className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-              <div className="flex items-center gap-2 text-[11px] font-mono text-brand-primary">
+              <div className="flex items-center gap-2 text-[11px] font-mono text-brand-accent">
                 <span className="px-1.5 py-0.5 bg-brand-primary-light rounded uppercase">ask</span>
                 <span className="truncate">{t.tool}</span>
               </div>
