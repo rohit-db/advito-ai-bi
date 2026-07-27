@@ -46,6 +46,7 @@ This app is a white-label reference. Rebrand it in **3 steps**:
 |------------|-------|
 | Colors, app name, tagline, font | `brand.config.json` |
 | Logo / favicon | files in `frontend/public/brand/` |
+| Login demo chips on/off | `AUTH_SHOW_DEMO_LOGINS` env |
 | User-facing copy (hero, cards) | *(planned: `content.config.json`, PR7)* |
 | Dashboards & Genie spaces | *(planned: `dashboards.seed.json`, PR3)* |
 | Which filters exist / how they render | `frontend/src/config.ts` (`FILTERS`) |
