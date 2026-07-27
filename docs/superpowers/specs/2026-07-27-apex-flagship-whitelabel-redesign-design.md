@@ -223,11 +223,11 @@ Assets become first-class.
   into the grid; the dialog component is removed.
 
 **Source-of-truth boundary (reconciles "full spec in UI" with agent-ready):**
-The full dashboard/Genie spec is **UI-managed** but backed by a **repo seed
-file** `frontend/src/config/dashboards.seed.json` (or `server/`-side equivalent
-if the server must read it too — see Open Questions), seeded from today's
-`config.ts` `DASHBOARDS` + `ROUTES` Genie wiring. Precedence mirrors the proven
-`users.seed.json` pattern:
+The full dashboard/Genie spec is **UI-managed** but backed by a **server-owned
+repo seed file** `server/assets/dashboards.seed.json` (server-owned per research
+R1 — both frontend and backend read it, exposed via `GET /api/assets`), seeded
+from today's `config.ts` `DASHBOARDS` + `ROUTES` Genie wiring. Precedence mirrors
+the proven `users.seed.json` pattern:
 
 - **Lakebase OFF (default):** app reads the seed file; the registry table is
   **read-only** in the UI, with an inline note "enable Lakebase to edit assets
@@ -337,10 +337,10 @@ Shipped incrementally with the PR that introduces each concern; consolidated in
 |------------|-------|
 | Colors, app name, tagline, fonts | `brand.config.json` |
 | Logo / favicon | files in `frontend/public/brand/` |
-| Dashboards & Genie spaces (catalog + wiring) | `dashboards.seed.json` (or Manage Assets UI when Lakebase on) |
+| Dashboards & Genie spaces (specs, wiring, prompts) | `server/assets/dashboards.seed.json` (or Manage Assets UI when Lakebase on) |
 | Which filters exist / how they render | `frontend/src/config.ts` (FILTERS) |
 | Login demo chips on/off | `AUTH_SHOW_DEMO_LOGINS` env |
-| Nav sections / routes | resolved registry + `config.ts` ROUTES |
+| Nav order, labels, icons, non-dashboard pages | `frontend/src/config.ts` (ROUTES) |
 | Per-tenant asset access | Manage Assets → access grid |
 | Server data assets / SP / Lakebase / RLS | `.env` (grouped, as documented in README) |
 
@@ -359,21 +359,66 @@ Shipped incrementally with the PR that introduces each concern; consolidated in
 - Preserve existing behavior: run current backend + `tsc -b && vite build`
   clean after each PR. Fail-soft paths (Lakebase off, auth off) verified per PR.
 
-## Open questions (resolve during planning, not blocking)
+## Resolved design decisions (from pre-plan research, 2026-07-27)
 
-1. **Seed-file location & who reads it.** If only the frontend needs the
-   registry, `frontend/src/config/dashboards.seed.json` is simplest. If the
-   server must also resolve it (e.g. to grant CAN_RUN or drive embed), put it
-   where both can read (repo root or `server/`) and expose via `GET /api/assets`.
-   Leaning: **server-owned seed + `GET /api/assets`**, so frontend and backend
-   share one resolved source (consistent with the users.py file-or-Lakebase
-   shape). Confirm in planning.
-2. **Registry ↔ routes.** Today `ROUTES` (nav) and `DASHBOARDS` (specs) are
-   separate in `config.ts`. Decide whether the asset registry subsumes nav
-   entries or stays specs-only with `ROUTES` still declaring nav order/labels.
-   Leaning: registry = asset specs; `ROUTES` keeps nav order + non-dashboard
-   pages (Home, Ask APEX, My Filters). Minimal churn.
-3. **Tailwind v4 token wiring** — confirm the `@theme` + CSS-var indirection
-   supports the handful of gradient/opacity usages (sidebar gradient, hero) as
-   cleanly as flat colors; a few may need explicit gradient tokens.
+Three parallel read-only research agents (brand-literal audit, config-flow trace,
+Tailwind v4 mechanics) resolved the prior open questions. Findings:
+
+### R1. Seed file is **server-owned**, exposed via `GET /api/assets`
+
+The **server independently needs** dashboard/Genie ids — it is not a
+frontend-only concern:
+- `server/tenants/service.py` `grant_dashboard_access` (reads `DASHBOARD_IDS`) and
+  `grant_genie_access` (uses `GENIE_SPACE_ID`) grant CAN_RUN at onboard time.
+- `server/tenants/resources.py` `catalog()` builds the grantable resource list
+  (`RESOURCE_DASHBOARDS`/`RESOURCE_GENIE_SPACES`) for the admin access grid.
+- `server/routes/embed.py` derives a default dashboard id for embed-token minting.
+
+**Decision:** the resolved registry lives server-side (`server/assets/`), reading
+`dashboards.seed.json` with an optional `apex_asset_registry` Lakebase override —
+mirroring `server/auth/users.py`'s file-or-Lakebase shape. The frontend consumes
+it via **`GET /api/assets`** (cached at app load); `config.ts` `DASHBOARDS` and
+the `GENIE_*` prompt consts are retired in favor of that fetch. The env vars
+(`DASHBOARD_IDS`, `RESOURCE_*`, `GENIE_SPACE_ID`) become **fallbacks** the seed
+resolver can derive from, preserving fail-soft.
+
+### R2. `ROUTES` stays **separate** from the asset registry
+
+Only 2 of 6 routes are dashboards (`/spend-custom`, `/sustainability`, both
+`dashboard: "apex"`); the other 4 (`/`, `/genie-mcp`, `/ask-apex-live`,
+`/preferences`) are non-dashboard React pages. The registry owns **dashboard
+specs + Genie configs**; `ROUTES` in `config.ts` keeps **nav order, labels,
+icons, sections, and non-dashboard pages**. A route references a registry entry
+by key (as it references `dashboard: "apex"` today). Minimal churn, clean seam.
+
+### R3. Tailwind v4 theming uses the **`@theme inline` two-layer pattern**
+
+Confirmed against current v4 docs:
+- **Layer 1** — raw `--brand-*` vars on `:root` in `index.css`, holding real
+  **default** hex values (so first paint is branded, no FOUC). The
+  `ThemeProvider` overwrites these on `document.documentElement` at runtime via
+  `setProperty` — this is what makes the theme swappable with no rebuild and
+  future per-tenant/scoped theming possible.
+- **Layer 2** — `@theme inline { --color-brand-primary: var(--brand-primary); … }`
+  maps Tailwind's color namespace onto the raw vars. `inline` is required (not
+  plain `@theme`) so utilities resolve the var **at the element**, enabling
+  scoped/dark overrides later.
+- **Gradients:** migrate `bg-gradient-to-*` → v4 `bg-linear-to-*`; gradient
+  stops (`from-/via-/to-`) work with `--color-brand-*` tokens. Multi-stop hero +
+  sidebar gradients get named tokens (`--brand-sidebar-from/via/to`).
+- **Gotcha (must honor):** `color-mix()`-based opacity (`bg-brand-primary/10`)
+  and `from-*`-only gradients **silently drop** if a brand var is unset. Defense:
+  always ship valid defaults in `:root` and/or bake fallbacks into tokens
+  (`--color-brand-primary: var(--brand-primary, #4f46e5)`).
+- **Font** tokens (`--font-sans: var(--brand-font-sans)`) swap the same way.
+- Current `index.css` uses literal `--color-apex-*` under plain `@theme` (static);
+  the refactor moves values to raw `:root` vars + `@theme inline`. Utility class
+  names can stay stable, minimizing component churn beyond the color-literal sweep.
+
+**Migration scale (from audit):** ~260 brand-color utility usages + 7 inline hex,
+35+ brand strings, 18 gradients, across 33 frontend files + `server/auth/login.py`.
+Tier-1 (highest effort): `GenieMcpExperience.tsx`, `AskApexLive.tsx`,
+`ConversationRail.tsx`, `HomePage.tsx`. Structural `slate/white/black` stays.
+Note `login.py` also hardcodes `--purple:#7c3aed` / `#6d28d9` not present in the
+frontend palette — reconcile to the shared brand tokens.
 ```
