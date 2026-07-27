@@ -230,7 +230,12 @@ def list_logins() -> list[dict]:
     if not rows:
         rows = _load_json_users()
     return [
-        {"name": r.display_name, "tenant": r.tenant, "email": r.email}
+        {
+            "name": r.display_name,
+            "tenant": r.tenant,
+            "email": r.email,
+            "role": getattr(r, "role", "user") or "user",
+        }
         for r in rows
     ]
 
