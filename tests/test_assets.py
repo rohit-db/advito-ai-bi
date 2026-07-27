@@ -62,14 +62,18 @@ def test_get_api_assets_returns_registry(monkeypatch):
 
 
 def test_resources_catalog_uses_registry_dashboards(monkeypatch):
-    # No explicit RESOURCE_DASHBOARDS/DASHBOARD_IDS -> derive from the registry.
-    monkeypatch.delenv("RESOURCE_DASHBOARDS", raising=False)
-    monkeypatch.delenv("DASHBOARD_IDS", raising=False)
+    # SET envs to empty string (NOT delenv): server.lakebase's module-level
+    # load_dotenv(override=False) re-adds DELETED vars from .env, but leaves
+    # an already-present empty string alone. Point the registry cache at a
+    # DISTINCT id so we can prove the registry — not the env — is the source.
+    monkeypatch.setenv("RESOURCE_DASHBOARDS", "")
+    monkeypatch.setenv("DASHBOARD_IDS", "")
+    from server.assets import registry as areg
+    monkeypatch.setattr(areg, "_cache", {"assets": {"probe": {"label": "ProbeDash", "dashboardId": "registry-only-id-xyz"}}})
     from server.tenants import resources
 
     cat = resources.catalog()
-    ids = [d["id"] for d in cat["dashboards"]]
-    assert "01f1271698161d42b3c66528415775e8" in ids
+    assert cat["dashboards"] == [{"id": "registry-only-id-xyz", "name": "ProbeDash"}]
 
 
 def test_resources_catalog_env_overrides_registry(monkeypatch):
@@ -81,20 +85,26 @@ def test_resources_catalog_env_overrides_registry(monkeypatch):
 
 
 def test_grant_dashboard_access_iterates_registry_ids(monkeypatch):
-    monkeypatch.delenv("DASHBOARD_IDS", raising=False)
+    # Same empty-string-not-delenv pattern; distinct id proves registry is exercised.
+    monkeypatch.setenv("DASHBOARD_IDS", "")
+    from server.assets import registry as areg
+    monkeypatch.setattr(areg, "_cache", {"assets": {"probe": {"label": "ProbeDash", "dashboardId": "registry-only-id-xyz"}}})
     from server.tenants import service
 
     captured = []
-    monkeypatch.setattr(
-        service, "_permissions_patch",
-        lambda path, sp, level: captured.append(path),
-    )
+    monkeypatch.setattr(service, "_permissions_patch", lambda path, sp, level: captured.append(path))
     service.grant_dashboard_access("sp-app-id-123")
-    assert any("01f1271698161d42b3c66528415775e8" in p for p in captured)
+    assert captured == ["/api/2.0/permissions/dashboards/registry-only-id-xyz"]
 
 
-def test_embed_default_dashboard_id_from_registry():
-    # embed module derives its default from the registry at import time.
+def test_embed_default_dashboard_id_prefers_registry(monkeypatch):
+    # _DEFAULT_DASHBOARD_ID is set at IMPORT time so we can't patch before it.
+    # Instead, test the derivation FUNCTION against a controlled registry cache —
+    # this proves registry-primary. The module-level constant separately confirms
+    # it resolved to the seed id at import (can't distinguish source there since
+    # DASHBOARD_URL also encodes the same id, so the function test carries the proof).
+    from server.assets import registry as areg
+    monkeypatch.setattr(areg, "_cache", {"assets": {"probe": {"label": "P", "dashboardId": "registry-only-id-xyz"}}})
     from server.routes import embed
 
-    assert embed._DEFAULT_DASHBOARD_ID == "01f1271698161d42b3c66528415775e8"
+    assert embed._default_dashboard_id() == "registry-only-id-xyz"
