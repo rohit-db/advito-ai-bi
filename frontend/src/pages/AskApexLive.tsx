@@ -73,7 +73,7 @@ export default function AskApexLive() {
       <header className="z-10 shrink-0 border-b border-slate-200/70 bg-white/70 px-6 py-3 backdrop-blur-md">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-600 to-indigo-500 shadow-sm shadow-indigo-300/50">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-600 to-brand-primary shadow-sm shadow-brand-primary-light/50">
               <BarChart3 className="h-[18px] w-[18px] text-white" />
             </div>
             <div>
@@ -105,10 +105,10 @@ export default function AskApexLive() {
         <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div className="absolute left-1/2 top-[22%] h-72 w-72 -translate-x-1/2 rounded-full bg-fuchsia-400/15 blur-3xl" />
-            <div className="absolute left-[30%] top-[55%] h-56 w-56 rounded-full bg-indigo-400/10 blur-3xl" />
+            <div className="absolute left-[30%] top-[55%] h-56 w-56 rounded-full bg-brand-accent/10 blur-3xl" />
           </div>
           <div className="relative z-10 w-full max-w-2xl text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-600 to-indigo-500 shadow-lg shadow-indigo-300/40 ring-1 ring-white/40">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-fuchsia-600 to-brand-primary shadow-lg shadow-brand-primary-light/40 ring-1 ring-white/40">
               <BarChart3 className="h-7 w-7 text-white" />
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-slate-900">Ask APEX, see the chart</h2>
@@ -151,7 +151,7 @@ export default function AskApexLive() {
               )}
             </div>
           </div>
-          <div className="shrink-0 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent px-6 pb-5 pt-3">
+          <div className="shrink-0 bg-linear-to-t from-slate-50 via-slate-50 to-transparent px-6 pb-5 pt-3">
             <div className="mx-auto flex max-w-3xl items-center gap-2.5">
               <button
                 type="button"
@@ -191,7 +191,7 @@ function AssistantView({
   return (
     <div className="flex items-start gap-2">
       <Avatar className="h-8 w-8 shrink-0">
-        <AvatarFallback className="bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white text-xs">
+        <AvatarFallback className="bg-linear-to-br from-fuchsia-500 to-brand-primary text-white text-xs">
           <Sparkles size={15} />
         </AvatarFallback>
       </Avatar>
@@ -243,7 +243,7 @@ function AssistantView({
                 href={ask.deepLink}
                 target="_blank"
                 rel="noreferrer"
-                className="ml-1 inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-800"
+                className="ml-1 inline-flex items-center gap-1 font-medium text-brand-primary hover:text-brand-primary-dark"
               >
                 Open in Genie <ExternalLink size={13} />
               </a>
@@ -325,7 +325,7 @@ function Composer({
       <button
         type="submit"
         disabled={disabled || !value.trim()}
-        className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-600 to-indigo-500 text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
+        className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-600 to-brand-primary text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
       >
         <ArrowUp size={16} strokeWidth={2.5} />
       </button>
@@ -336,7 +336,7 @@ function Composer({
 function UserBubble({ message, initials }: { message: AppViewMessage; initials: string }) {
   return (
     <div className="flex items-start justify-end gap-2.5">
-      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-gradient-to-br from-fuchsia-600 to-indigo-500 px-4 py-2.5 text-white shadow-sm shadow-indigo-200/50">
+      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-linear-to-br from-fuchsia-600 to-brand-primary px-4 py-2.5 text-white shadow-sm shadow-brand-primary-light/50">
         <p className="text-sm leading-relaxed">{message.content}</p>
       </div>
       <Avatar className="h-7 w-7 shrink-0 ring-2 ring-white">

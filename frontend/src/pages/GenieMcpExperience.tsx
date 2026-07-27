@@ -75,7 +75,7 @@ export default function GenieMcpExperience() {
         <header className="z-10 shrink-0 border-b border-slate-200/70 bg-white/70 px-6 py-3 backdrop-blur-md">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 shadow-sm shadow-indigo-300/50">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent shadow-sm shadow-brand-primary-light/50">
                 <Sparkles className="h-[18px] w-[18px] text-white" />
               </div>
               <div>
@@ -94,12 +94,12 @@ export default function GenieMcpExperience() {
           <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
             {/* decorative depth */}
             <div aria-hidden className="pointer-events-none absolute inset-0">
-              <div className="absolute left-1/2 top-[22%] h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-400/15 blur-3xl" />
-              <div className="absolute left-[30%] top-[55%] h-56 w-56 rounded-full bg-violet-400/10 blur-3xl" />
+              <div className="absolute left-1/2 top-[22%] h-72 w-72 -translate-x-1/2 rounded-full bg-brand-accent/15 blur-3xl" />
+              <div className="absolute left-[30%] top-[55%] h-56 w-56 rounded-full bg-brand-accent/10 blur-3xl" />
             </div>
 
             <div className="relative z-10 w-full max-w-2xl text-center">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-500 shadow-lg shadow-indigo-300/40 ring-1 ring-white/40">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-brand-primary to-brand-accent shadow-lg shadow-brand-primary-light/40 ring-1 ring-white/40">
                 <Sparkles className="h-7 w-7 text-white" />
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -124,7 +124,7 @@ export default function GenieMcpExperience() {
                   <button
                     key={q}
                     onClick={() => !isLoading && sendMessage(q)}
-                    className="rounded-full border border-slate-200 bg-white/70 px-3.5 py-1.5 text-[13px] text-slate-600 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:text-indigo-700 hover:shadow"
+                    className="rounded-full border border-slate-200 bg-white/70 px-3.5 py-1.5 text-[13px] text-slate-600 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand-primary-light hover:text-brand-primary hover:shadow"
                   >
                     {q}
                   </button>
@@ -158,13 +158,13 @@ export default function GenieMcpExperience() {
             </div>
 
             {/* Footer composer */}
-            <div className="shrink-0 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent px-6 pb-5 pt-3">
+            <div className="shrink-0 bg-linear-to-t from-slate-50 via-slate-50 to-transparent px-6 pb-5 pt-3">
               <div className="mx-auto flex max-w-3xl items-center gap-2.5">
                 <button
                   type="button"
                   onClick={clearChat}
                   title="New conversation"
-                  className="flex h-11 shrink-0 items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                  className="flex h-11 shrink-0 items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-brand-primary-light hover:bg-brand-primary-light hover:text-brand-primary"
                 >
                   <Plus size={16} />
                   <span className="hidden sm:inline">New</span>
@@ -203,9 +203,9 @@ function HeroComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="group relative flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-xl shadow-slate-300/30 transition-all focus-within:border-indigo-400 focus-within:shadow-indigo-200/40 focus-within:ring-4 focus-within:ring-indigo-100"
+      className="group relative flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-xl shadow-slate-300/30 transition-all focus-within:border-brand-primary focus-within:shadow-brand-primary-light/40 focus-within:ring-4 focus-within:ring-brand-primary-light"
     >
-      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-indigo-400" />
+      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-brand-accent" />
       {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
       <input
         autoFocus
@@ -238,7 +238,7 @@ function FooterComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-1.5 shadow-sm transition-all focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100"
+      className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-1.5 shadow-sm transition-all focus-within:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary-light"
     >
       <input
         type="text"
@@ -258,7 +258,7 @@ function SendButton({ disabled }: { disabled?: boolean }) {
     <button
       type="submit"
       disabled={disabled}
-      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
+      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
     >
       <ArrowUp size={16} strokeWidth={2.5} />
     </button>
@@ -301,7 +301,7 @@ function ConversationRail({
     <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
       <div className="flex shrink-0 items-center justify-between px-3 py-3">
         <div className="flex items-center gap-2 text-slate-700">
-          <History size={15} className="text-indigo-600" />
+          <History size={15} className="text-brand-primary" />
           <span className="text-sm font-semibold">History</span>
         </div>
         <button
@@ -309,7 +309,7 @@ function ConversationRail({
           onClick={onNew}
           disabled={disabled}
           title="New conversation"
-          className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-500 text-white shadow-sm transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-brand-primary to-brand-accent text-white shadow-sm transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Plus size={15} />
         </button>
@@ -329,20 +329,20 @@ function ConversationRail({
                 key={c.id}
                 onClick={() => onSelect(c.id)}
                 className={`group relative flex cursor-pointer items-start gap-2 rounded-lg px-2.5 py-2 transition-colors ${
-                  active ? "bg-indigo-50 text-indigo-900" : "hover:bg-slate-50"
+                  active ? "bg-brand-primary-light text-brand-primary-dark" : "hover:bg-slate-50"
                 }`}
               >
                 {active && (
-                  <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-indigo-500" />
+                  <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-brand-accent" />
                 )}
                 <MessageSquare
                   size={14}
-                  className={`mt-0.5 shrink-0 ${active ? "text-indigo-600" : "text-slate-400"}`}
+                  className={`mt-0.5 shrink-0 ${active ? "text-brand-primary" : "text-slate-400"}`}
                 />
                 <div className="min-w-0 flex-1">
                   <p
                     className={`truncate text-[13px] font-medium ${
-                      active ? "text-indigo-900" : "text-slate-700"
+                      active ? "text-brand-primary-dark" : "text-slate-700"
                     }`}
                   >
                     {c.title}
@@ -368,7 +368,7 @@ function ConversationRail({
       <div className="shrink-0 border-t border-slate-100 px-3 py-2.5">
         <p className="flex items-center gap-1.5 text-[10px] text-slate-400">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          History stored in <span className="font-semibold text-indigo-600">Lakebase</span>
+          History stored in <span className="font-semibold text-brand-primary">Lakebase</span>
         </p>
       </div>
     </aside>
@@ -378,11 +378,11 @@ function ConversationRail({
 function UserBubble({ message, initials }: { message: GenieMcpMessage; initials: string }) {
   return (
     <div className="flex items-start justify-end gap-2.5">
-      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-gradient-to-br from-indigo-600 to-indigo-500 px-4 py-2.5 text-white shadow-sm shadow-indigo-200/50">
+      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-linear-to-br from-brand-primary to-brand-accent px-4 py-2.5 text-white shadow-sm shadow-brand-primary-light/50">
         <p className="text-sm leading-relaxed">{message.content}</p>
       </div>
       <Avatar className="h-7 w-7 shrink-0 ring-2 ring-white">
-        <AvatarFallback className="bg-indigo-100 text-[10px] font-semibold text-indigo-700">
+        <AvatarFallback className="bg-brand-primary-light text-[10px] font-semibold text-brand-primary">
           {initials}
         </AvatarFallback>
       </Avatar>

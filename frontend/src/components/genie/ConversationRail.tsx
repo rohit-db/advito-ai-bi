@@ -34,15 +34,15 @@ export default function ConversationRail({
   disabled?: boolean;
   accent?: "indigo" | "fuchsia";
 }) {
-  const accentText = accent === "fuchsia" ? "text-fuchsia-600" : "text-indigo-600";
+  const accentText = accent === "fuchsia" ? "text-fuchsia-600" : "text-brand-primary";
   const accentBtn =
     accent === "fuchsia"
-      ? "from-fuchsia-600 to-indigo-500"
-      : "from-indigo-600 to-indigo-500";
-  const activeBg = accent === "fuchsia" ? "bg-fuchsia-50 text-fuchsia-900" : "bg-indigo-50 text-indigo-900";
-  const activeBar = accent === "fuchsia" ? "bg-fuchsia-500" : "bg-indigo-500";
-  const activeIcon = accent === "fuchsia" ? "text-fuchsia-600" : "text-indigo-600";
-  const activeTitle = accent === "fuchsia" ? "text-fuchsia-900" : "text-indigo-900";
+      ? "from-fuchsia-600 to-brand-primary"
+      : "from-brand-primary to-brand-accent";
+  const activeBg = accent === "fuchsia" ? "bg-fuchsia-50 text-fuchsia-900" : "bg-brand-primary-light text-brand-primary-dark";
+  const activeBar = accent === "fuchsia" ? "bg-fuchsia-500" : "bg-brand-accent";
+  const activeIcon = accent === "fuchsia" ? "text-fuchsia-600" : "text-brand-primary";
+  const activeTitle = accent === "fuchsia" ? "text-fuchsia-900" : "text-brand-primary-dark";
 
   return (
     <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -56,7 +56,7 @@ export default function ConversationRail({
           onClick={onNew}
           disabled={disabled}
           title="New conversation"
-          className={`flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br ${accentBtn} text-white shadow-sm transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40`}
+          className={`flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br ${accentBtn} text-white shadow-sm transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40`}
         >
           <Plus size={15} />
         </button>

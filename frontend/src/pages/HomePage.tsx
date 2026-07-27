@@ -52,7 +52,7 @@ const KPIS: KpiMeta[] = [
     key: "spend",
     label: "Total Spend",
     icon: DollarSign,
-    accent: "from-indigo-500 to-violet-500",
+    accent: "from-brand-primary to-brand-accent",
     format: (n) => currency.format(n),
     goodDirection: "neutral",
   },
@@ -133,24 +133,24 @@ export default function HomePage() {
   const showKpis = kpiLoading || (kpis?.ok && kpis.current);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50 to-white">
+    <div className="flex-1 overflow-y-auto bg-linear-to-b from-slate-50 to-white">
       <div className="mx-auto w-full max-w-5xl px-6 py-8 md:py-10">
         {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#211d52] via-[#2d2a6e] to-[#4f46e5] px-7 py-8 md:px-10 md:py-10 shadow-xl shadow-indigo-900/20">
+        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-sidebar-from via-brand-sidebar-via to-brand-primary px-7 py-8 md:px-10 md:py-10 shadow-xl shadow-brand-primary-dark/20">
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div className="absolute -right-10 -top-16 h-64 w-64 rounded-full bg-violet-400/20 blur-3xl" />
-            <div className="absolute right-1/3 bottom-[-30%] h-56 w-56 rounded-full bg-indigo-300/10 blur-3xl" />
+            <div className="absolute -right-10 -top-16 h-64 w-64 rounded-full bg-brand-accent/20 blur-3xl" />
+            <div className="absolute right-1/3 bottom-[-30%] h-56 w-56 rounded-full bg-brand-primary-light/10 blur-3xl" />
           </div>
 
           <div className="relative z-10">
-            <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.16em] text-indigo-200/80">
+            <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.16em] text-brand-primary-light/80">
               <Sparkles size={14} />
               {user?.tenant || "APEX Travel Intelligence"}
             </div>
             <h1 className="mt-2 text-2xl md:text-[28px] font-bold tracking-tight text-white">
               {greeting()}, {firstName}.
             </h1>
-            <p className="mt-1.5 max-w-lg text-[14px] leading-relaxed text-indigo-100/80">
+            <p className="mt-1.5 max-w-lg text-[14px] leading-relaxed text-brand-primary-light/80">
               Ask anything about your travel program, or jump into a dashboard. Grounded
               answers with live SQL — governed end to end.
             </p>
@@ -161,9 +161,9 @@ export default function HomePage() {
                 e.preventDefault();
                 ask(input);
               }}
-              className="group relative mt-6 flex items-center rounded-2xl border border-white/15 bg-white/95 px-4 py-2.5 shadow-2xl shadow-indigo-950/30 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-white/20"
+              className="group relative mt-6 flex items-center rounded-2xl border border-white/15 bg-white/95 px-4 py-2.5 shadow-2xl shadow-brand-primary-dark/30 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-white/20"
             >
-              <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-indigo-500" />
+              <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-brand-accent" />
               {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
               <input
                 autoFocus
@@ -175,7 +175,7 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 text-white shadow-sm transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300"
+                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent text-white shadow-sm transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300"
               >
                 <ArrowUp size={16} strokeWidth={2.5} />
               </button>
@@ -186,7 +186,7 @@ export default function HomePage() {
                 <button
                   key={q}
                   onClick={() => ask(q)}
-                  className="rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[12.5px] text-indigo-50 backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/20"
+                  className="rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[12.5px] text-brand-primary-light backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/20"
                 >
                   {q}
                 </button>
@@ -227,7 +227,7 @@ export default function HomePage() {
             <TrendCard
               title="Spend trend"
               subtitle="Monthly gross spend"
-              accent="#6366f1"
+              accent="var(--brand-accent)"
               points={trend}
               loading={trendLoading}
               variant="area"
@@ -255,7 +255,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <QuickCard
               icon={DollarSign}
-              accent="from-indigo-500 to-violet-500"
+              accent="from-brand-primary to-brand-accent"
               title="Spend"
               desc="Category, destination & year-over-year spend analysis."
               onClick={() => navigate("/spend-custom")}
@@ -304,7 +304,7 @@ function KpiCard({
     <div className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center justify-between">
         <div
-          className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${meta.accent} shadow-sm`}
+          className={`flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br ${meta.accent} shadow-sm`}
         >
           <Icon size={17} className="text-white" />
         </div>
@@ -532,10 +532,10 @@ function QuickCard({
   return (
     <button
       onClick={onClick}
-      className="group flex items-start gap-3.5 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+      className="group flex items-start gap-3.5 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-primary-light hover:shadow-md"
     >
       <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} shadow-sm`}
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br ${accent} shadow-sm`}
       >
         <Icon size={19} className="text-white" />
       </div>
@@ -544,7 +544,7 @@ function QuickCard({
           <span className="text-[14px] font-semibold text-slate-900">{title}</span>
           <ArrowRight
             size={14}
-            className="text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-indigo-500"
+            className="text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-brand-accent"
           />
         </div>
         <p className="mt-0.5 text-[12.5px] leading-relaxed text-slate-500">{desc}</p>
