@@ -9,9 +9,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@brand": path.resolve(__dirname, "../brand.config.json"),
     },
   },
   server: {
+    fs: { allow: [path.resolve(__dirname, ".."), path.resolve(__dirname, ".")] },
     proxy: {
       "/api": "http://localhost:8000",
     },

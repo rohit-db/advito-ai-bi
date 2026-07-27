@@ -10,3 +10,8 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare module "@brand" {
+  const value: import("./theme/brand").Brand;
+  export default value;
+}
