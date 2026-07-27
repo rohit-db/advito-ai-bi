@@ -11,7 +11,7 @@ export default function GenieDeepLink({
   if (!deepLink) return null;
   const compact = variant === "compact";
   const size = compact ? "px-2.5 py-1.5 text-[11px]" : "px-3 py-2 text-xs";
-  const color = compact ? "bg-brand-primary hover:bg-brand-primary-dark" : "bg-brand-accent hover:bg-brand-accent";
+  const color = compact ? "bg-brand-primary hover:bg-brand-primary-dark" : "bg-brand-accent hover:bg-brand-accent-dark";
   return (
     <a
       href={deepLink.url}

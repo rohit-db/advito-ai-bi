@@ -73,7 +73,7 @@ export default function GenieAssistantMessage({
               </div>
               <button
                 onClick={() => setAnswerOpen((o) => !o)}
-                className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark"
+                className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand-accent hover:text-brand-primary-dark"
               >
                 {answerOpen ? (
                   <>

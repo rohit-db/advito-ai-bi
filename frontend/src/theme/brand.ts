@@ -14,6 +14,7 @@ export interface Brand {
     primaryDark: string;
     primaryLight: string;
     accent: string;
+    accentDark: string;
     sidebarFrom: string;
     sidebarVia: string;
     sidebarTo: string;

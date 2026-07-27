@@ -7,6 +7,7 @@
   --brand-primary-dark: #3730a3;
   --brand-primary-light: #e0e7ff;
   --brand-accent: #6366f1;
+  --brand-accent-dark: #4f46e5;
   --brand-sidebar-from: #211d52;
   --brand-sidebar-via: #2d2a6e;
   --brand-sidebar-to: #16142e;
@@ -23,6 +24,7 @@
   --color-brand-primary-dark: var(--brand-primary-dark, #3730a3);
   --color-brand-primary-light: var(--brand-primary-light, #e0e7ff);
   --color-brand-accent: var(--brand-accent, #6366f1);
+  --color-brand-accent-dark: var(--brand-accent-dark, #4f46e5);
   --color-brand-sidebar-from: var(--brand-sidebar-from, #211d52);
   --color-brand-sidebar-via: var(--brand-sidebar-via, #2d2a6e);
   --color-brand-sidebar-to: var(--brand-sidebar-to, #16142e);

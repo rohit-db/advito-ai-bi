@@ -167,7 +167,7 @@ export default function DashboardWorkspace({
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="w-7 h-7 flex items-center justify-center bg-brand-primary hover:bg-brand-primary disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full transition-colors shrink-0"
+                className="w-7 h-7 flex items-center justify-center bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full transition-colors shrink-0"
               >
                 <Send size={12} />
               </button>

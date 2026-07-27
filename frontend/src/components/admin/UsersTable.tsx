@@ -115,7 +115,7 @@ export default function UsersTable({
                       <span
                         className={
                           u.role === "operator"
-                            ? "rounded-full bg-brand-primary-light px-2 py-0.5 text-[11px] font-medium text-brand-primary"
+                            ? "rounded-full bg-brand-primary-light px-2 py-0.5 text-[11px] font-medium text-brand-accent"
                             : "rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
                         }
                       >
