@@ -46,7 +46,7 @@ logger = logging.getLogger("server.tenants.unity_catalog")
 
 # The mapping table + its column shape are configurable so this app can either
 # create its own ``sp_tenant_mapping`` or REUSE an existing customer filter table
-# (e.g. Advito's ``user_client_access(user_email, client_id, granted_at)``).
+# (e.g. a customer's ``user_client_access(user_email, client_id, granted_at)``).
 mapping_table_name = MAPPING_TABLE
 _USER_COL = MAPPING_USER_COLUMN
 _TENANT_COL = MAPPING_TENANT_COLUMN

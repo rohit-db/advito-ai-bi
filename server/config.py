@@ -70,7 +70,7 @@ TENANTS_ADMIN_PROFILE = os.environ.get("TENANTS_ADMIN_PROFILE", "").strip()
 # mapping table keyed on the SQL caller identity. Defaults match this app's
 # built-in ``sp_tenant_mapping`` (created by scripts/tenants/apply_row_filter.py).
 # Override these to REUSE an existing customer filter table/function instead of
-# creating our own — e.g. Advito's ``user_client_access(user_email, client_id)``
+# creating our own — e.g. a customer's ``user_client_access(user_email, client_id)``
 # joined by ``client_access_filter`` on ``current_user()``.
 #
 #   MAPPING_TABLE          table the filter function joins (in UC_CATALOG.UC_SCHEMA)
