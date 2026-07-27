@@ -214,7 +214,7 @@ export function Modal({
         <div className="shrink-0 flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <div className="flex items-center gap-3 min-w-0">
             {icon && (
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-brand-primary-light flex items-center justify-center text-brand-primary shrink-0">
                 {icon}
               </div>
             )}
@@ -279,7 +279,7 @@ export function Drawer({
         <div className="shrink-0 flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <div className="flex items-center gap-3 min-w-0">
             {icon && (
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-brand-primary-light flex items-center justify-center text-brand-primary shrink-0">
                 {icon}
               </div>
             )}
@@ -308,7 +308,7 @@ export function Drawer({
 export function Spinner({ size = 16, className }: { size?: number; className?: string }) {
   return (
     <svg
-      className={cn("animate-spin text-indigo-500", className)}
+      className={cn("animate-spin text-brand-accent", className)}
       width={size}
       height={size}
       viewBox="0 0 24 24"

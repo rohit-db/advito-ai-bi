@@ -21,7 +21,7 @@ const ALL_KEYS = Object.keys(FILTERS) as FilterKey[];
 
 const INPUT_CLS =
   "h-9 px-3 text-sm rounded-lg border border-slate-200 bg-white text-slate-700 " +
-  "hover:border-slate-300 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors";
+  "hover:border-slate-300 focus:outline-none focus:border-brand-accent focus:ring-2 focus:ring-brand-primary-light transition-colors";
 
 export default function PreferencesPage() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -71,7 +71,7 @@ export default function PreferencesPage() {
       <div className="mx-auto max-w-3xl px-6 py-8">
         {/* Header */}
         <div className="mb-6 flex items-start gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent text-white shadow-sm">
             <SlidersHorizontal size={20} />
           </div>
           <div>

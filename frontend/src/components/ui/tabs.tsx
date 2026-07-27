@@ -74,10 +74,10 @@ export function TabsTrigger({ className, value, children, ...props }: TabsTrigge
       onClick={() => setActiveTab(value)}
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-[13px] font-semibold",
-        "transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+        "transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent",
         "disabled:pointer-events-none disabled:opacity-50",
         isActive
-          ? "bg-white text-indigo-700 shadow-sm ring-1 ring-slate-200/70"
+          ? "bg-white text-brand-primary shadow-sm ring-1 ring-slate-200/70"
           : "text-slate-500 hover:text-slate-800",
         className
       )}
@@ -101,7 +101,7 @@ export function TabsContent({ className, value, children, ...props }: TabsConten
     <div
       role="tabpanel"
       className={cn(
-        "mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+        "mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent",
         className
       )}
       {...props}

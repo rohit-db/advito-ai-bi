@@ -37,7 +37,7 @@ export default function UsersTable({
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
         <div className="flex items-center gap-2">
-          <UserCircle2 size={16} className="text-indigo-500" />
+          <UserCircle2 size={16} className="text-brand-accent" />
           <h2 className="text-sm font-semibold text-slate-900">Login users</h2>
           {!loading && (
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
@@ -115,7 +115,7 @@ export default function UsersTable({
                       <span
                         className={
                           u.role === "operator"
-                            ? "rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-medium text-violet-700"
+                            ? "rounded-full bg-brand-primary-light px-2 py-0.5 text-[11px] font-medium text-brand-primary"
                             : "rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
                         }
                       >

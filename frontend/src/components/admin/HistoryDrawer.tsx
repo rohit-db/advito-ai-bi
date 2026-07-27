@@ -52,7 +52,7 @@ export default function HistoryDrawer({ tenant, run, onClose }: HistoryDrawerPro
         <ol className="relative space-y-4 border-l border-slate-200 pl-5">
           {rows.map((row) => (
             <li key={row.id} className="relative">
-              <span className="absolute -left-[23px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-indigo-400" />
+              <span className="absolute -left-[23px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-brand-accent" />
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold text-slate-800">{row.action}</span>
                 <AuditStatusBadge status={row.status} />

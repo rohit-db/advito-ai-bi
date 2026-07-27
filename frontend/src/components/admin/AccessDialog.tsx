@@ -129,7 +129,7 @@ export default function AccessDialog({
 
           <ResourceGroup
             label="Dashboards"
-            icon={<LayoutDashboard size={15} className="text-indigo-500" />}
+            icon={<LayoutDashboard size={15} className="text-brand-accent" />}
             items={catalog?.dashboards ?? []}
             granted={granted.dashboards}
             busyKey={busyKey}
@@ -140,7 +140,7 @@ export default function AccessDialog({
 
           <ResourceGroup
             label="Genie spaces"
-            icon={<Sparkles size={15} className="text-indigo-500" />}
+            icon={<Sparkles size={15} className="text-brand-accent" />}
             items={catalog?.genie_spaces ?? []}
             granted={granted.genie_spaces}
             busyKey={busyKey}
@@ -233,7 +233,7 @@ function Toggle({
       onClick={() => onChange(!on)}
       className={[
         "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
-        on ? "bg-indigo-600" : "bg-slate-300",
+        on ? "bg-brand-primary" : "bg-slate-300",
         busy ? "opacity-60" : "hover:opacity-90",
       ].join(" ")}
     >

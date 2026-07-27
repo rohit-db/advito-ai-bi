@@ -14,7 +14,7 @@ export default function ActivityFeed({ rows, loading, error, refreshing }: Activ
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
         <div className="flex items-center gap-2">
-          <Activity size={16} className="text-indigo-500" />
+          <Activity size={16} className="text-brand-accent" />
           <h2 className="text-sm font-semibold text-slate-900">Recent activity</h2>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
@@ -39,7 +39,7 @@ export default function ActivityFeed({ rows, loading, error, refreshing }: Activ
           <ul className="divide-y divide-slate-100">
             {rows.map((row) => (
               <li key={row.id} className="flex items-start gap-3 px-5 py-3 hover:bg-slate-50/70">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-indigo-300" />
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand-primary-light" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">

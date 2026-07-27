@@ -49,7 +49,7 @@ export default function GenieAssistantMessage({
   return (
     <div className="flex items-start gap-2">
       <Avatar className={`${avatarSize} shrink-0`}>
-        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-xs">
+        <AvatarFallback className="bg-linear-to-br from-brand-accent to-brand-primary text-white text-xs">
           <Sparkles size={iconSize} />
         </AvatarFallback>
       </Avatar>
@@ -68,12 +68,12 @@ export default function GenieAssistantMessage({
               <div className={`relative ${collapsed ? "max-h-48 overflow-hidden" : ""}`}>
                 <MarkdownContent content={message.content} />
                 {collapsed && (
-                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-white to-transparent pointer-events-none" />
                 )}
               </div>
               <button
                 onClick={() => setAnswerOpen((o) => !o)}
-                className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-violet-700 hover:text-violet-900"
+                className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark"
               >
                 {answerOpen ? (
                   <>

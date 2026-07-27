@@ -29,7 +29,7 @@ export default function ConfirmDialog({
   return (
     <Modal
       title={title}
-      icon={<AlertTriangle size={18} className={danger ? "text-rose-600" : "text-indigo-600"} />}
+      icon={<AlertTriangle size={18} className={danger ? "text-rose-600" : "text-brand-primary"} />}
       onClose={onClose}
       maxWidthClass="max-w-md"
       footer={

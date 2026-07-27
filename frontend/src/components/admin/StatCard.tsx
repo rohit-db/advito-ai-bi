@@ -10,7 +10,7 @@ export interface StatCardProps {
 }
 
 const accentClasses: Record<NonNullable<StatCardProps["accent"]>, string> = {
-  indigo: "bg-indigo-50 text-indigo-600",
+  indigo: "bg-brand-primary-light text-brand-primary",
   emerald: "bg-emerald-50 text-emerald-600",
   slate: "bg-slate-100 text-slate-500",
 };

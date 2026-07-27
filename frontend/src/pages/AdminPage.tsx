@@ -339,7 +339,7 @@ export default function AdminPage() {
         {/* Header */}
         <div className="mb-5 flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent text-white shadow-sm">
               <ShieldCheck size={22} />
             </div>
             <div>
@@ -485,9 +485,9 @@ function AccessGate({ status, detail }: { status: number; detail: string }) {
   return (
     <div className="flex h-full items-center justify-center bg-slate-50 p-6">
       <div className="flex max-w-md flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-primary-light">
           {notLoggedIn ? (
-            <LockKeyhole size={28} className="text-indigo-500" />
+            <LockKeyhole size={28} className="text-brand-accent" />
           ) : (
             <ShieldX size={28} className="text-rose-500" />
           )}
@@ -506,7 +506,7 @@ function AccessGate({ status, detail }: { status: number; detail: string }) {
         {notLoggedIn && (
           <a
             href="/login"
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-brand-primary px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-primary-dark"
           >
             Sign in
           </a>
