@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "@brand": path.resolve(__dirname, "../brand.config.json"),
+      "@dashboards-seed": path.resolve(__dirname, "../server/assets/dashboards.seed.json"),
     },
   },
   server: {

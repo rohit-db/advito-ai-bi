@@ -15,3 +15,8 @@ declare module "@brand" {
   const value: import("./theme/brand").Brand;
   export default value;
 }
+
+declare module "@dashboards-seed" {
+  const value: import("./registry/types").Registry;
+  export default value;
+}
