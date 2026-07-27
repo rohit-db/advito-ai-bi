@@ -31,6 +31,7 @@ DEFAULT_BRAND: dict[str, Any] = {
         "primaryDark": "#3730a3",
         "primaryLight": "#e0e7ff",
         "accent": "#6366f1",
+        "accentDark": "#4f46e5",
         "sidebarFrom": "#211d52",
         "sidebarVia": "#2d2a6e",
         "sidebarTo": "#16142e",

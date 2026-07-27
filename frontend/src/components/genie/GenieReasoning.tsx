@@ -53,15 +53,15 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
         disabled={isStreaming}
         className="w-full flex items-center justify-between gap-2 text-left disabled:cursor-default"
       >
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-primary flex items-center gap-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-accent flex items-center gap-1.5">
           <Zap className="w-3.5 h-3.5" /> Genie reasoning
           <span className="text-brand-accent normal-case font-medium">· {stepLabel}</span>
         </span>
         {!isStreaming &&
           (open ? (
-            <ChevronUp className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+            <ChevronUp className="w-3.5 h-3.5 text-brand-accent shrink-0" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+            <ChevronDown className="w-3.5 h-3.5 text-brand-accent shrink-0" />
           ))}
       </button>
 

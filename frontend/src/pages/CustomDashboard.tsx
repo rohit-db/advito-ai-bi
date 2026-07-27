@@ -196,9 +196,9 @@ export default function CustomDashboard({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 relative overflow-hidden bg-apex-bg">
+      <div className="flex-1 relative overflow-hidden bg-brand-bg">
         {phase === "loading" && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-apex-bg">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-brand-bg">
             <div className="flex flex-col items-center gap-3 text-slate-400">
               <Loader2 size={28} className="animate-spin text-brand-accent" />
               <span className="text-xs font-medium">Preparing secure dashboard…</span>
