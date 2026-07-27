@@ -42,3 +42,19 @@ def test_load_registry_failsoft_on_bad_json(monkeypatch, tmp_path):
     monkeypatch.setattr(assets, "_SEED_PATH", str(bad))
     monkeypatch.setattr(assets, "_cache", None)
     assert assets.load_registry() == {"assets": {}}
+
+
+from fastapi.testclient import TestClient
+
+
+def test_get_api_assets_returns_registry(monkeypatch):
+    # Auth gate is a no-op unless AUTH_ENABLED; keep it off for this unit check.
+    import app as app_module
+    monkeypatch.delenv("AUTH_ENABLED", raising=False)
+
+    client = TestClient(app_module.app)
+    res = client.get("/api/assets")
+    assert res.status_code == 200
+    body = res.json()
+    assert "spend" in body["assets"]
+    assert body["assets"]["spend"]["dashboardId"] == "01f1271698161d42b3c66528415775e8"

@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from ..config import get_workspace_client
+from .. import assets as assets_registry
 
 router = APIRouter()
 
@@ -34,3 +35,13 @@ def get_me():
             "email": "demo@advito.com",
             "initials": "DU",
         }
+
+
+@router.get("/assets")
+def get_assets():
+    """Resolved dashboard asset registry (seed today; Lakebase override in PR3b).
+
+    Readable by any authenticated session — the frontend RegistryProvider fetches
+    this at boot. Fail-soft: returns an empty registry rather than erroring.
+    """
+    return assets_registry.load_registry()
