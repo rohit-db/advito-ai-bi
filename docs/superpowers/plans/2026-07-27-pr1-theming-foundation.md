@@ -133,8 +133,8 @@ Co-authored-by: Isaac"
 
 - [ ] **Step 1: Install dev dependencies**
 
-Run: `cd frontend && npm install -D vitest@^2 jsdom @testing-library/react @testing-library/jest-dom @testing-library/dom`
-Expected: installs succeed; `package.json` devDependencies updated.
+Run: `cd frontend && npm install -D vitest@^3 jsdom @testing-library/react @testing-library/jest-dom @testing-library/dom`
+Expected: installs succeed; `package.json` devDependencies updated. (Vitest 3 — required for Vite 7 compatibility; Vitest 2 only supports Vite 5/6.)
 
 - [ ] **Step 2: Add the `test` script**
 
