@@ -284,6 +284,55 @@ The identity/SP side, consolidated:
   the registry table shows read-only with the documented edit paths.
 - With Lakebase on, adding an asset in the UI persists and appears in nav/grid.
 
+### C — Re-brainstorm addendum (2026-07-27, before PR3 planning)
+
+Re-brainstormed against current post-PR1/PR2 code (config.ts still holds
+`DASHBOARDS`/`ROUTES`/`FILTERS`/GENIE configs unchanged; `server/assets/` does
+not exist yet; server registry touchpoints = `GENIE_SPACE_ID`, `DASHBOARD_IDS`,
+`RESOURCE_DASHBOARDS/GENIE_SPACES` in `resources.py`/`service.py`, and
+`_DEFAULT_DASHBOARD_ID` from `DASHBOARD_URL` in `embed.py`). Decisions:
+
+- **Full spec in UI — confirmed.** Retire `config.ts` `DASHBOARDS`; the full
+  dashboard spec (id, label, workspace/org, `filters` FilterKey→widgetId map,
+  `pages`, per-page Genie prompts) moves to a server-owned
+  `server/assets/dashboards.seed.json` + optional `apex_asset_registry` Lakebase
+  override, exposed via `GET /api/assets`.
+- **Async risk neutralized via a boot-time `RegistryProvider`.** The registry is
+  fetched ONCE at app boot (a sibling to `ThemeProvider`), which shows an
+  app-shell skeleton until resolved, then exposes the resolved registry through
+  `useRegistry()` context. `App.tsx`/`CustomDashboard`/`FilterBar`/Genie rail /
+  Exec Summary consume it **synchronously** — one loading gate at the shell, NOT
+  per-component loading states. This is the key design move that keeps the change
+  contained.
+- **Frontend fail-soft = bundled seed copy.** The frontend also imports the seed
+  JSON at build time (like `brand.config.json`); if `GET /api/assets` fails, the
+  provider falls back to the bundled copy so the app always renders (preserves
+  zero-infra demo promise). Accepted trade-off: the seed ships in the bundle AND
+  is read by the server.
+- **`FILTERS` catalog + `FilterKey` type STAY in `config.ts`** — they define how
+  a filter renders (widget kind/options/labels), a UI concern. The registry's
+  per-dashboard `filters` map only references those keys. So: seed = data, filter
+  vocabulary = code. Document this seam explicitly.
+- **`ROUTES` stays in `config.ts`** for nav concerns (order, icon, section,
+  non-dashboard pages: Home, Ask APEX, My Filters). A dashboard nav entry
+  references a registry key (as `dashboard: "apex"` today). Registry owns specs;
+  ROUTES owns nav.
+- **Delivery = TWO sub-PRs:**
+  - **PR3a (plumbing, no visible admin change):** `server/assets/` module
+    (seed-or-Lakebase resolve, mirroring `server/auth/users.py`) + `server/assets/dashboards.seed.json`
+    (seeded from current `config.ts` DASHBOARDS + ROUTES Genie wiring) + `GET /api/assets`
+    + frontend `RegistryProvider` (`useRegistry()`, bundled-seed fallback) +
+    retire `config.ts` `DASHBOARDS` (App/CustomDashboard/FilterBar/rail read the
+    registry). Server touchpoints (`grant_dashboard_access`, `resources.catalog`,
+    embed default) derive from the resolved registry instead of separate env vars
+    (env becomes fallback). End state: app behaves identically, registry is the
+    single source.
+  - **PR3b (admin IA):** `AdminLayout` + two sub-nav pages — **Manage Assets**
+    (registry table with add/edit/remove when Lakebase on, read-only+seed note
+    when off; tenant×asset **access grid** folding in `AccessDialog`'s grant/revoke
+    logic) and **Manage Users & SPs** (relocate `TenantTable` + `UsersTable` +
+    `ActivityFeed`). Remove the `AccessDialog` component.
+
 ---
 
 ## Section D — SP creation (onboarding flow)
