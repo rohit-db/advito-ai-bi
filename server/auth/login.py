@@ -22,6 +22,7 @@ import os
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
+from ..brand import load_brand
 from . import users as users_repo
 from .sessions import SESSION_COOKIE, SESSION_TTL_SECONDS, create_session, verify_session
 
@@ -40,6 +41,12 @@ def _cookie_secure(request: Request) -> bool:
 
 
 def _render_login_page(error: str | None = None, next_url: str = "/") -> str:
+    b = load_brand()
+    ident = b["identity"]
+    colors = b["colors"]
+    app_name = html.escape(ident["appName"])
+    tagline = html.escape(ident.get("tagline", ""))
+    mark = html.escape(ident["shortName"][:1].upper())
     demo_pw = users_repo.demo_password_hint() or ""
     chips = "\n".join(
         f"""<button type="button" class="chip" data-u="{html.escape(u['email'])}" data-p="{html.escape(demo_pw)}">
@@ -53,27 +60,27 @@ def _render_login_page(error: str | None = None, next_url: str = "/") -> str:
     return f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sign in &middot; APEX Travel Intelligence</title>
+<title>Sign in &middot; {app_name}</title>
 <style>
-  :root {{ --indigo:#4f46e5; --purple:#7c3aed; }}
+  :root {{ --brand:{colors['primary']}; --brand-dark:{colors['primaryDark']}; --brand-accent:{colors['accent']}; }}
   * {{ box-sizing:border-box; }}
   body {{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
          min-height:100vh; display:flex; align-items:center; justify-content:center;
-         background:linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#6d28d9 100%); color:#0f172a; }}
+         background:linear-gradient(135deg,{colors['sidebarFrom']} 0%,{colors['primaryDark']} 50%,{colors['primary']} 100%); color:#0f172a; }}
   .card {{ width:380px; background:#fff; border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,.35);
           padding:30px 28px 26px; }}
   .brand {{ display:flex; align-items:center; gap:9px; margin-bottom:4px; }}
   .brand .logo {{ width:30px;height:30px;border-radius:8px;
-                 background:linear-gradient(135deg,var(--indigo),var(--purple));
+                 background:linear-gradient(135deg,var(--brand),var(--brand-accent));
                  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800; }}
   .brand h1 {{ font-size:17px; margin:0; letter-spacing:.2px; }}
   .sub {{ color:#64748b; font-size:12.5px; margin:2px 0 18px 1px; }}
   label {{ font-size:12px; font-weight:600; color:#334155; display:block; margin:12px 0 6px; }}
   input {{ width:100%; padding:11px 12px; border:1px solid #e2e8f0; border-radius:10px; font-size:14px; }}
-  input:focus {{ outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,.15); }}
+  input:focus {{ outline:none; border-color:var(--brand); box-shadow:0 0 0 3px rgba(79,70,229,.15); }}
   button.submit {{ width:100%; margin-top:18px; padding:11px; border:0; border-radius:10px; color:#fff;
                   font-size:14px; font-weight:600; cursor:pointer;
-                  background:linear-gradient(135deg,var(--indigo),var(--purple)); }}
+                  background:linear-gradient(135deg,var(--brand),var(--brand-accent)); }}
   button.submit:hover {{ filter:brightness(1.06); }}
   .divider {{ display:flex; align-items:center; gap:10px; color:#94a3b8; font-size:11px;
              text-transform:uppercase; letter-spacing:.08em; margin:20px 0 12px; }}
@@ -81,9 +88,9 @@ def _render_login_page(error: str | None = None, next_url: str = "/") -> str:
   .chips {{ display:flex; flex-direction:column; gap:8px; }}
   .chip {{ text-align:left; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;
           padding:9px 11px; cursor:pointer; display:grid; grid-template-columns:1fr auto; row-gap:2px; }}
-  .chip:hover {{ border-color:var(--indigo); background:#eef2ff; }}
+  .chip:hover {{ border-color:var(--brand); background:{colors['primaryLight']}; }}
   .chip-name {{ font-size:13px; font-weight:600; }}
-  .chip-tenant {{ font-size:11px; color:#fff; background:var(--indigo); border-radius:999px;
+  .chip-tenant {{ font-size:11px; color:#fff; background:var(--brand); border-radius:999px;
                  padding:1px 8px; justify-self:end; }}
   .chip-cred {{ grid-column:1 / -1; font-size:11px; color:#64748b; font-family:ui-monospace,monospace; }}
   .error {{ background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; border-radius:8px;
@@ -92,8 +99,8 @@ def _render_login_page(error: str | None = None, next_url: str = "/") -> str:
 </style></head>
 <body>
   <form class="card" method="post" action="/login">
-    <div class="brand"><div class="logo">A</div><h1>APEX Travel Intelligence</h1></div>
-    <div class="sub">Sign in to your analytics workspace</div>
+    <div class="brand"><div class="logo">{mark}</div><h1>{app_name}</h1></div>
+    <div class="sub">{tagline if tagline else "Sign in to your analytics workspace"}</div>
     {error_html}
     <input type="hidden" name="next" value="{html.escape(next_url)}">
     <label for="u">Email</label>
