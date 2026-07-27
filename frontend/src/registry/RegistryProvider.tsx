@@ -23,6 +23,9 @@ export function RegistryProvider({ children }: { children: ReactNode }) {
         if (!res.ok) throw new Error(`assets ${res.status}`);
         const data = (await res.json()) as Registry;
         if (!cancelled) {
+          // Server is authoritative: a present-but-empty `assets` ({}) is honored as-is
+          // (an operator may legitimately have no assets in PR3b). Only a malformed body
+          // that LACKS an `assets` key falls back to the bundled seed.
           setRegistry(data?.assets ? data : bundledRegistry);
         }
       } catch {

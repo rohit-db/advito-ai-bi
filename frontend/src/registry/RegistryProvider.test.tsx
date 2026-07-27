@@ -67,4 +67,20 @@ describe("RegistryProvider", () => {
     );
     await waitFor(() => expect(screen.getByTestId("keys")).toHaveTextContent("spend"));
   });
+
+  it("honors an authoritative empty registry (does not fall back to the bundle)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({ assets: {} }) }))
+    );
+    render(
+      <RegistryProvider>
+        <Probe />
+      </RegistryProvider>
+    );
+    // Wait for the testid to exist (effect settled, provider rendered), then assert empty.
+    await waitFor(() => expect(screen.getByTestId("keys")).toBeInTheDocument());
+    expect(screen.getByTestId("keys")).toHaveTextContent("");
+    expect(screen.getByTestId("keys")).not.toHaveTextContent("spend");
+  });
 });
