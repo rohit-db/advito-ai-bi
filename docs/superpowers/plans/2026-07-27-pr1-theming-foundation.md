@@ -29,12 +29,15 @@ Every migration task applies exactly this table. `N` = any Tailwind shade step.
 | `indigo-800`, `indigo-900` (darker brand) | `brand-primary-dark` |
 | `indigo-50`, `indigo-100`, `indigo-200` (light brand tint) | `brand-primary-light` |
 | `indigo-400`, `indigo-500` (accent) | `brand-accent` |
-| `violet-500`, `violet-600` (gradient partner) | `brand-accent` |
+| `violet-400`, `violet-500`, `violet-600`, `violet-700` (accent, all shades) | `brand-accent` |
+| `violet-50`, `violet-100`, `violet-200`, `violet-300` (light violet tint) | `brand-primary-light` |
 | `bg-gradient-to-*` | `bg-linear-to-*` (v4 rename) |
 | `from-[#211d52]` | `from-brand-sidebar-from` |
 | `via-[#2d2a6e]`, `via-apex-sidebar` | `via-brand-sidebar-via` |
 | `to-[#16142e]`, `to-[#4f46e5]` (hero) | `to-brand-sidebar-to` / `to-brand-primary` |
-| `from-indigo-500 to-violet-600` (avatar) | `from-brand-primary to-brand-accent` |
+| `from-indigo-500 to-violet-600` (two-tone brand gradient: avatars, icons, hero) | `from-brand-primary to-brand-accent` (RATIFIED: the brand gradient is primary→accent by design, overriding per-shade mapping for this paired idiom — keeps a visible gradient under rebrand) |
+| `bg-indigo-600 hover:bg-indigo-700` (solid primary btn, darken-on-hover) | `bg-brand-primary hover:bg-brand-primary-dark` (the hover darken-step maps to the `-dark` token) |
+| `bg-violet-600 hover:bg-violet-700` (solid accent btn, darken-on-hover) | `bg-brand-accent hover:bg-brand-accent-dark` (requires the `--brand-accent-dark` token) |
 | `accent="#6366f1"` (SVG/inline hex) | `accent="var(--brand-accent)"` |
 | opacity forms `indigo-500/40`, `indigo-200/80` | `brand-primary/40`, `brand-primary-light/80` (keep the `/NN`) |
 | `shadow-indigo-900/20` | `shadow-brand-primary-dark/20` |
