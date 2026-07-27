@@ -73,7 +73,7 @@ export default function DashboardWorkspace({
       {railOpen && (
         <aside className="w-[400px] shrink-0 border-l border-slate-200 bg-white flex flex-col h-full">
           {/* Gradient header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 pt-4 pb-3 shrink-0">
+          <div className="bg-linear-to-r from-brand-primary to-brand-accent px-4 pt-4 pb-3 shrink-0">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
@@ -84,7 +84,7 @@ export default function DashboardWorkspace({
                     Ask APEX
                     <McpStatusDot state={mcpStatus.state} />
                   </h2>
-                  <p className="text-[11px] text-indigo-200">AI-powered travel intelligence</p>
+                  <p className="text-[11px] text-brand-primary-light">AI-powered travel intelligence</p>
                 </div>
               </div>
               <div className="flex gap-1">
@@ -107,7 +107,7 @@ export default function DashboardWorkspace({
 
             {/* Context badge */}
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <Badge className="bg-indigo-500/40 text-indigo-100 border-indigo-400/30 text-[11px] px-2 py-0.5">
+              <Badge className="bg-brand-accent/40 text-brand-primary-light border-brand-accent/30 text-[11px] px-2 py-0.5">
                 {pageLabel}
               </Badge>
             </div>
@@ -126,7 +126,7 @@ export default function DashboardWorkspace({
                     <button
                       key={q}
                       onClick={() => handleSuggestion(q)}
-                      className="w-full text-left px-3 py-2 text-sm text-slate-600 bg-white hover:bg-indigo-50 hover:text-indigo-700 rounded-lg border border-slate-200 transition-colors"
+                      className="w-full text-left px-3 py-2 text-sm text-slate-600 bg-white hover:bg-brand-primary-light hover:text-brand-primary rounded-lg border border-slate-200 transition-colors"
                     >
                       {q}
                     </button>
@@ -154,7 +154,7 @@ export default function DashboardWorkspace({
           <div className="border-t border-slate-200 bg-white px-3 py-3 shrink-0">
             <form
               onSubmit={handleSubmit}
-              className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all"
+              className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 focus-within:border-brand-accent focus-within:ring-2 focus-within:ring-brand-primary-light transition-all"
             >
               <input
                 type="text"
@@ -167,7 +167,7 @@ export default function DashboardWorkspace({
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="w-7 h-7 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full transition-colors shrink-0"
+                className="w-7 h-7 flex items-center justify-center bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full transition-colors shrink-0"
               >
                 <Send size={12} />
               </button>
@@ -191,7 +191,7 @@ export default function DashboardWorkspace({
 function UserBubble({ message }: { message: GenieMcpMessage }) {
   return (
     <div className="flex justify-end">
-      <div className="max-w-[88%] bg-indigo-600 text-white rounded-2xl rounded-br-sm px-3 py-2.5 text-sm shadow-sm">
+      <div className="max-w-[88%] bg-brand-primary text-white rounded-2xl rounded-br-sm px-3 py-2.5 text-sm shadow-sm">
         <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
       </div>
     </div>

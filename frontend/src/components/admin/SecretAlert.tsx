@@ -36,7 +36,7 @@ export default function SecretAlert({
         "relative rounded-xl border p-4 shadow-sm",
         isOnboard
           ? "border-emerald-200 bg-emerald-50"
-          : "border-indigo-200 bg-indigo-50"
+          : "border-brand-primary-light bg-brand-primary-light"
       )}
     >
       <button
@@ -46,7 +46,7 @@ export default function SecretAlert({
           "absolute top-3 right-3 p-1 rounded-md transition-colors",
           isOnboard
             ? "text-emerald-500 hover:bg-emerald-100"
-            : "text-indigo-500 hover:bg-indigo-100"
+            : "text-brand-accent hover:bg-brand-primary-light"
         )}
       >
         <X size={15} />
@@ -56,12 +56,12 @@ export default function SecretAlert({
         <div
           className={cn(
             "w-7 h-7 rounded-lg flex items-center justify-center",
-            isOnboard ? "bg-emerald-100 text-emerald-600" : "bg-indigo-100 text-indigo-600"
+            isOnboard ? "bg-emerald-100 text-emerald-600" : "bg-brand-primary-light text-brand-primary"
           )}
         >
           {isOnboard ? <ShieldCheck size={15} /> : <KeyRound size={15} />}
         </div>
-        <div className={cn("text-sm font-semibold", isOnboard ? "text-emerald-800" : "text-indigo-800")}>
+        <div className={cn("text-sm font-semibold", isOnboard ? "text-emerald-800" : "text-brand-primary-dark")}>
           {isOnboard
             ? `Service Principal created for ${data.tenantId}`
             : `New secret issued for ${data.tenantId}`}
@@ -74,7 +74,7 @@ export default function SecretAlert({
             <div
               className={cn(
                 "text-[10px] font-semibold uppercase tracking-wide mb-1",
-                isOnboard ? "text-emerald-600" : "text-indigo-600"
+                isOnboard ? "text-emerald-600" : "text-brand-primary"
               )}
             >
               {item.label}
@@ -90,7 +90,7 @@ export default function SecretAlert({
       <p
         className={cn(
           "mt-3 text-[11px] font-medium",
-          isOnboard ? "text-emerald-700" : "text-indigo-700"
+          isOnboard ? "text-emerald-700" : "text-brand-primary"
         )}
       >
         Shown once — stored encrypted in Lakebase, not retrievable again.

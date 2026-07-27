@@ -36,7 +36,7 @@ export default function TenantTable(props: TenantTableProps) {
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
         <div className="flex items-center gap-2">
-          <ServerCog size={16} className="text-indigo-500" />
+          <ServerCog size={16} className="text-brand-accent" />
           <h2 className="text-sm font-semibold text-slate-900">Tenant Service Principals</h2>
           {!loading && (
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
@@ -49,7 +49,7 @@ export default function TenantTable(props: TenantTableProps) {
             size="sm"
             variant="outline"
             onClick={props.onVerify}
-            className="gap-1.5 text-indigo-700 border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800"
+            className="gap-1.5 text-brand-primary border-brand-primary-light hover:bg-brand-primary-light hover:text-brand-primary-dark"
           >
             <RefreshCw size={13} />
             Verify isolation
@@ -145,7 +145,7 @@ function TenantRow({
             variant="outline"
             disabled={busy}
             onClick={() => onManageAccess(tenant)}
-            className="h-8 gap-1.5 border-indigo-200 bg-indigo-50/50 text-indigo-800 hover:bg-indigo-100 hover:text-indigo-900"
+            className="h-8 gap-1.5 border-brand-primary-light bg-brand-primary-light/50 text-brand-primary-dark hover:bg-brand-primary-light hover:text-brand-primary-dark"
             aria-label={`Manage dashboard and Genie access for ${tenant.display_name || tenant.tenant_id}`}
           >
             <KeyRound size={13} />
@@ -279,8 +279,8 @@ function RowActions({
 function EmptyState({ onOnboard }: { onOnboard: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">
-        <ServerCog size={26} className="text-indigo-500" />
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-primary-light">
+        <ServerCog size={26} className="text-brand-accent" />
       </div>
       <div>
         <h3 className="text-base font-semibold text-slate-800">No tenants onboarded yet</h3>

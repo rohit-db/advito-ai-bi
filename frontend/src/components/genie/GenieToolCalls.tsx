@@ -54,8 +54,8 @@ export default function GenieToolCalls({
         <div className="mt-2 space-y-2">
           {asks.map((t, i) => (
             <div key={`ask-${i}`} className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-              <div className="flex items-center gap-2 text-[11px] font-mono text-violet-700">
-                <span className="px-1.5 py-0.5 bg-violet-100 rounded uppercase">ask</span>
+              <div className="flex items-center gap-2 text-[11px] font-mono text-brand-primary">
+                <span className="px-1.5 py-0.5 bg-brand-primary-light rounded uppercase">ask</span>
                 <span className="truncate">{t.tool}</span>
               </div>
               <pre className="mt-1.5 text-[10px] text-slate-600 overflow-x-auto whitespace-pre-wrap break-all">
@@ -69,8 +69,8 @@ export default function GenieToolCalls({
 
           {polls.length > 0 && (
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-              <div className="flex items-center gap-2 text-[11px] font-mono text-indigo-700">
-                <span className="px-1.5 py-0.5 bg-indigo-100 rounded uppercase">poll</span>
+              <div className="flex items-center gap-2 text-[11px] font-mono text-brand-primary">
+                <span className="px-1.5 py-0.5 bg-brand-primary-light rounded uppercase">poll</span>
                 <span className="truncate">{polls[0].tool}</span>
                 <span className="text-slate-400">· {polls.length}×</span>
               </div>

@@ -69,7 +69,7 @@ export default function ExecutiveSummaryModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="shrink-0 bg-gradient-to-r from-indigo-600 to-indigo-500 px-5 py-4 flex items-start justify-between">
+        <div className="shrink-0 bg-linear-to-r from-brand-primary to-brand-accent px-5 py-4 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
               <Sparkles size={18} className="text-white" />
@@ -80,7 +80,7 @@ export default function ExecutiveSummaryModal({
                 <Badge className="bg-white/20 text-white border-white/20 text-[11px] px-2 py-0.5">
                   {pageLabel}
                 </Badge>
-                <span className="text-[11px] text-indigo-100">via Genie MCP</span>
+                <span className="text-[11px] text-brand-primary-light">via Genie MCP</span>
               </div>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function ExecutiveSummaryModal({
             <div className="bg-white rounded-xl border border-slate-200 px-5 py-4 shadow-sm">
               {/* While more is still streaming after first content, a subtle ribbon */}
               {streaming && (
-                <div className="mb-3 flex items-center gap-2 text-[11px] text-indigo-600">
+                <div className="mb-3 flex items-center gap-2 text-[11px] text-brand-primary">
                   <Loader2 size={12} className="animate-spin" />
                   <span>Refining…</span>
                 </div>
@@ -161,10 +161,10 @@ function AwaitingState({ step }: { step?: string }) {
     <div className="bg-white rounded-xl border border-slate-200 px-5 py-6 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="relative">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-brand-primary to-brand-accent flex items-center justify-center">
             <Sparkles size={16} className="text-white" />
           </div>
-          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-indigo-500 animate-pulse" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-brand-accent animate-pulse" />
         </div>
         <div>
           <p className="text-sm font-medium text-slate-800">Preparing your executive summary…</p>
@@ -178,7 +178,7 @@ function AwaitingState({ step }: { step?: string }) {
       <div className="mt-5 space-y-4">
         {["Overview", "KPIs", "Strategic Insights"].map((section) => (
           <div key={section}>
-            <div className="h-3 w-28 rounded bg-indigo-100 mb-2" />
+            <div className="h-3 w-28 rounded bg-brand-primary-light mb-2" />
             <div className="space-y-1.5">
               <div className="h-2.5 w-full rounded bg-slate-100 animate-pulse" />
               <div className="h-2.5 w-[88%] rounded bg-slate-100 animate-pulse" />

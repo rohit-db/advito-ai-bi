@@ -6,7 +6,7 @@ import { DEFAULT_FILTERS, FILTERS } from "@/config";
 import type { FilterKey, FilterState } from "@/config";
 
 const DATE_INPUT_CLS =
-  "h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors";
+  "h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 focus:bg-white focus:outline-none focus:border-brand-accent focus:ring-2 focus:ring-brand-primary-light transition-colors";
 
 function StyledSelect({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) {
   return (
@@ -15,7 +15,7 @@ function StyledSelect({ className, children, ...props }: React.SelectHTMLAttribu
         className={cn(
           "h-8 px-2.5 pr-7 text-xs font-medium rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700",
           "appearance-none cursor-pointer",
-          "focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400",
+          "focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary-light focus:border-brand-accent",
           "hover:border-slate-300 transition-colors",
           className
         )}
@@ -74,7 +74,7 @@ export default function FilterBar({ filters, onChange, filterKeys }: FilterBarPr
     <div className="shrink-0 bg-white border-b border-slate-100">
       <div className="px-4 py-2 flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="grid place-items-center w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600">
+          <span className="grid place-items-center w-6 h-6 rounded-lg bg-brand-primary-light text-brand-primary">
             <Filter size={12} />
           </span>
           <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 select-none">Filters</span>
@@ -132,7 +132,7 @@ export default function FilterBar({ filters, onChange, filterKeys }: FilterBarPr
             className={cn(
               "h-8 text-xs transition-all",
               isDirty
-                ? "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 ring-2 ring-indigo-100"
+                ? "bg-linear-to-r from-brand-primary to-brand-accent hover:from-brand-primary-dark hover:to-brand-accent ring-2 ring-brand-primary-light"
                 : "opacity-40 cursor-not-allowed"
             )}
           >
