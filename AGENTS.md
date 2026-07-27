@@ -53,3 +53,19 @@ cd frontend && npm install && npm run dev
   (`VITE_WORKSPACE_URL`/`VITE_WORKSPACE_ORG`, see `frontend/.env.example`);
   dashboard specs/filters/prompts live declaratively in `frontend/src/config.ts`.
 - Server config is env-driven (`server/config.py`); copy `.env.example` → `.env`.
+
+## Customizing
+Full rebrand guide: [`docs/customizing.md`](docs/customizing.md).
+
+**Never hardcode brand colors/strings in components — edit `brand.config.json`
+and use `brand-*` Tailwind utilities.**
+
+| To change… | Edit… |
+|------------|-------|
+| Colors, app name, tagline, font | `brand.config.json` |
+| Logo / favicon | files in `frontend/public/brand/` |
+| User-facing copy (hero, cards) | *(planned: `content.config.json`, PR7)* |
+| Dashboards & Genie spaces | *(planned: `dashboards.seed.json`, PR3)* |
+| Which filters exist / how they render | `frontend/src/config.ts` (`FILTERS`) |
+| Nav order, labels, icons, pages | `frontend/src/config.ts` (`ROUTES`) |
+| Server data assets / SP / Lakebase / RLS | `.env` |
