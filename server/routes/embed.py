@@ -29,12 +29,22 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from ..config import WORKSPACE_URL, DASHBOARD_URL
+from .. import assets as assets_registry
 
 router = APIRouter()
 
 _TIMEOUT = 30
-# Default dashboard id parsed from DASHBOARD_URL (…/embed/dashboardsv3/<id>?…).
-_DEFAULT_DASHBOARD_ID = DASHBOARD_URL.split("/dashboardsv3/")[-1].split("?")[0].split("/")[0]
+
+
+def _default_dashboard_id() -> str:
+    """Prefer the resolved registry's default; fall back to the DASHBOARD_URL id."""
+    rid = assets_registry.default_dashboard_id()
+    if rid:
+        return rid
+    return DASHBOARD_URL.split("/dashboardsv3/")[-1].split("?")[0].split("/")[0]
+
+
+_DEFAULT_DASHBOARD_ID = _default_dashboard_id()
 
 
 def _sp_credentials() -> tuple[str, str]:

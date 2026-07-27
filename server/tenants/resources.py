@@ -56,8 +56,13 @@ def _parse(raw: str) -> list[dict]:
 def catalog() -> dict:
     """Return the grantable resources: ``{dashboards:[{id,name}], genie_spaces:[...]}``."""
     from ..config import GENIE_SPACE_ID
+    from .. import assets as assets_registry
 
+    # Dashboards: explicit env override wins; else the resolved asset registry;
+    # else the legacy DASHBOARD_IDS env. (Registry is the single source now.)
     dashboards = _parse(os.environ.get("RESOURCE_DASHBOARDS", ""))
+    if not dashboards:
+        dashboards = assets_registry.catalog_dashboards()
     if not dashboards:
         dashboards = _parse(os.environ.get("DASHBOARD_IDS", ""))
 

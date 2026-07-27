@@ -191,11 +191,14 @@ def grant_genie_access(sp_app_id: str) -> None:
 
 
 def grant_dashboard_access(sp_app_id: str) -> None:
-    """Give the tenant SP CAN_RUN on each dashboard id in ``DASHBOARD_IDS``."""
-    raw = os.environ.get("DASHBOARD_IDS", "").strip()
-    if not raw:
-        return
-    for dash_id in (d.strip() for d in raw.split(",")):
+    """Give the tenant SP CAN_RUN on each registry dashboard id (env is fallback)."""
+    from .. import assets as assets_registry
+
+    dash_ids = assets_registry.dashboard_ids()
+    if not dash_ids:
+        raw = os.environ.get("DASHBOARD_IDS", "").strip()
+        dash_ids = [d.strip() for d in raw.split(",") if d.strip()] if raw else []
+    for dash_id in dash_ids:
         if not dash_id:
             continue
         _permissions_patch(

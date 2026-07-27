@@ -59,3 +59,42 @@ def test_get_api_assets_returns_registry(monkeypatch):
     body = res.json()
     assert "spend" in body["assets"]
     assert body["assets"]["spend"]["dashboardId"] == "01f1271698161d42b3c66528415775e8"
+
+
+def test_resources_catalog_uses_registry_dashboards(monkeypatch):
+    # No explicit RESOURCE_DASHBOARDS/DASHBOARD_IDS -> derive from the registry.
+    monkeypatch.delenv("RESOURCE_DASHBOARDS", raising=False)
+    monkeypatch.delenv("DASHBOARD_IDS", raising=False)
+    from server.tenants import resources
+
+    cat = resources.catalog()
+    ids = [d["id"] for d in cat["dashboards"]]
+    assert "01f1271698161d42b3c66528415775e8" in ids
+
+
+def test_resources_catalog_env_overrides_registry(monkeypatch):
+    monkeypatch.setenv("RESOURCE_DASHBOARDS", "envdash:Env Dashboard")
+    from server.tenants import resources
+
+    cat = resources.catalog()
+    assert cat["dashboards"] == [{"id": "envdash", "name": "Env Dashboard"}]
+
+
+def test_grant_dashboard_access_iterates_registry_ids(monkeypatch):
+    monkeypatch.delenv("DASHBOARD_IDS", raising=False)
+    from server.tenants import service
+
+    captured = []
+    monkeypatch.setattr(
+        service, "_permissions_patch",
+        lambda path, sp, level: captured.append(path),
+    )
+    service.grant_dashboard_access("sp-app-id-123")
+    assert any("01f1271698161d42b3c66528415775e8" in p for p in captured)
+
+
+def test_embed_default_dashboard_id_from_registry():
+    # embed module derives its default from the registry at import time.
+    from server.routes import embed
+
+    assert embed._DEFAULT_DASHBOARD_ID == "01f1271698161d42b3c66528415775e8"
