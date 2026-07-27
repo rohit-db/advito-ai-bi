@@ -203,7 +203,7 @@ function HeroComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="group relative flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-xl shadow-slate-300/30 transition-all focus-within:border-brand-primary focus-within:shadow-brand-primary-light/40 focus-within:ring-4 focus-within:ring-brand-primary-light"
+      className="group relative flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-xl shadow-slate-300/30 transition-all focus-within:border-brand-accent focus-within:shadow-brand-primary-light/40 focus-within:ring-4 focus-within:ring-brand-primary-light"
     >
       <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-brand-accent" />
       {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
@@ -238,7 +238,7 @@ function FooterComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-1.5 shadow-sm transition-all focus-within:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary-light"
+      className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-1.5 shadow-sm transition-all focus-within:border-brand-accent focus-within:ring-2 focus-within:ring-brand-primary-light"
     >
       <input
         type="text"
