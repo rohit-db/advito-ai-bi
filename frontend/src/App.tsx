@@ -37,7 +37,13 @@ function toEmbedSpec(asset: AssetSpec): DashboardSpec {
   };
 }
 
-/** Resolve the Genie config for the active page (falls back to the first page). */
+/**
+ * Resolve the Genie config for the active page (falls back to the first page).
+ * A registry asset is expected to have >=1 page; if it somehow has none, we
+ * degrade to empty prompt/suggestions rather than crash (the Exec Summary /
+ * rail just have nothing to send). PR3b's in-UI asset editing should enforce
+ * >=1 page at the edit boundary.
+ */
 function pageGenie(asset: AssetSpec | undefined, pageId?: string): { summaryPrompt: string; suggestions: string[] } {
   const page = asset?.pages.find((p) => p.pageId === pageId) ?? asset?.pages[0];
   return { summaryPrompt: page?.summaryPrompt ?? "", suggestions: page?.suggestions ?? [] };
