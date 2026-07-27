@@ -6,6 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { PanelLeftClose, PanelLeft } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { ADMIN_ROUTE_PATH } from "@/pages/AdminPage";
+import { brand } from "@/theme/brand";
+import { BrandLogo } from "@/components/BrandLogo";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -44,13 +46,13 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         )}
       >
         {isActive && !collapsed && (
-          <span className="absolute left-0 inset-y-1.5 w-[3px] rounded-r-full bg-indigo-400" />
+          <span className="absolute left-0 inset-y-1.5 w-[3px] rounded-r-full bg-brand-accent" />
         )}
         {Icon && (
           <Icon
             size={17}
             strokeWidth={isActive ? 2.2 : 1.75}
-            className={cn("shrink-0 transition-colors", isActive ? "text-indigo-300" : "text-white/55 group-hover:text-white")}
+            className={cn("shrink-0 transition-colors", isActive ? "text-brand-accent" : "text-white/55 group-hover:text-white")}
           />
         )}
         {!collapsed && (
@@ -72,7 +74,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col shrink-0 h-full bg-gradient-to-b from-[#211d52] via-apex-sidebar to-[#16142e] transition-all duration-200",
+        "flex flex-col shrink-0 h-full bg-linear-to-b from-brand-sidebar-from via-brand-sidebar-via to-brand-sidebar-to transition-all duration-200",
         collapsed ? "w-[60px]" : "w-[224px]"
       )}
     >
@@ -81,22 +83,18 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <div className="flex items-center justify-between gap-2">
           {!collapsed ? (
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="grid place-items-center w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 text-white text-base font-bold shadow-lg shadow-indigo-900/40 shrink-0">
-                ✦
-              </div>
+              <BrandLogo variant="mark" className="w-8 h-8 text-base shrink-0" />
               <div className="min-w-0">
                 <div className="text-[15px] font-bold tracking-tight text-white leading-none">
-                  APEX
+                  {brand.identity.appName}
                 </div>
                 <div className="text-[8.5px] text-white/40 tracking-[0.18em] uppercase mt-1 truncate">
-                  Advito Practice Exchange
+                  {brand.identity.tagline}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="grid place-items-center w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 text-white text-base font-bold shadow-lg shadow-indigo-900/40 mx-auto">
-              ✦
-            </div>
+            <BrandLogo variant="mark" className="w-8 h-8 text-base mx-auto" />
           )}
           <button
             onClick={onToggle}
