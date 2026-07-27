@@ -55,6 +55,7 @@ Five staged, independently reviewable/revertable PRs, in order:
 | 4 | [D](#section-d--sp-creation-onboarding-flow) | Guided SP onboarding (pick client → provision SP → create login user) |
 | 5 | [E](#section-e--ui-polish--consistency) | UI polish & consistency pass |
 | 6 | [F](#section-f--ask-apex-chat-feedback-lakebase) | Ask APEX chat feedback (👍/👎 + note) + Lakebase table |
+| 7 | [G](#section-g--content-externalization) | Content externalization: user-facing copy → swappable strings |
 
 Each PR must leave the app fully working (fail-soft intact) and carry its slice
 of the agent-readiness docs.
@@ -425,6 +426,50 @@ natively so it stays on-brand and transparent.
 - Feedback is scoped to the owning user; a user cannot rate messages in a
   conversation they don't own (verified server-side).
 
+## Section G — Content externalization
+
+**Added after the PR1 visual checkpoint (2026-07-27).** The rebrand-swap test
+proved colors/logo/app-name flip from `brand.config.json` alone — but hardcoded
+*copy* (hero eyebrow "APEX TRAVEL INTELLIGENCE", quick-card descriptions,
+empty-state text, page blurbs) stayed put, so a rebranded app still reads as
+travel-specific APEX. For a true white-label reference repo, user-facing copy
+must be swappable too. This is a **distinct axis from color theming** (strings,
+not CSS tokens) and is therefore its own PR, sequenced **after** the PR1 color
+migration completes — not folded into the theming foundation.
+
+### Design — a single strings source, same file-first / agent-ready ethos
+
+- **`content.config.json`** (repo root, sibling to `brand.config.json`) — a
+  namespaced strings document: e.g. `{ home: { heroEyebrow, heroTagline,
+  quickCards: [...] }, askApex: { title, subtitle, starters: [...] }, nav: {...},
+  common: {...} }`. Edited by hand (agent-ready) like `brand.config.json`.
+- **Frontend consumer** — a tiny `content.ts` (typed import) + a `t(path)` helper
+  (or a `useContent()` hook) so components read `content.home.heroEyebrow` instead
+  of a literal. No i18n runtime/library dependency for the base case — this is
+  string externalization, not multi-locale (locale support can layer on later via
+  the same file shape keyed by lang).
+- **Boundary with existing config:** nav labels already live in `config.ts`
+  `ROUTES` and dashboard/Genie copy will live in the PR3 asset registry
+  (`dashboards.seed.json`). Section G covers the **remaining static UI/marketing
+  copy only** — it must not duplicate strings those own. The brief will classify
+  each of the ~visible strings as brand-copy (externalize), UI-chrome (leave), or
+  product-content-owned-elsewhere (leave).
+- **Scope discipline:** externalize *user-facing brand/marketing copy*, not every
+  label, aria string, or developer message. Over-externalization hurts
+  readability — YAGNI applies.
+
+### Acceptance
+
+- Editing `content.config.json` (e.g. hero eyebrow + a card description) and
+  reloading changes that copy with no code edit.
+- The NOVA rebrand-swap test (from the PR1 checkpoint) shows **no residual
+  "APEX"/"travel" copy** in externalized surfaces after swapping both
+  `brand.config.json` and `content.config.json`.
+- Nav labels (ROUTES) and asset copy (registry) are NOT duplicated into
+  `content.config.json`.
+- `tsc -b && vite build` clean; no new runtime dependency added for the base
+  (single-language) case.
+
 ## 7. Agent-readiness deliverables
 
 Shipped incrementally with the PR that introduces each concern; consolidated in
@@ -435,6 +480,7 @@ Shipped incrementally with the PR that introduces each concern; consolidated in
 | To change… | Edit… |
 |------------|-------|
 | Colors, app name, tagline, fonts | `brand.config.json` |
+| User-facing copy (hero, cards, blurbs) | `content.config.json` *(added in PR7)* |
 | Logo / favicon | files in `frontend/public/brand/` |
 | Dashboards & Genie spaces (specs, wiring, prompts) | `server/assets/dashboards.seed.json` (or Manage Assets UI when Lakebase on) |
 | Which filters exist / how they render | `frontend/src/config.ts` (FILTERS) |
