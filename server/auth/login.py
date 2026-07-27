@@ -40,22 +40,26 @@ def _cookie_secure(request: Request) -> bool:
     return proto == "https"
 
 
-def _render_login_page(error: str | None = None, next_url: str = "/") -> str:
+def _render_login_page(error: str | None = None, next_url: str = "/", mode: str = "user") -> str:
     b = load_brand()
     ident = b["identity"]
     colors = b["colors"]
     app_name = html.escape(ident["appName"])
     tagline = html.escape(ident.get("tagline", ""))
     mark = html.escape(ident["shortName"][:1].upper())
+    active_mode = "operator" if mode == "operator" else "user"
+    show_demo = os.environ.get("AUTH_SHOW_DEMO_LOGINS", "true").strip().lower() not in ("0", "false", "no", "off")
     demo_pw = users_repo.demo_password_hint() or ""
-    chips = "\n".join(
-        f"""<button type="button" class="chip" data-u="{html.escape(u['email'])}" data-p="{html.escape(demo_pw)}">
-              <span class="chip-name">{html.escape(u['name'])}</span>
-              <span class="chip-tenant">{html.escape(u['tenant'])}</span>
-              <span class="chip-cred">{html.escape(u['email'])}{(' &middot; ' + html.escape(demo_pw)) if demo_pw else ''}</span>
-            </button>"""
-        for u in users_repo.list_logins()
-    )
+    chips = ""
+    if show_demo:
+        chips = "\n".join(
+            f"""<button type="button" class="chip" data-role="{html.escape(u.get('role', 'user'))}" data-u="{html.escape(u['email'])}" data-p="{html.escape(demo_pw)}">
+                  <span class="chip-name">{html.escape(u['name'])}</span>
+                  <span class="chip-tenant">{html.escape(u['tenant'])}</span>
+                  <span class="chip-cred">{html.escape(u['email'])}{(' &middot; ' + html.escape(demo_pw)) if demo_pw else ''}</span>
+                </button>"""
+            for u in users_repo.list_logins()
+        )
     error_html = f'<div class="error">{html.escape(error)}</div>' if error else ""
     return f"""<!doctype html>
 <html lang="en"><head>
@@ -96,13 +100,26 @@ def _render_login_page(error: str | None = None, next_url: str = "/") -> str:
   .error {{ background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; border-radius:8px;
            padding:8px 10px; font-size:12.5px; margin-bottom:12px; }}
   .foot {{ text-align:center; color:#94a3b8; font-size:10.5px; margin-top:16px; }}
+  .mode-toggle {{ display:flex; gap:4px; background:#f1f5f9; border-radius:10px; padding:4px; margin-bottom:16px; }}
+  .mode-btn {{ flex:1; border:0; background:transparent; padding:7px 10px; border-radius:7px;
+              font-size:12.5px; font-weight:600; color:#64748b; cursor:pointer; }}
+  .mode-btn.active {{ background:#fff; color:var(--brand); box-shadow:0 1px 2px rgba(0,0,0,.08); }}
+  body[data-active-mode="operator"] .brand h1::after {{
+     content:" \00B7 Operator"; color:var(--brand); font-weight:600; font-size:12px; }}
+  body[data-active-mode="user"] .chip[data-role="operator"] {{ display:none; }}
+  body[data-active-mode="operator"] .chip[data-role="user"] {{ display:none; }}
 </style></head>
-<body>
+<body data-active-mode="{active_mode}">
   <form class="card" method="post" action="/login">
+    <div class="mode-toggle" data-mode-toggle>
+      <button type="button" class="mode-btn" data-mode="user">Sign in</button>
+      <button type="button" class="mode-btn" data-mode="operator">Operator</button>
+    </div>
     <div class="brand"><div class="logo">{mark}</div><h1>{app_name}</h1></div>
     <div class="sub">{tagline if tagline else "Sign in to your analytics workspace"}</div>
     {error_html}
     <input type="hidden" name="next" value="{html.escape(next_url)}">
+    <input type="hidden" name="mode" value="{active_mode}">
     <label for="u">Email</label>
     <input id="u" name="username" type="email" autocomplete="username" placeholder="you@company.com" required>
     <label for="p">Password</label>
@@ -120,6 +137,24 @@ def _render_login_page(error: str | None = None, next_url: str = "/") -> str:
         if (c.dataset.p) document.getElementById("p").value = c.dataset.p;
       }});
     }});
+    (function() {{
+      var body = document.body;
+      function setMode(m) {{
+        body.setAttribute("data-active-mode", m);
+        document.querySelectorAll(".mode-btn").forEach(function(b) {{
+          b.classList.toggle("active", b.dataset.mode === m);
+        }});
+        document.querySelectorAll("input[name='mode']").forEach(function(i) {{ i.value = m; }});
+        var u = new URL(window.location);
+        if (m === "operator") u.searchParams.set("mode", "operator");
+        else u.searchParams.delete("mode");
+        window.history.replaceState({{}}, "", u);
+      }}
+      document.querySelectorAll("[data-mode-toggle] .mode-btn").forEach(function(b) {{
+        b.addEventListener("click", function() {{ setMode(b.dataset.mode); }});
+      }});
+      setMode(body.getAttribute("data-active-mode") || "user");
+    }})();
   </script>
 </body></html>"""
 
@@ -134,7 +169,8 @@ async def login_get(request: Request) -> Response:
     if verify_session(request.cookies.get(SESSION_COOKIE)):
         return RedirectResponse("/", status_code=303)
     next_url = _safe_next(request.query_params.get("next", "/"))
-    return HTMLResponse(_render_login_page(next_url=next_url))
+    mode = "operator" if request.query_params.get("mode") == "operator" else "user"
+    return HTMLResponse(_render_login_page(next_url=next_url, mode=mode))
 
 
 @router.post("/login")
@@ -143,10 +179,11 @@ async def login_post(request: Request) -> Response:
     username = str(form.get("username", ""))
     password = str(form.get("password", ""))
     next_url = _safe_next(str(form.get("next", "/")) or "/")
+    mode = "operator" if str(form.get("mode", "")) == "operator" else "user"
     user = users_repo.verify_login(username, password)
     if not user:
         return HTMLResponse(
-            _render_login_page(error="Invalid email or password.", next_url=next_url),
+            _render_login_page(error="Invalid email or password.", next_url=next_url, mode=mode),
             status_code=401,
         )
     identity = {
