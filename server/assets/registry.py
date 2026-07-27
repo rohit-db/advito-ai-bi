@@ -19,7 +19,6 @@ logger = logging.getLogger("server.assets.registry")
 _DEFAULT_SEED = str(Path(__file__).resolve().parent / "dashboards.seed.json")
 _SEED_PATH = os.environ.get("ASSETS_SEED_FILE", _DEFAULT_SEED).strip() or _DEFAULT_SEED
 
-_EMPTY: dict[str, Any] = {"assets": {}}
 _cache: dict[str, Any] | None = None
 
 

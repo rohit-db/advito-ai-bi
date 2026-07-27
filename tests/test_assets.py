@@ -1,6 +1,3 @@
-import json
-from pathlib import Path
-
 from server.assets import registry as assets
 
 
@@ -32,7 +29,7 @@ def test_catalog_dashboards_shape():
 
 def test_load_registry_failsoft_on_missing_file(monkeypatch, tmp_path):
     monkeypatch.setattr(assets, "_SEED_PATH", str(tmp_path / "nope.json"))
-    assets._cache = None  # bypass any cached parse
+    monkeypatch.setattr(assets, "_cache", None)  # bypass any cached parse
     reg = assets.load_registry()
     assert reg == {"assets": {}}
     assert assets.dashboard_ids() == []
@@ -43,5 +40,5 @@ def test_load_registry_failsoft_on_bad_json(monkeypatch, tmp_path):
     bad = tmp_path / "bad.json"
     bad.write_text("{ not valid json ")
     monkeypatch.setattr(assets, "_SEED_PATH", str(bad))
-    assets._cache = None
+    monkeypatch.setattr(assets, "_cache", None)
     assert assets.load_registry() == {"assets": {}}
