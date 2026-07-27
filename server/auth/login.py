@@ -105,7 +105,7 @@ def _render_login_page(error: str | None = None, next_url: str = "/", mode: str 
               font-size:12.5px; font-weight:600; color:#64748b; cursor:pointer; }}
   .mode-btn.active {{ background:#fff; color:var(--brand); box-shadow:0 1px 2px rgba(0,0,0,.08); }}
   body[data-active-mode="operator"] .brand h1::after {{
-     content:" \00B7 Operator"; color:var(--brand); font-weight:600; font-size:12px; }}
+     content:" · Operator"; color:var(--brand); font-weight:600; font-size:12px; }}
   body[data-active-mode="user"] .chip[data-role="operator"] {{ display:none; }}
   body[data-active-mode="operator"] .chip[data-role="user"] {{ display:none; }}
 </style></head>
