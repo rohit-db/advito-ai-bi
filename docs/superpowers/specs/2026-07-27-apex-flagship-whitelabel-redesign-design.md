@@ -54,9 +54,22 @@ Five staged, independently reviewable/revertable PRs, in order:
 | 3 | [C](#section-c--admin-information-architecture) | Admin IA: Manage Assets (registry + access grid) + Manage Users & SPs |
 | 4 | [D](#section-d--sp-creation-onboarding-flow) | Guided SP onboarding (pick client → provision SP → create login user) |
 | 5 | [E](#section-e--ui-polish--consistency) | UI polish & consistency pass |
+| 6 | [F](#section-f--ask-apex-chat-feedback-lakebase) | Ask APEX chat feedback (👍/👎 + note) + Lakebase table |
 
 Each PR must leave the app fully working (fail-soft intact) and carry its slice
 of the agent-readiness docs.
+
+**On Chainlit (considered, declined):** we evaluated replacing the Ask APEX chat
+with Chainlit. Declined because (1) Chainlit ships its own branding/theming and
+would have to be de-branded — contradicting the white-label thesis; (2) the
+in-dashboard **rail** (`ConversationRail`) is an embedded component, not a
+full-page chat, so Chainlit couldn't replace it — leaving two chat
+implementations; (3) the valuable custom Genie MCP rendering (SQL, tables,
+tool-call "under the hood" view, deep links) would be re-implemented inside
+Chainlit's element model anyway; (4) it adds a heavy dependency + second server
+process + its own data schema, against the minimal/transparent tenet. Instead we
+fold the *feature* value we wanted (structured feedback) into the existing chat —
+Section F.
 
 ---
 
@@ -326,6 +339,92 @@ Scoped consistency pass, not a rewrite:
 
 ---
 
+## Section F — Ask APEX chat feedback (Lakebase)
+
+**The feature value we wanted from Chainlit, folded into the existing chat.**
+
+### Problem
+
+There's no way for a user to signal whether a Genie answer was good — the single
+most useful signal for improving a Genie space (and the "agent quality" story a
+flagship repo should demonstrate). Chainlit offers this out of the box; we add it
+natively so it stays on-brand and transparent.
+
+### Design — thumbs + optional note on assistant messages, fail-soft
+
+**Backend (`server/persistence.py` + `server/routes/apex.py`):**
+
+- New table `apex_message_feedback`, created lazily in `SCHEMA_SQL` alongside the
+  existing tables:
+
+  ```sql
+  CREATE TABLE IF NOT EXISTS apex_message_feedback (
+      message_id  UUID NOT NULL REFERENCES apex_messages(id) ON DELETE CASCADE,
+      user_email  VARCHAR(255) NOT NULL,
+      rating      SMALLINT NOT NULL,           -- 1 = up, -1 = down
+      note        TEXT NOT NULL DEFAULT '',
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (message_id, user_email)
+  );
+  ```
+
+  Upsert semantics (a user can change 👍↔👎 or edit the note): `ON CONFLICT
+  (message_id, user_email) DO UPDATE`. Scoped by `user_email` like every other
+  row; ownership verified via the parent conversation (a user can only rate a
+  message in a conversation they own — reuse the `_owns` check by joining
+  `apex_messages` → `apex_conversations`).
+
+- **Surface the persisted assistant message id.** Today `save_turn` inserts the
+  assistant message but does not return its UUID, and `get_conversation` maps
+  payload fields but drops the row id. Both change minimally to include the
+  assistant message's `id::text` so the frontend has a stable feedback target.
+  This is the one load-bearing change to existing persistence functions;
+  everything else is additive.
+
+- New functions `set_message_feedback(message_id, user_email, rating, note)` and
+  (for replay) feedback is returned inline by `get_conversation` per assistant
+  message. Both guard on `enabled()` and no-op / return empty when Lakebase is
+  off — identical shape to the existing functions.
+
+- New route `POST /api/apex/messages/{message_id}/feedback` (session-authed,
+  `user_email` from the session — never the client). Returns `{ok, persisted}`.
+
+**Frontend (`useGenieMcpChat.ts` + a small `MessageFeedback` component):**
+
+- `GenieMcpMessage` gains an optional `dbId?: string` (the persisted UUID) and
+  `feedback?: { rating: 1 | -1; note?: string } | null`. `saveConversationTurn`
+  already returns after persist; extend its response to carry the assistant
+  `dbId`, set on the draft. `loadConversation` maps stored feedback back in.
+- A `MessageFeedback` control (👍/👎 + expandable note) renders on **completed
+  assistant messages that have a `dbId`** — i.e. only when the turn was persisted
+  (Lakebase on). When Lakebase is off there is no `dbId`, so the control simply
+  doesn't render. **This is the fail-soft boundary — no new degraded path.**
+- Themed entirely via Section A brand tokens.
+- Because all three chat surfaces share `useGenieMcpChat`, the rail, standalone
+  page, and MCP view get feedback uniformly — the exact consistency win Chainlit
+  would have broken.
+
+### Interfaces / boundaries
+
+- `server/persistence.py` — `apex_message_feedback` schema +
+  `set_message_feedback`; `save_turn`/`get_conversation` surface the assistant
+  message id + feedback. Additive, fail-soft.
+- `server/routes/apex.py` — `POST /apex/messages/{id}/feedback`.
+- `frontend/src/components/genie/MessageFeedback.tsx` — the 👍/👎 + note control.
+- `useGenieMcpChat.ts` — carries `dbId` + `feedback`; a `submitFeedback(dbId,
+  rating, note)` callback.
+
+### Acceptance
+
+- On a persisted Ask APEX answer, a user can click 👍/👎 and optionally add a
+  note; it persists and survives reload/replay of that conversation.
+- Changing the rating or editing the note upserts (no duplicate rows).
+- With Lakebase **off**, the chat works exactly as today with no feedback control
+  and no errors.
+- Feedback is scoped to the owning user; a user cannot rate messages in a
+  conversation they don't own (verified server-side).
+
 ## 7. Agent-readiness deliverables
 
 Shipped incrementally with the PR that introduces each concern; consolidated in
@@ -342,6 +441,7 @@ Shipped incrementally with the PR that introduces each concern; consolidated in
 | Login demo chips on/off | `AUTH_SHOW_DEMO_LOGINS` env |
 | Nav order, labels, icons, non-dashboard pages | `frontend/src/config.ts` (ROUTES) |
 | Per-tenant asset access | Manage Assets → access grid |
+| Chat feedback storage / schema | `server/persistence.py` (`apex_message_feedback`) |
 | Server data assets / SP / Lakebase / RLS | `.env` (grouped, as documented in README) |
 
 ## Testing strategy
@@ -356,6 +456,9 @@ Shipped incrementally with the PR that introduces each concern; consolidated in
   seed with Lakebase off.
 - **Onboarding (D):** flow completes pick→provision→create-user; tenant_id
   pre-fill correct; secret shown once.
+- **Chat feedback (F):** 👍/👎 + note persists and replays; rating change/note
+  edit upserts (no dup rows); Lakebase-off hides the control with no errors;
+  feedback is user-scoped and ownership-enforced server-side.
 - Preserve existing behavior: run current backend + `tsc -b && vite build`
   clean after each PR. Fail-soft paths (Lakebase off, auth off) verified per PR.
 
