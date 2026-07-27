@@ -19,10 +19,10 @@
       "role": "user"
     },
     {
-      "email": "dana@advito.com",
+      "email": "dana@apex.example",
       "password_hash": "pbkdf2_sha256$200000$fAc5OBfaZAOcBXvWy/FfHw==$DICXaHvpkXX3g9CRJ6as6phddg5cX0FpJt6ntNSfLxo=",
       "display_name": "Dana Lee",
-      "tenant": "Advito (All)",
+      "tenant": "All Clients",
       "tenant_id": "*",
       "role": "operator"
     }

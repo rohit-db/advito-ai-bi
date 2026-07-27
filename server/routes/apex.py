@@ -34,7 +34,7 @@ def _user(request: Request) -> tuple[str, str]:
     identity = current_identity(request)
     if identity and identity.get("email"):
         return identity["email"], identity.get("tenant", "") or ""
-    return "demo@advito.com", "Advito (All)"
+    return "operator@apex.example", "All Clients"
 
 
 # ============================================================ conversations
