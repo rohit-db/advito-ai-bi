@@ -21,13 +21,14 @@ import {
 // =============================================================================
 // APEX app configuration
 //
-// This file is the single place to WIRE the app:
-//   1. DASHBOARDS  — register an AI/BI dashboard + how its filters are wired
-//   2. FILTERS     — declare the logical filters the app knows about (UI + URL)
-//   3. ROUTES      — map nav entries to dashboards, pages, and Genie wiring
+// This file owns:
+//   1. FILTERS  — the logical filter vocabulary the UI knows about
+//   2. ROUTES   — nav entries (dashboard key → asset registry; no inline pages)
+//   3. Embed-URL helpers — buildPageEmbedUrl, buildTokenEmbedUrl, etc.
+//   4. KPI + persistence helpers
 //
-// Adding a dashboard or changing which filters apply to a page should only
-// require editing the declarative blocks below — not the components.
+// Dashboard specs, pages, and Genie wiring now live in the asset registry
+// (server/assets/dashboards.seed.json) loaded at runtime via RegistryProvider.
 // =============================================================================
 
 // ─── Workspace constants ───────────────────────────────────────────────────────
@@ -162,12 +163,10 @@ export const FILTERS: Record<FilterKey, FilterDef> = {
   },
 };
 
-// ─── Dashboard registry ───────────────────────────────────────────────────────
-// Register each AI/BI dashboard and WIRE its filters. `globalFilterPage` is the
-// dashboard's "Global Filters" page id; `filters` maps a logical FilterKey to
-// the widget id that drives it on THIS dashboard. Only listed filters are pushed
-// into the embed URL and shown in the FilterBar — so different dashboards can
-// expose different filter sets.
+// ─── Dashboard spec (embed contract) ─────────────────────────────────────────
+// Minimal shape that the embed-URL helpers require. The asset registry returns
+// AssetSpec (types.ts); App maps it to DashboardSpec via toEmbedSpec() so the
+// helper signatures don't change.
 
 export interface DashboardSpec {
   id: string;                                   // Lakeview dashboard id
@@ -175,23 +174,6 @@ export interface DashboardSpec {
   filters: Partial<Record<FilterKey, string>>;  // FilterKey → widget id
   workspace?: string;                           // optional per-dashboard workspace
   org?: string;                                 // optional per-dashboard org id
-}
-
-export const DASHBOARDS: Record<string, DashboardSpec> = {
-  apex: {
-    id: "01f1271698161d42b3c66528415775e8",
-    globalFilterPage: "54194f59",
-    filters: {
-      currentPeriod: "period",
-      previousPeriod: "previous_period",
-      travelSector: "tsector",
-      destinationRegion: "dest_region",
-    },
-  },
-};
-
-export function getDashboardById(id: string): DashboardSpec | undefined {
-  return Object.values(DASHBOARDS).find((d) => d.id === id);
 }
 
 export function getSupportedFilterKeys(spec?: DashboardSpec): FilterKey[] {
@@ -495,61 +477,9 @@ export function filtersToContext(filters: FilterState, spec?: DashboardSpec): st
   return parts.join(". ");
 }
 
-// ─── Genie wiring (executive summary + page Q&A) ──────────────────────────────
-// Each page can carry its own tailored executive-summary prompt + suggested
-// questions. The in-dashboard Ask APEX rail and the Executive Summary button
-// both call the managed Genie MCP server with these.
-
-export interface DashboardGenieConfig {
-  summaryPrompt: string;
-  suggestions: string[];
-}
-
-const SPEND_GENIE: DashboardGenieConfig = {
-  summaryPrompt:
-    "Write a concise executive summary of corporate travel SPEND for the current period. " +
-    "Cover total spend, the top spend categories, the top destinations, and the most " +
-    "significant year-over-year changes. Use specific numbers and keep it to a few short paragraphs.",
-  suggestions: [
-    "Total spend by category for 2025?",
-    "Top 10 destinations by gross spend USD?",
-    "Compare spend 2025 vs 2024 by travel sector?",
-  ],
-};
-
-const SUSTAINABILITY_GENIE: DashboardGenieConfig = {
-  summaryPrompt:
-    "Write a concise executive summary of travel SUSTAINABILITY for the current period. " +
-    "Cover total CO2 emissions, emissions by travel category, the most carbon-intensive " +
-    "categories or destinations, and notable year-over-year changes. Use specific numbers " +
-    "and keep it to a few short paragraphs.",
-  suggestions: [
-    "Total emissions by category for 2025?",
-    "Top 5 countries by CO2 emissions?",
-    "What is the emissions per km for Air travel?",
-  ],
-};
-
-const CARBON_FORECAST_GENIE: DashboardGenieConfig = {
-  summaryPrompt:
-    "Summarize the carbon emissions forecast: the projected CO2 emissions trend, the key " +
-    "drivers behind it, and how the trajectory compares to the current period. Use specific numbers.",
-  suggestions: [
-    "What is the projected CO2 emissions trend?",
-    "Which categories drive future emissions most?",
-    "How do forecasted emissions compare to last year?",
-  ],
-};
-
 // ─── Routes ──────────────────────────────────────────────────────────────────
-// `dashboard` is a key into DASHBOARDS. Each page can override Genie wiring;
-// otherwise the route-level `genie` (then a safe fallback) is used.
-
-export interface PageConfig {
-  label: string;
-  pageId: string;
-  genie?: DashboardGenieConfig;
-}
+// `dashboard` is a key into the asset registry (server/assets/dashboards.seed.json).
+// Pages and Genie wiring are resolved at runtime from the registry.
 
 export type RouteMode = "custom" | "placeholder" | "react";
 
@@ -559,9 +489,7 @@ export interface RouteConfig {
   icon: string; // key into ICON_MAP
   section: "insights" | "exploration";
   mode: RouteMode;
-  dashboard?: string;            // key into DASHBOARDS
-  pages?: PageConfig[];
-  genie?: DashboardGenieConfig;  // route-level default Genie wiring
+  dashboard?: string; // key into the asset registry (server/assets/dashboards.seed.json)
 }
 
 export const ROUTES: RouteConfig[] = [
@@ -578,12 +506,7 @@ export const ROUTES: RouteConfig[] = [
     icon: "DollarSign",
     section: "insights",
     mode: "custom",
-    dashboard: "apex",
-    genie: SPEND_GENIE,
-    pages: [
-      { label: "Summary", pageId: "summary", genie: SPEND_GENIE },
-      { label: "Carbon Forecasting", pageId: "carbon_forecasting", genie: CARBON_FORECAST_GENIE },
-    ],
+    dashboard: "spend",
   },
   {
     path: "/sustainability",
@@ -591,12 +514,7 @@ export const ROUTES: RouteConfig[] = [
     icon: "Leaf",
     section: "insights",
     mode: "custom",
-    dashboard: "apex",
-    genie: SUSTAINABILITY_GENIE,
-    pages: [
-      { label: "Summary", pageId: "summary", genie: SUSTAINABILITY_GENIE },
-      { label: "Carbon Forecasting", pageId: "carbon_forecasting", genie: CARBON_FORECAST_GENIE },
-    ],
+    dashboard: "sustainability",
   },
   {
     path: "/genie-mcp",
@@ -620,15 +538,6 @@ export const ROUTES: RouteConfig[] = [
     mode: "react",
   },
 ];
-
-export function getDashboard(route?: RouteConfig): DashboardSpec | undefined {
-  return route?.dashboard ? DASHBOARDS[route.dashboard] : undefined;
-}
-
-export function getDashboardGenie(route?: RouteConfig, pageId?: string): DashboardGenieConfig {
-  const page = route?.pages?.find((p) => p.pageId === pageId);
-  return page?.genie ?? route?.genie ?? SPEND_GENIE;
-}
 
 // ─── Executive summary prompt formatting ──────────────────────────────────────
 // The Executive Summary modal calls the workspace-wide Genie MCP ("multi" mode)

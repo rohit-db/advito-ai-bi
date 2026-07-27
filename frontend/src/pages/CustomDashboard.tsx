@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { DatabricksDashboard } from "@databricks/aibi-client";
 import { WORKSPACE, ORG, buildTokenEmbedUrl, fetchEmbedToken, shouldPassEmbedFilters } from "@/config";
-import type { DashboardSpec, FilterState, PageConfig } from "@/config";
+import type { DashboardSpec, FilterState } from "@/config";
+import type { AssetPage } from "@/registry/types";
 
 // Config payload that hides the "Powered by Databricks" footer. Mirrors what
 // @databricks/aibi-client sends; we re-send it ourselves after any iframe reload
@@ -25,7 +26,7 @@ function cropIframeHeader(iframe: HTMLIFrameElement | null | undefined) {
 
 interface CustomDashboardProps {
   spec: DashboardSpec;
-  pages: PageConfig[];
+  pages: AssetPage[];
   filters: FilterState;
   filtersReady?: boolean;
   activePageId?: string;

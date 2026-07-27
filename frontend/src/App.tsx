@@ -17,14 +17,31 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ROUTES,
   filtersToContext,
-  getDashboard,
-  getDashboardGenie,
   getSupportedFilterKeys,
   DEFAULT_FILTERS,
   loadEffectiveFilterPrefs,
   saveFilterPrefs,
 } from "@/config";
-import type { FilterState, RouteConfig } from "@/config";
+import type { FilterState, RouteConfig, DashboardSpec } from "@/config";
+import { useRegistry, useDashboardAsset } from "@/registry/useRegistry";
+import type { AssetSpec, AssetPage } from "@/registry/types";
+
+/** The embedded-dashboard SDK + URL helpers key off `id`; map the asset onto that shape. */
+function toEmbedSpec(asset: AssetSpec): DashboardSpec {
+  return {
+    id: asset.dashboardId,
+    globalFilterPage: asset.globalFilterPage,
+    filters: asset.filters,
+    workspace: asset.workspace,
+    org: asset.org,
+  };
+}
+
+/** Resolve the Genie config for the active page (falls back to the first page). */
+function pageGenie(asset: AssetSpec | undefined, pageId?: string): { summaryPrompt: string; suggestions: string[] } {
+  const page = asset?.pages.find((p) => p.pageId === pageId) ?? asset?.pages[0];
+  return { summaryPrompt: page?.summaryPrompt ?? "", suggestions: page?.suggestions ?? [] };
+}
 
 function RouteRenderer({
   route,
@@ -45,27 +62,18 @@ function RouteRenderer({
   summaryOpen: boolean;
   onSummaryOpenChange: (open: boolean) => void;
 }) {
+  const asset = useDashboardAsset(route.dashboard);
   switch (route.mode) {
     case "custom": {
-      const genie = getDashboardGenie(route, activePageId);
-      const spec = getDashboard(route);
-      const pageLabel = `${route.label} · ${
-        route.pages?.find((p) => p.pageId === activePageId)?.label ?? ""
-      }`.replace(/ · $/, "");
-      const pageContext = [`Dashboard: ${pageLabel}`, filtersToContext(filters, spec)]
-        .filter(Boolean)
-        .join(". ");
-
+      if (!asset) return <Placeholder />;
+      const pages = asset.pages;
+      const spec = toEmbedSpec(asset);
+      const genie = pageGenie(asset, activePageId);
+      const pageLabel = `${route.label} · ${pages.find((p) => p.pageId === activePageId)?.label ?? ""}`.replace(/ · $/, "");
+      const pageContext = [`Dashboard: ${pageLabel}`, filtersToContext(filters, spec)].filter(Boolean).join(". ");
       const content = (
-        <CustomDashboard
-          spec={spec!}
-          pages={route.pages || []}
-          filters={filters}
-          filtersReady={filtersReady}
-          activePageId={activePageId}
-        />
+        <CustomDashboard spec={spec} pages={pages} filters={filters} filtersReady={filtersReady} activePageId={activePageId} />
       );
-
       return (
         <DashboardWorkspace
           pageKey={`${route.path}:${activePageId ?? ""}`}
@@ -103,12 +111,13 @@ export default function App() {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const location = useLocation();
 
+  const registry = useRegistry();
   const currentRoute = ROUTES.find((r) => r.path === location.pathname);
   const isCustom = currentRoute?.mode === "custom";
-  const pages = currentRoute?.pages || [];
-  const currentDashboard = getDashboard(currentRoute);
-  const currentDashboardId = currentDashboard?.id;
-  const filterKeys = getSupportedFilterKeys(currentDashboard);
+  const currentAsset: AssetSpec | undefined = currentRoute?.dashboard ? registry.assets[currentRoute.dashboard] : undefined;
+  const pages: AssetPage[] = currentAsset?.pages ?? [];
+  const currentDashboardId = currentAsset?.dashboardId;
+  const filterKeys = getSupportedFilterKeys(currentAsset ? toEmbedSpec(currentAsset) : undefined);
 
   // Restore filters: My Filters defaults, with per-dashboard FilterBar overrides on top.
   const loadFilterPrefs = useCallback(async (): Promise<FilterState | null> => {
