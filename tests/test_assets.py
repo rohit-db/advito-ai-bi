@@ -1,3 +1,5 @@
+from fastapi.testclient import TestClient
+
 from server.assets import registry as assets
 
 
@@ -44,11 +46,10 @@ def test_load_registry_failsoft_on_bad_json(monkeypatch, tmp_path):
     assert assets.load_registry() == {"assets": {}}
 
 
-from fastapi.testclient import TestClient
-
-
 def test_get_api_assets_returns_registry(monkeypatch):
     # Auth gate is a no-op unless AUTH_ENABLED; keep it off for this unit check.
+    # Import app FIRST (its load_dotenv() sets AUTH_ENABLED from .env), THEN
+    # delenv below — clearing before the import would let load_dotenv re-add it.
     import app as app_module
     monkeypatch.delenv("AUTH_ENABLED", raising=False)
 
