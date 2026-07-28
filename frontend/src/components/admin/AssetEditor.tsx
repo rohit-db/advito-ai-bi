@@ -9,13 +9,22 @@ import type { AssetRow, SaveAssetBody } from "@/lib/adminApi";
 const FILTER_KEYS = Object.keys(FILTERS) as FilterKey[];
 const SLUG_RE = /^[a-z0-9_-]+$/;
 
+// Stable uid counter for list keys — editor-local only, never persisted.
+let _uid = 0;
+const nextUid = () => `row-${_uid++}`;
+
 interface FilterRow {
+  uid: string;
   key: FilterKey;
   widget: string;
 }
 
-function blankPage(): AssetPage {
-  return { pageId: "", label: "", summaryPrompt: "", suggestions: [] };
+// Editor-local page type: AssetPage + a stable uid for React keys.
+// uid is stripped when building SaveAssetBody (handleSave maps fields explicitly).
+type EditorPage = AssetPage & { uid: string };
+
+function blankPage(): EditorPage {
+  return { uid: nextUid(), pageId: "", label: "", summaryPrompt: "", suggestions: [] };
 }
 
 /**
@@ -45,16 +54,26 @@ export default function AssetEditor({
   const [workspace, setWorkspace] = useState(initial?.spec.workspace ?? "");
   const [org, setOrg] = useState(initial?.spec.org ?? "");
   const [filterRows, setFilterRows] = useState<FilterRow[]>(
-    Object.entries(initial?.spec.filters ?? {}).map(([k, v]) => ({ key: k as FilterKey, widget: v as string }))
+    Object.entries(initial?.spec.filters ?? {}).map(([k, v]) => ({ uid: nextUid(), key: k as FilterKey, widget: v as string }))
   );
-  const [pages, setPages] = useState<AssetPage[]>(
-    initial?.spec.pages?.length ? initial.spec.pages.map((p) => ({ ...p, suggestions: [...p.suggestions] })) : [blankPage()]
+  const [pages, setPages] = useState<EditorPage[]>(
+    initial?.spec.pages?.length ? initial.spec.pages.map((p) => ({ ...p, uid: nextUid(), suggestions: [...p.suggestions] })) : [blankPage()]
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const setPage = (i: number, patch: Partial<AssetPage>) =>
+  const setPage = (i: number, patch: Partial<EditorPage>) =>
     setPages((ps) => ps.map((p, j) => (j === i ? { ...p, ...patch } : p)));
+
+  // Fix 2: derive from latest state to avoid stale closure over page.suggestions.
+  const setSuggestion = (pi: number, si: number, val: string) =>
+    setPages((ps) => ps.map((p, j) => (j === pi ? { ...p, suggestions: p.suggestions.map((s, k) => (k === si ? val : s)) } : p)));
+
+  const removeSuggestion = (pi: number, si: number) =>
+    setPages((ps) => ps.map((p, j) => (j === pi ? { ...p, suggestions: p.suggestions.filter((_, k) => k !== si) } : p)));
+
+  const addSuggestion = (pi: number) =>
+    setPages((ps) => ps.map((p, j) => (j === pi ? { ...p, suggestions: [...p.suggestions, ""] } : p)));
 
   async function handleSave() {
     setError(null);
@@ -158,14 +177,14 @@ export default function AssetEditor({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className={lbl}>Filters</span>
-            <button onClick={() => setFilterRows((r) => [...r, { key: FILTER_KEYS[0], widget: "" }])}
+            <button onClick={() => setFilterRows((r) => [...r, { uid: nextUid(), key: FILTER_KEYS[0], widget: "" }])}
               className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark">
               <Plus size={13} /> Add filter
             </button>
           </div>
           {filterRows.length === 0 && <p className="text-xs text-slate-400">No filters wired.</p>}
           {filterRows.map((row, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={row.uid} className="flex items-center gap-2">
               <select aria-label="Filter key" className={input + " flex-1"} value={row.key}
                 onChange={(e) => setFilterRows((r) => r.map((x, j) => (j === i ? { ...x, key: e.target.value as FilterKey } : x)))}>
                 {FILTER_KEYS.map((k) => (
@@ -193,7 +212,7 @@ export default function AssetEditor({
             </button>
           </div>
           {pages.map((page, i) => (
-            <div key={i} className="rounded-lg border border-brand-border p-3 space-y-2">
+            <div key={page.uid} className="rounded-lg border border-brand-border p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <input aria-label="Page id" className={input + " flex-1"} value={page.pageId} placeholder="pageId"
                   onChange={(e) => setPage(i, { pageId: e.target.value })} />
@@ -210,16 +229,16 @@ export default function AssetEditor({
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-wide text-slate-400">Suggestions</span>
                 {page.suggestions.map((s, si) => (
-                  <div key={si} className="flex items-center gap-2">
+                  <div key={`${page.uid}:${si}`} className="flex items-center gap-2">
                     <input aria-label="Suggestion" className={input + " flex-1"} value={s}
-                      onChange={(e) => setPage(i, { suggestions: page.suggestions.map((x, j) => (j === si ? e.target.value : x)) })} />
-                    <button aria-label="Remove suggestion" onClick={() => setPage(i, { suggestions: page.suggestions.filter((_, j) => j !== si) })}
+                      onChange={(e) => setSuggestion(i, si, e.target.value)} />
+                    <button aria-label="Remove suggestion" onClick={() => removeSuggestion(i, si)}
                       className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500">
                       <Trash2 size={13} />
                     </button>
                   </div>
                 ))}
-                <button onClick={() => setPage(i, { suggestions: [...page.suggestions, ""] })}
+                <button onClick={() => addSuggestion(i)}
                   className="inline-flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark">
                   <Plus size={12} /> Add suggestion
                 </button>
