@@ -79,10 +79,17 @@ def test_load_registry_omits_inactive(monkeypatch):
 
 
 def test_app_startup_calls_asset_ensure_schema(monkeypatch):
-    # The startup hook must best-effort-call assets.ensure_schema (like users/tenants).
+    # Verify the startup hook calls the ASSET registry init. Stub every ensure_schema
+    # the hook invokes so this stays a true unit test (no real Lakebase connection).
     import app as app_module
-    called = {"n": 0}
-    monkeypatch.setattr("server.assets.registry.ensure_schema", lambda: called.__setitem__("n", called["n"] + 1))
-    # Re-run the startup hook directly.
+    called = {"assets": 0}
+    monkeypatch.setattr("server.persistence.ensure_schema", lambda: None, raising=False)
+    monkeypatch.setattr("server.tenants.registry.ensure_schema", lambda: None, raising=False)
+    monkeypatch.setattr("server.tenants.audit.ensure_schema", lambda: None, raising=False)
+    monkeypatch.setattr("server.auth.users.ensure_schema", lambda: None, raising=False)
+    monkeypatch.setattr(
+        "server.assets.registry.ensure_schema",
+        lambda: called.__setitem__("assets", called["assets"] + 1),
+    )
     app_module._ensure_lakebase_schema()
-    assert called["n"] >= 1
+    assert called["assets"] >= 1
