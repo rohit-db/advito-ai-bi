@@ -50,3 +50,45 @@ def test_admin_assets_403_for_non_operator(monkeypatch):
                              "tenant": "Acme", "tenant_id": "acme-travel", "role": "user"})
     client.cookies.set(SESSION_COOKIE, cookie)
     assert client.get("/api/admin/assets").status_code == 403
+
+
+# ---- Workspace resource pickers (dashboards / genie spaces) ----------------
+
+def test_admin_dashboards_shape_and_failsoft(monkeypatch):
+    # Stub the SDK-backed discovery so the route test never hits a real workspace;
+    # assert the route wraps it in {dashboards: [...]}.
+    from server.tenants import resources
+    monkeypatch.setattr(resources, "list_workspace_dashboards",
+                        lambda: [{"id": "01f-abc", "name": "Some Dashboard"}])
+    client = _operator_client(monkeypatch)
+    res = client.get("/api/admin/dashboards")
+    assert res.status_code == 200
+    assert res.json() == {"dashboards": [{"id": "01f-abc", "name": "Some Dashboard"}]}
+
+
+def test_admin_genie_spaces_shape(monkeypatch):
+    from server.tenants import resources
+    monkeypatch.setattr(resources, "list_workspace_genie_spaces",
+                        lambda: [{"id": "01f-g", "name": "A Space"}])
+    client = _operator_client(monkeypatch)
+    res = client.get("/api/admin/genie-spaces")
+    assert res.status_code == 200
+    assert res.json() == {"genie_spaces": [{"id": "01f-g", "name": "A Space"}]}
+
+
+def test_admin_dashboards_operator_gated(monkeypatch):
+    import app as app_module
+    monkeypatch.setenv("AUTH_ENABLED", "true")
+    client = TestClient(app_module.app)  # no cookie
+    assert client.get("/api/admin/dashboards").status_code == 401
+    assert client.get("/api/admin/genie-spaces").status_code == 401
+
+
+def test_list_workspace_dashboards_failsoft_on_sdk_error(monkeypatch):
+    # The resources-layer helper must never raise — a broken client → [].
+    from server.tenants import resources, runtime
+    class _Boom:
+        def __getattr__(self, n): raise RuntimeError("workspace down")
+    monkeypatch.setattr(runtime, "admin_client", lambda: _Boom())
+    assert resources.list_workspace_dashboards() == []
+    assert resources.list_workspace_genie_spaces() == []

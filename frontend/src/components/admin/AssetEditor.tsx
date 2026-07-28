@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2, LayoutDashboard } from "lucide-react";
 import { Modal } from "./shared";
 import { FILTERS } from "@/config";
 import type { FilterKey } from "@/config";
 import type { AssetPage } from "@/registry/types";
-import type { AssetRow, SaveAssetBody } from "@/lib/adminApi";
+import * as adminApi from "@/lib/adminApi";
+import type { AssetRow, SaveAssetBody, ResourceItem } from "@/lib/adminApi";
 
 const FILTER_KEYS = Object.keys(FILTERS) as FilterKey[];
 const SLUG_RE = /^[a-z0-9_-]+$/;
@@ -61,6 +62,18 @@ export default function AssetEditor({
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Workspace dashboards for the id picker (name → id). Fail-soft: on error the
+  // list stays empty and the field degrades to plain free-text id entry.
+  const [dashboards, setDashboards] = useState<ResourceItem[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .listWorkspaceDashboards()
+      .then((r) => { if (!cancelled) setDashboards(r.dashboards ?? []); })
+      .catch(() => { /* fail-soft — keep free-text entry */ });
+    return () => { cancelled = true; };
+  }, []);
 
   const setPage = (i: number, patch: Partial<EditorPage>) =>
     setPages((ps) => ps.map((p, j) => (j === i ? { ...p, ...patch } : p)));
@@ -156,8 +169,45 @@ export default function AssetEditor({
             <input aria-label="Label" className={input} value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Spend" />
           </label>
           <label className="space-y-1">
-            <span className={lbl}>Dashboard id</span>
-            <input aria-label="Dashboard id" className={input} value={dashboardId} onChange={(e) => setDashboardId(e.target.value)} />
+            <span className={lbl}>Dashboard</span>
+            {dashboards.length > 0 ? (
+              (() => {
+                const known = dashboards.some((d) => d.id === dashboardId);
+                // Select value: a known id, "" (placeholder) when empty, else the
+                // "custom" sentinel (non-empty id not in the workspace list).
+                const selectValue = known ? dashboardId : dashboardId ? "__custom__" : "";
+                return (
+                  <>
+                    <select
+                      aria-label="Dashboard"
+                      className={input}
+                      value={selectValue}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        // Picking "custom" keeps the current id and reveals the
+                        // free-text box; picking a real dashboard sets its id.
+                        setDashboardId(v === "__custom__" ? (dashboardId || " ") : v === "" ? "" : v);
+                      }}
+                    >
+                      <option value="">Select a dashboard…</option>
+                      {dashboards.map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                      <option value="__custom__">Other (enter id manually)…</option>
+                    </select>
+                    {/* Free-text fallback: shown when the id isn't a known workspace
+                        dashboard (custom entry / edit of an off-list id). */}
+                    {selectValue === "__custom__" && (
+                      <input aria-label="Dashboard id" className={input + " mt-1"} value={dashboardId.trim()}
+                        placeholder="dashboard id" onChange={(e) => setDashboardId(e.target.value)} />
+                    )}
+                  </>
+                );
+              })()
+            ) : (
+              <input aria-label="Dashboard id" className={input} value={dashboardId}
+                placeholder="dashboard id" onChange={(e) => setDashboardId(e.target.value)} />
+            )}
           </label>
           <label className="space-y-1">
             <span className={lbl}>Global filter page</span>

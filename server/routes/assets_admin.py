@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from ..assets import registry as assets_registry
 from ..auth.sessions import SESSION_COOKIE, verify_session
-from ..tenants import audit
+from ..tenants import audit, resources as tenant_resources
 
 router = APIRouter()
 
@@ -38,6 +38,24 @@ class AssetIn(BaseModel):
 def list_admin_assets(request: Request):
     _require_operator(request)
     return {"assets": assets_registry.list_assets(), "writable": assets_registry.registry_writable()}
+
+
+@router.get("/admin/dashboards")
+def list_workspace_dashboards(request: Request):
+    """Workspace Lakeview dashboards for the asset-editor picker (by name → id).
+
+    Fail-soft: returns ``{dashboards: []}`` on any SDK error so the editor falls
+    back to free-text id entry rather than blocking.
+    """
+    _require_operator(request)
+    return {"dashboards": tenant_resources.list_workspace_dashboards()}
+
+
+@router.get("/admin/genie-spaces")
+def list_workspace_genie_spaces(request: Request):
+    """Workspace Genie spaces for the asset-editor picker (by name → id). Fail-soft."""
+    _require_operator(request)
+    return {"genie_spaces": tenant_resources.list_workspace_genie_spaces()}
 
 
 @router.post("/admin/assets")

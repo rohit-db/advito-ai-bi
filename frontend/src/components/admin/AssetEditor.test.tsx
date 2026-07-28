@@ -1,7 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AssetEditor from "./AssetEditor";
+import * as adminApi from "@/lib/adminApi";
 import type { AssetRow } from "@/lib/adminApi";
+
+vi.mock("@/lib/adminApi", async (orig) => ({ ...(await orig<typeof adminApi>()) }));
 
 const SPEND: AssetRow = {
   asset_key: "spend",
@@ -19,6 +22,13 @@ const SPEND: AssetRow = {
 };
 
 describe("AssetEditor", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    // Default: no workspace dashboards → fields degrade to free-text (matches the
+    // pre-picker behavior the scalar/page/duplicate tests below assume).
+    vi.spyOn(adminApi, "listWorkspaceDashboards").mockResolvedValue({ dashboards: [] });
+  });
+
   it("builds a save payload from edited scalar + filter + page fields", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(<AssetEditor initial={SPEND} existingKeys={["spend"]} onSave={onSave} onClose={() => {}} />);
@@ -57,5 +67,28 @@ describe("AssetEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: /^create$/i }));
     expect(onSave).not.toHaveBeenCalled();
     expect(screen.getByText(/already exists/i)).toBeInTheDocument();
+  });
+
+  it("lets the operator pick a workspace dashboard by name (sets its id in the payload)", async () => {
+    vi.spyOn(adminApi, "listWorkspaceDashboards").mockResolvedValue({
+      dashboards: [
+        { id: "01f-abc", name: "APEX Corporate Travel Analytics POC" },
+        { id: "01f-xyz", name: "Travel CO2 Emissions Dashboard" },
+      ],
+    });
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<AssetEditor initial={null} existingKeys={[]} onSave={onSave} onClose={() => {}} />);
+
+    // The picker (a <select>) appears once the workspace dashboard list loads.
+    const picker = (await screen.findByRole("combobox", { name: "Dashboard" })) as HTMLSelectElement;
+    fireEvent.change(screen.getByLabelText(/asset key/i), { target: { value: "newasset" } });
+    // Confirm the workspace dashboards are listed BY NAME as options.
+    expect(screen.getByRole("option", { name: "Travel CO2 Emissions Dashboard" })).toBeInTheDocument();
+    // Select the second dashboard by its id — its id must land in the save payload.
+    fireEvent.change(picker, { target: { value: "01f-xyz" } });
+    fireEvent.click(screen.getByRole("button", { name: /^create$/i }));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0].spec.dashboardId).toBe("01f-xyz");
   });
 });

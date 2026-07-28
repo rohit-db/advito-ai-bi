@@ -76,6 +76,66 @@ def catalog() -> dict:
     return {"dashboards": dashboards, "genie_spaces": spaces}
 
 
+# ---- Workspace discovery (for the asset-editor pickers) ---------------------
+# These list what EXISTS in the workspace so an operator can pick a dashboard /
+# Genie space by name instead of pasting a UUID. Distinct from catalog(), which
+# returns the already-configured *grantable* set. Both are fail-soft: on any SDK
+# error they return [] so the editor falls back to free-text entry.
+
+def list_workspace_dashboards() -> list[dict]:
+    """All published Lakeview dashboards in the workspace as ``[{id, name}]``."""
+    try:
+        out: list[dict] = []
+        for d in runtime.admin_client().lakeview.list():
+            did = getattr(d, "dashboard_id", None)
+            if not did:
+                continue
+            name = getattr(d, "display_name", None) or did
+            out.append({"id": did, "name": name})
+        return out
+    except Exception as e:  # noqa: BLE001 — discovery is best-effort
+        logger.warning("list_workspace_dashboards failed: %s", e)
+        return []
+
+
+def list_workspace_genie_spaces() -> list[dict]:
+    """All Genie spaces in the workspace as ``[{id, name}]``.
+
+    The SDK's ``genie.list_spaces()`` returns a response wrapper (``.spaces``),
+    not an iterable; fall back to the REST endpoint if the shape differs.
+    """
+    client = runtime.admin_client()
+    try:
+        resp = client.genie.list_spaces()
+        spaces = getattr(resp, "spaces", None)
+        if spaces is None and isinstance(resp, (list, tuple)):
+            spaces = resp
+        out: list[dict] = []
+        for s in spaces or []:
+            sid = getattr(s, "space_id", None) or getattr(s, "id", None)
+            if not sid:
+                continue
+            name = getattr(s, "title", None) or getattr(s, "display_name", None) or sid
+            out.append({"id": sid, "name": name})
+        if out:
+            return out
+    except Exception as e:  # noqa: BLE001
+        logger.warning("genie.list_spaces failed, trying REST: %s", e)
+    # REST fallback
+    try:
+        resp = client.api_client.do("GET", "/api/2.0/genie/spaces")
+        spaces = resp.get("spaces", []) if isinstance(resp, dict) else []
+        return [
+            {"id": s.get("space_id") or s.get("id"),
+             "name": s.get("title") or s.get("display_name") or (s.get("space_id") or s.get("id"))}
+            for s in spaces
+            if s.get("space_id") or s.get("id")
+        ]
+    except Exception as e:  # noqa: BLE001
+        logger.warning("REST genie/spaces failed: %s", e)
+        return []
+
+
 def _object_type(resource_type: str) -> str:
     obj = _PERM_OBJECT_TYPES.get(resource_type)
     if not obj:

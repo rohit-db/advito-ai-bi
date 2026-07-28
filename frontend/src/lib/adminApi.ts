@@ -367,3 +367,13 @@ export interface AccessMatrixResult {
 export function accessMatrix(): Promise<AccessMatrixResult> {
   return request<AccessMatrixResult>("/api/tenants/access-matrix");
 }
+
+// ─── Workspace resource discovery (asset-editor pickers) ─────────────────────
+
+export function listWorkspaceDashboards(): Promise<{ dashboards: ResourceItem[] }> {
+  return request<{ dashboards: ResourceItem[] }>("/api/admin/dashboards");
+}
+
+export function listWorkspaceGenieSpaces(): Promise<{ genie_spaces: ResourceItem[] }> {
+  return request<{ genie_spaces: ResourceItem[] }>("/api/admin/genie-spaces");
+}
