@@ -76,3 +76,13 @@ def test_load_registry_omits_inactive(monkeypatch):
     )
     monkeypatch.setattr(areg, "_cache", None)
     assert list(areg.load_registry()["assets"].keys()) == ["on"]
+
+
+def test_app_startup_calls_asset_ensure_schema(monkeypatch):
+    # The startup hook must best-effort-call assets.ensure_schema (like users/tenants).
+    import app as app_module
+    called = {"n": 0}
+    monkeypatch.setattr("server.assets.registry.ensure_schema", lambda: called.__setitem__("n", called["n"] + 1))
+    # Re-run the startup hook directly.
+    app_module._ensure_lakebase_schema()
+    assert called["n"] >= 1

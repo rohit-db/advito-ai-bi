@@ -72,6 +72,16 @@ def _ensure_lakebase_schema() -> None:
 
         logging.getLogger("app").warning("Auth users schema init skipped: %s", exc)
 
+    # Asset registry (dashboard specs); best-effort, no-op without Lakebase.
+    try:
+        from server.assets import registry as _asset_registry
+
+        _asset_registry.ensure_schema()
+    except Exception as exc:  # noqa: BLE001
+        import logging
+
+        logging.getLogger("app").warning("Asset registry schema init skipped: %s", exc)
+
 # Login/logout/identity routes. Mounted WITHOUT an /api prefix (so /login and
 # /logout are top-level), and BEFORE the SPA catch-all so they aren't swallowed
 # by the index.html fallback. The /api/auth/* routes are declared inside it too.
