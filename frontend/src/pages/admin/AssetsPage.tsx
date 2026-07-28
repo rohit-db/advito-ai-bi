@@ -17,6 +17,7 @@ export default function AssetsPage() {
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await adminApi.listAdminAssets();
       setAssets(res.assets ?? []);
@@ -33,10 +34,15 @@ export default function AssetsPage() {
   useEffect(() => { load(); }, [load]);
 
   const onSave = useCallback(async (body: SaveAssetBody) => {
-    await adminApi.saveAdminAsset(body); // throws on 400 -> surfaced by AssetEditor
+    try {
+      await adminApi.saveAdminAsset(body);
+    } catch (err) {
+      reportAccessError(err);   // flip the 401/403 gate like the other mutations
+      throw err;                // re-throw so AssetEditor still surfaces a 400 message
+    }
     setEditing(null);
     await load();
-  }, [load]);
+  }, [load, reportAccessError]);
 
   const onToggleActive = useCallback(async (row: AssetRow) => {
     setBusyKey(row.asset_key);
