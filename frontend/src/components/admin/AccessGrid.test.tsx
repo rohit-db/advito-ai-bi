@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AccessGrid from "./AccessGrid";
 import * as adminApi from "@/lib/adminApi";
 
@@ -43,5 +43,15 @@ describe("AccessGrid", () => {
     fireEvent.click(cell);
     // optimistic on, then reverts to off
     await waitFor(() => expect(cell).toHaveAttribute("aria-checked", "false"));
+  });
+
+  it("shows the error (not the empty-state note) when the initial fetch fails", async () => {
+    vi.spyOn(adminApi, "resources").mockRejectedValue(new Error("boom-500"));
+    // listTenants/accessMatrix are already stubbed in beforeEach; Promise.all rejects on the first rejection.
+    const onAccessError = vi.fn();
+    render(<AccessGrid onAccessError={onAccessError} />);
+    await waitFor(() => expect(screen.getByText(/boom-500/i)).toBeInTheDocument());
+    expect(screen.queryByText(/no grantable resources/i)).not.toBeInTheDocument();
+    expect(onAccessError).toHaveBeenCalled();
   });
 });

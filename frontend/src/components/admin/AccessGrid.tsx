@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { KeyRound } from "lucide-react";
 import * as adminApi from "@/lib/adminApi";
-import type { ResourceCatalog, TenantOut, ResourceType } from "@/lib/adminApi";
+import type { ResourceCatalog, TenantOut, ResourceType, AccessMatrixResult } from "@/lib/adminApi";
 import { Spinner } from "./shared";
 
 type Access = { dashboards: Record<string, boolean>; genie_spaces: Record<string, boolean> };
@@ -65,6 +65,14 @@ export default function AccessGrid({ onAccessError }: { onAccessError?: (err: un
     return (
       <div className="flex items-center justify-center gap-2 py-10 text-slate-400">
         <Spinner size={20} /> <span className="text-xs">Loading access…</span>
+      </div>
+    );
+  }
+
+  if (error && !catalog) {
+    return (
+      <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+        {error}
       </div>
     );
   }
