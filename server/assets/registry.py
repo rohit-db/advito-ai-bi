@@ -13,11 +13,120 @@ import os
 from pathlib import Path
 from typing import Any
 
+from ..lakebase import connection as _connection, enabled as _lb_enabled
+
 logger = logging.getLogger("server.assets.registry")
 
 # Repo-relative seed. Override with ASSETS_SEED_FILE.
 _DEFAULT_SEED = str(Path(__file__).resolve().parent / "dashboards.seed.json")
 _SEED_PATH = os.environ.get("ASSETS_SEED_FILE", _DEFAULT_SEED).strip() or _DEFAULT_SEED
+
+# ============================================================ Lakebase storage
+ASSET_TABLE = "apex_asset_registry"
+ASSET_META_TABLE = "apex_asset_registry_meta"
+
+SCHEMA_SQL = f"""
+CREATE TABLE IF NOT EXISTS {ASSET_TABLE} (
+    asset_key   VARCHAR(128) PRIMARY KEY,
+    spec        JSONB        NOT NULL,
+    sort_order  INT          NOT NULL DEFAULT 0,
+    active      BOOLEAN      NOT NULL DEFAULT TRUE,
+    updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS {ASSET_META_TABLE} (
+    id           INT PRIMARY KEY DEFAULT 1,
+    seeded       BOOLEAN NOT NULL DEFAULT FALSE,
+    seeded_at    TIMESTAMPTZ,
+    CONSTRAINT {ASSET_META_TABLE}_singleton CHECK (id = 1)
+);
+"""
+
+
+def _lakebase_list() -> list[dict]:
+    with _connection() as conn:
+        cur = conn.execute(
+            f"SELECT asset_key, spec, sort_order, active FROM {ASSET_TABLE} "
+            "ORDER BY sort_order, asset_key"
+        )
+        return [
+            {"asset_key": r[0], "spec": r[1], "sort_order": r[2], "active": r[3]}
+            for r in cur.fetchall()
+        ]
+
+
+def _lakebase_upsert(asset_key: str, spec: dict, sort_order: int, active: bool) -> None:
+    from psycopg.types.json import Json
+
+    with _connection() as conn:
+        conn.execute(
+            f"""
+            INSERT INTO {ASSET_TABLE} (asset_key, spec, sort_order, active, updated_at)
+            VALUES (%s, %s, %s, %s, NOW())
+            ON CONFLICT (asset_key) DO UPDATE SET
+                spec       = EXCLUDED.spec,
+                sort_order = EXCLUDED.sort_order,
+                active     = EXCLUDED.active,
+                updated_at = NOW()
+            """,
+            (asset_key, Json(spec), sort_order, active),
+        )
+        conn.commit()
+
+
+def _lakebase_delete(asset_key: str) -> None:
+    with _connection() as conn:
+        conn.execute(f"DELETE FROM {ASSET_TABLE} WHERE asset_key = %s", (asset_key,))
+        conn.commit()
+
+
+def _read_seed_assets() -> dict[str, Any]:
+    """Parse the seed file's assets object directly (no Lakebase), fail-soft."""
+    try:
+        data = json.loads(Path(_SEED_PATH).read_text(encoding="utf-8"))
+        assets = data.get("assets")
+        return assets if isinstance(assets, dict) else {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("assets seed unreadable during import (%s)", exc)
+        return {}
+
+
+def _seed_import_once() -> None:
+    """Import the seed rows into the table EXACTLY once (guarded by the meta marker).
+
+    After this runs, the table is authoritative — an operator deleting all assets
+    yields an empty registry that the seed does NOT resurrect.
+    """
+    with _connection() as conn:
+        conn.execute(
+            f"INSERT INTO {ASSET_META_TABLE} (id, seeded) VALUES (1, FALSE) "
+            "ON CONFLICT (id) DO NOTHING"
+        )
+        cur = conn.execute(f"SELECT seeded FROM {ASSET_META_TABLE} WHERE id = 1")
+        row = cur.fetchone()
+        if row and row[0]:
+            return  # already seeded — never import again
+        from psycopg.types.json import Json
+
+        for i, (key, spec) in enumerate(_read_seed_assets().items()):
+            conn.execute(
+                f"INSERT INTO {ASSET_TABLE} (asset_key, spec, sort_order, active) "
+                "VALUES (%s, %s, %s, TRUE) ON CONFLICT (asset_key) DO NOTHING",
+                (key, Json(spec), i),
+            )
+        conn.execute(
+            f"UPDATE {ASSET_META_TABLE} SET seeded = TRUE, seeded_at = NOW() WHERE id = 1"
+        )
+        conn.commit()
+
+
+def ensure_schema() -> None:
+    """Create the asset tables + run the once-only seed import (best-effort)."""
+    if not _lb_enabled():
+        return
+    with _connection() as conn:
+        conn.execute(SCHEMA_SQL)
+        conn.commit()
+    _seed_import_once()
 
 _cache: dict[str, Any] | None = None
 
