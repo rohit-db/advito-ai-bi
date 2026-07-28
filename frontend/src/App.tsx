@@ -11,7 +11,10 @@ import AskApexLive from "@/pages/AskApexLive";
 import HomePage from "@/pages/HomePage";
 import PreferencesPage from "@/pages/PreferencesPage";
 import Placeholder from "@/pages/Placeholder";
-import AdminPage, { ADMIN_ROUTE_PATH } from "@/pages/AdminPage";
+import AdminLayout from "@/pages/admin/AdminLayout";
+import AssetsPage from "@/pages/admin/AssetsPage";
+import TenantsPage from "@/pages/admin/TenantsPage";
+import { ADMIN_BASE } from "@/components/admin/adminContext";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -231,9 +234,12 @@ export default function App() {
         <div className="flex-1 flex min-h-0">
           <main className="flex-1 flex flex-col min-w-0">
             <Routes>
-              {/* Operator-only Service Principal management. The page self-guards
-                  via 401/403; the nav entry is hidden for non-operators. */}
-              <Route path={ADMIN_ROUTE_PATH} element={<AdminPage />} />
+              {/* Operator-only admin. Self-guards via 401/403 in AdminLayout; nav hidden for non-operators. */}
+              <Route path={ADMIN_BASE} element={<AdminLayout />}>
+                <Route index element={<AssetsPage />} />
+                <Route path="assets" element={<AssetsPage />} />
+                <Route path="tenants" element={<TenantsPage />} />
+              </Route>
               {ROUTES.map((route) => (
                 <Route
                   key={route.path}

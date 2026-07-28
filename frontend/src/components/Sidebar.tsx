@@ -5,7 +5,7 @@ import { ROUTES, ICON_MAP } from "@/config";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PanelLeftClose, PanelLeft } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
-import { ADMIN_ROUTE_PATH } from "@/pages/AdminPage";
+import { ADMIN_ASSETS_PATH, ADMIN_TENANTS_PATH } from "@/components/admin/adminContext";
 import { brand } from "@/theme/brand";
 import { BrandLogo } from "@/components/BrandLogo";
 
@@ -177,7 +177,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               </div>
             )}
             <div className="flex flex-col gap-0.5">
-              <NavItem path={ADMIN_ROUTE_PATH} label="Service Principals" icon="ShieldCheck" />
+              <NavItem path={ADMIN_ASSETS_PATH} label="Manage Assets" icon="LayoutDashboard" />
+              <NavItem path={ADMIN_TENANTS_PATH} label="Manage Users & SPs" icon="ShieldCheck" />
             </div>
           </div>
         )}
