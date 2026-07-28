@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { KeyRound } from "lucide-react";
 import * as adminApi from "@/lib/adminApi";
-import type { ResourceCatalog, TenantOut, ResourceType, AccessMatrixResult } from "@/lib/adminApi";
+import type { ResourceCatalog, TenantOut, ResourceType } from "@/lib/adminApi";
 import { Spinner } from "./shared";
 
 type Access = { dashboards: Record<string, boolean>; genie_spaces: Record<string, boolean> };

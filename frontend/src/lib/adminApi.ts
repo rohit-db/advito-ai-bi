@@ -85,15 +85,6 @@ export interface ResourceCatalog {
   genie_spaces: ResourceItem[];
 }
 
-export interface TenantAccess {
-  tenant_id: string;
-  sp_app_id: string;
-  access: {
-    dashboards: Record<string, boolean>;
-    genie_spaces: Record<string, boolean>;
-  };
-}
-
 export type ResourceType = "dashboard" | "genie_space";
 
 export interface SetAccessBody {
@@ -251,10 +242,6 @@ export function resources(): Promise<ResourceCatalog> {
 
 export function availableClients(): Promise<AvailableClientsResult> {
   return request<AvailableClientsResult>("/api/tenants/available-clients");
-}
-
-export function access(tenantId: string): Promise<TenantAccess> {
-  return request<TenantAccess>(`/api/tenants/${encodeURIComponent(tenantId)}/access`);
 }
 
 export function setAccess(tenantId: string, body: SetAccessBody): Promise<OkResult> {
