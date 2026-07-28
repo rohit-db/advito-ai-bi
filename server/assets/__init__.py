@@ -12,11 +12,16 @@ from .registry import (
     dashboard_ids,
     default_dashboard_id,
     catalog_dashboards,
+    list_assets,
+    save_asset,
+    delete_asset,
+    registry_writable,
+    validate_asset,
+    ensure_schema,
 )
 
 __all__ = [
-    "load_registry",
-    "dashboard_ids",
-    "default_dashboard_id",
-    "catalog_dashboards",
+    "load_registry", "dashboard_ids", "default_dashboard_id", "catalog_dashboards",
+    "list_assets", "save_asset", "delete_asset", "registry_writable",
+    "validate_asset", "ensure_schema",
 ]

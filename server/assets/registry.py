@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -131,11 +132,79 @@ def ensure_schema() -> None:
     _seed_import_once()
 
 
+# The FilterKey vocabulary lives in frontend/src/config.ts FILTERS; the server
+# validates seed/registry `filters` maps against the same known set.
+_KNOWN_FILTER_KEYS = {"currentPeriod", "previousPeriod", "travelSector", "destinationRegion"}
+_ASSET_KEY_RE = re.compile(r"^[a-z0-9_-]+$")
+
+
+def validate_asset(asset_key: str, spec: dict) -> None:
+    """Raise ValueError if the asset_key/spec is malformed."""
+    if not asset_key or not _ASSET_KEY_RE.match(asset_key):
+        raise ValueError("asset_key must match [a-z0-9_-]+")
+    if not isinstance(spec, dict):
+        raise ValueError("spec must be an object")
+    if not str(spec.get("dashboardId") or "").strip():
+        raise ValueError("spec.dashboardId is required")
+    filters = spec.get("filters") or {}
+    if not isinstance(filters, dict):
+        raise ValueError("spec.filters must be an object")
+    bad = set(filters) - _KNOWN_FILTER_KEYS
+    if bad:
+        raise ValueError(f"unknown filter key(s): {sorted(bad)}")
+    pages = spec.get("pages", [])
+    if not isinstance(pages, list):
+        raise ValueError("spec.pages must be a list")
+
+
+def registry_writable() -> bool:
+    return _lb_enabled()
+
+
+def list_assets() -> list[dict]:
+    """Resolved assets (Lakebase-or-seed): [{asset_key, spec, sort_order, active}]."""
+    if _lb_enabled():
+        try:
+            return _lakebase_list()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Lakebase asset list failed, using seed: %s", e)
+    return [
+        {"asset_key": k, "spec": v, "sort_order": i, "active": True}
+        for i, (k, v) in enumerate(_read_seed_assets().items())
+    ]
+
+
+def save_asset(asset_key: str, spec: dict, sort_order: int = 0, active: bool = True) -> None:
+    validate_asset(asset_key, spec)
+    if not _lb_enabled():
+        raise RuntimeError("Asset management requires LAKEBASE_ENABLED=true")
+    ensure_schema()
+    _lakebase_upsert(asset_key, spec, sort_order, active)
+    global _cache
+    _cache = None  # invalidate resolved cache
+
+
+def delete_asset(asset_key: str) -> None:
+    if not _lb_enabled():
+        raise RuntimeError("Asset management requires LAKEBASE_ENABLED=true")
+    ensure_schema()
+    _lakebase_delete(asset_key)
+    global _cache
+    _cache = None
+
+
 _cache: dict[str, Any] | None = None
 
 
 def load_registry() -> dict[str, Any]:
-    """Return the resolved registry ``{"assets": {key: spec}}``; never raises."""
+    """Resolved registry {"assets": {key: spec}} — Lakebase-or-seed; never raises."""
+    if _lb_enabled():
+        try:
+            rows = _lakebase_list()
+            return {"assets": {r["asset_key"]: r["spec"] for r in rows if r["active"]}}
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Lakebase registry resolve failed, using seed: %s", e)
+    # seed path (PR3a behavior, memoized)
     global _cache
     if _cache is not None:
         return _cache
