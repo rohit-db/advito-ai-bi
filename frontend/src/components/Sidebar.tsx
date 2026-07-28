@@ -168,7 +168,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </div>
         </div>
 
-        {/* Administration (operators only) — manage per-tenant Service Principals */}
+        {/* Administration (operators only) — asset registry + tenant Service Principals */}
         {isOperator && (
           <div className="mt-4">
             {!collapsed && (

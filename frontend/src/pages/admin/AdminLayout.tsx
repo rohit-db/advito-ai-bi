@@ -16,7 +16,6 @@ export default function AdminLayout() {
   const [auditRefreshing, setAuditRefreshing] = useState(false);
   const [accessError, setAccessError] = useState<{ status: number; detail: string } | null>(null);
   const gatedRef = useRef(false);
-  const [refreshTick, setRefreshTick] = useState(0);
 
   const reportAccessError = useCallback((err: unknown) => {
     if (isAdminApiError(err) && (err.status === 401 || err.status === 403) && !gatedRef.current) {
@@ -42,7 +41,6 @@ export default function AdminLayout() {
 
   const refreshAll = useCallback(() => {
     loadAudit(true);
-    setRefreshTick((t) => t + 1); // pages key their own reloads off nothing; this is a hook for future use
   }, [loadAudit]);
 
   useEffect(() => { loadAudit(); }, [loadAudit]);
