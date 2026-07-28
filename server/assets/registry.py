@@ -104,6 +104,7 @@ def _seed_import_once() -> None:
         cur = conn.execute(f"SELECT seeded FROM {ASSET_META_TABLE} WHERE id = 1")
         row = cur.fetchone()
         if row and row[0]:
+            conn.commit()   # close the open transaction cleanly (INSERT above opened one)
             return  # already seeded — never import again
         from psycopg.types.json import Json
 
@@ -126,7 +127,9 @@ def ensure_schema() -> None:
     with _connection() as conn:
         conn.execute(SCHEMA_SQL)
         conn.commit()
+    # Seed import manages its own connection/transaction (separate from DDL above).
     _seed_import_once()
+
 
 _cache: dict[str, Any] | None = None
 
