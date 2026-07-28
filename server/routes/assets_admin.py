@@ -12,7 +12,6 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from ..assets import registry as assets_registry
-from ..auth.middleware import _auth_enabled
 from ..auth.sessions import SESSION_COOKIE, verify_session
 from ..tenants import audit
 
@@ -20,15 +19,6 @@ router = APIRouter()
 
 
 def _require_operator(request: Request) -> dict:
-    """Enforce operator role.
-
-    When AUTH_ENABLED is off (dev/demo mode) the middleware is a no-op and no
-    session cookie exists; we mirror that bypass here so the route is reachable
-    without a login. When AUTH_ENABLED is on the SessionGateMiddleware already
-    enforces a valid session before this runs, but we double-check for role.
-    """
-    if not _auth_enabled():
-        return {}
     ident = verify_session(request.cookies.get(SESSION_COOKIE))
     if not ident:
         raise HTTPException(status_code=401, detail="authentication required")
