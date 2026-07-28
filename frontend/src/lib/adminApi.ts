@@ -9,6 +9,8 @@
 // parsed `detail` message when the backend provides one.
 // =============================================================================
 
+import type { AssetSpec } from "@/registry/types";
+
 // ─── Types (mirror the backend contract) ─────────────────────────────────────
 
 export interface TenantOut {
@@ -319,4 +321,62 @@ export function deleteAppUser(email: string): Promise<{ ok: boolean; email: stri
   return request<{ ok: boolean; email: string }>(`/api/users/${encodeURIComponent(email)}`, {
     method: "DELETE",
   });
+}
+
+// ─── Dashboard asset registry (operator write-surface) ───────────────────────
+
+export interface AssetRow {
+  asset_key: string;
+  spec: AssetSpec;
+  sort_order: number;
+  active: boolean;
+}
+
+export interface AdminAssetsResult {
+  assets: AssetRow[];
+  writable: boolean;
+}
+
+export interface SaveAssetBody {
+  asset_key: string;
+  spec: AssetSpec;
+  sort_order?: number;
+  active?: boolean;
+}
+
+export function listAdminAssets(): Promise<AdminAssetsResult> {
+  return request<AdminAssetsResult>("/api/admin/assets");
+}
+
+export function saveAdminAsset(body: SaveAssetBody): Promise<{ asset: AssetRow }> {
+  return request<{ asset: AssetRow }>("/api/admin/assets", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteAdminAsset(assetKey: string): Promise<{ ok: boolean; asset_key: string }> {
+  return request<{ ok: boolean; asset_key: string }>(
+    `/api/admin/assets/${encodeURIComponent(assetKey)}`,
+    { method: "DELETE" }
+  );
+}
+
+// ─── Tenant × asset access matrix (grid aggregate) ───────────────────────────
+
+export interface AccessMatrixResult {
+  tenants: Record<
+    string,
+    {
+      sp_app_id: string;
+      access: {
+        dashboards: Record<string, boolean>;
+        genie_spaces: Record<string, boolean>;
+      };
+    }
+  >;
+}
+
+export function accessMatrix(): Promise<AccessMatrixResult> {
+  return request<AccessMatrixResult>("/api/tenants/access-matrix");
 }
