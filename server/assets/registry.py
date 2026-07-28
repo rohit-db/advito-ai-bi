@@ -142,10 +142,13 @@ def validate_asset(asset_key: str, spec: dict) -> None:
     """Raise ValueError if the asset_key/spec is malformed."""
     if not asset_key or not _ASSET_KEY_RE.match(asset_key):
         raise ValueError("asset_key must match [a-z0-9_-]+")
+    if len(asset_key) > 128:
+        raise ValueError("asset_key must be at most 128 characters")
     if not isinstance(spec, dict):
         raise ValueError("spec must be an object")
-    if not str(spec.get("dashboardId") or "").strip():
-        raise ValueError("spec.dashboardId is required")
+    dashboard_id = spec.get("dashboardId")
+    if not isinstance(dashboard_id, str) or not dashboard_id.strip():
+        raise ValueError("spec.dashboardId is required and must be a non-empty string")
     filters = spec.get("filters") or {}
     if not isinstance(filters, dict):
         raise ValueError("spec.filters must be an object")

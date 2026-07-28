@@ -27,6 +27,15 @@ def test_validate_asset_rejects_bad_input():
     areg.validate_asset("ok", {"dashboardId": "d", "filters": {"currentPeriod": "period"}, "pages": []})
 
 
+def test_validate_asset_rejects_nonstring_dashboardid_and_long_key():
+    with pytest.raises(ValueError):
+        areg.validate_asset("ok", {"dashboardId": 123})            # non-string id
+    with pytest.raises(ValueError):
+        areg.validate_asset("x" * 129, {"dashboardId": "d"})       # key too long
+    # sanity: a valid string id + short key still passes
+    areg.validate_asset("ok", {"dashboardId": "d", "filters": {}, "pages": []})
+
+
 def test_save_and_delete_require_lakebase(monkeypatch):
     monkeypatch.setattr(areg, "_lb_enabled", lambda: False)
     with pytest.raises(RuntimeError, match="LAKEBASE_ENABLED"):

@@ -156,6 +156,8 @@ def access_matrix(sp_app_ids: list[str]) -> dict:
     scales with the number of resources, not tenants*resources — the right shape
     for the admin access grid.
     """
+    if not sp_app_ids:
+        return {}
     cat = catalog()
     # Fetch each resource ACL once.
     dash_acls = {d["id"]: _acl_entries("dashboard", d["id"]) for d in cat["dashboards"]}

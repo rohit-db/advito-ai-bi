@@ -17,4 +17,7 @@ def _hermetic_env(monkeypatch):
     # import time; patching the env var alone won't retroactively change it.
     # Patch the live module attribute so enabled() returns False in every test.
     monkeypatch.setattr("server.lakebase.LAKEBASE_ENABLED", False, raising=False)
+    # server.auth.users binds LAKEBASE_ENABLED by value at import; patch it too so
+    # the users path is forced off (otherwise a users test would hit real Lakebase).
+    monkeypatch.setattr("server.auth.users.LAKEBASE_ENABLED", False, raising=False)
     yield

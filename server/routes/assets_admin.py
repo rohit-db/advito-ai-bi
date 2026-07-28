@@ -6,7 +6,7 @@ it off the registry is read-only (the seed file is the source). Mirrors the
 """
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel

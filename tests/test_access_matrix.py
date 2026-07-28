@@ -44,3 +44,14 @@ def test_service_access_matrix_empty_when_no_tenants(monkeypatch):
     from server.tenants import service, registry as tregistry
     monkeypatch.setattr(tregistry, "list_tenants", lambda: [])
     assert service.access_matrix() == {"tenants": {}}
+
+
+def test_access_matrix_empty_sp_list_is_hermetic(monkeypatch):
+    # Zero SPs -> no Databricks calls at all.
+    called = {"n": 0}
+    def _boom(*a, **k):
+        called["n"] += 1
+        raise AssertionError("_acl_entries must not be called for an empty SP list")
+    monkeypatch.setattr(resources, "_acl_entries", _boom)
+    assert resources.access_matrix([]) == {}
+    assert called["n"] == 0
