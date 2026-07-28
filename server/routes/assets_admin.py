@@ -1,0 +1,81 @@
+"""Operator API for the dashboard asset registry.
+
+Manages the assets exposed via GET /api/assets. Editing requires Lakebase; with
+it off the registry is read-only (the seed file is the source). Mirrors the
+/api/users operator pattern.
+"""
+from __future__ import annotations
+
+from typing import Any, Optional
+
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
+
+from ..assets import registry as assets_registry
+from ..auth.middleware import _auth_enabled
+from ..auth.sessions import SESSION_COOKIE, verify_session
+from ..tenants import audit
+
+router = APIRouter()
+
+
+def _require_operator(request: Request) -> dict:
+    """Enforce operator role.
+
+    When AUTH_ENABLED is off (dev/demo mode) the middleware is a no-op and no
+    session cookie exists; we mirror that bypass here so the route is reachable
+    without a login. When AUTH_ENABLED is on the SessionGateMiddleware already
+    enforces a valid session before this runs, but we double-check for role.
+    """
+    if not _auth_enabled():
+        return {}
+    ident = verify_session(request.cookies.get(SESSION_COOKIE))
+    if not ident:
+        raise HTTPException(status_code=401, detail="authentication required")
+    if ident.get("role") != "operator":
+        raise HTTPException(status_code=403, detail="operator role required")
+    return ident
+
+
+class AssetIn(BaseModel):
+    asset_key: str
+    spec: dict[str, Any]
+    sort_order: int = 0
+    active: bool = True
+
+
+@router.get("/admin/assets")
+def list_admin_assets(request: Request):
+    _require_operator(request)
+    return {"assets": assets_registry.list_assets(), "writable": assets_registry.registry_writable()}
+
+
+@router.post("/admin/assets")
+def save_admin_asset(request: Request, body: AssetIn):
+    ident = _require_operator(request)
+    try:
+        assets_registry.validate_asset(body.asset_key, body.spec)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    try:
+        assets_registry.save_asset(body.asset_key, body.spec, body.sort_order, body.active)
+    except RuntimeError as e:  # Lakebase off
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    audit.log("asset_save", actor=ident.get("email"), status="ok", detail=body.asset_key)
+    return {"asset": {"asset_key": body.asset_key, "spec": body.spec,
+                      "sort_order": body.sort_order, "active": body.active}}
+
+
+@router.delete("/admin/assets/{asset_key}")
+def delete_admin_asset(request: Request, asset_key: str):
+    ident = _require_operator(request)
+    try:
+        assets_registry.delete_asset(asset_key)
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    audit.log("asset_delete", actor=ident.get("email"), status="ok", detail=asset_key)
+    return {"ok": True, "asset_key": asset_key}

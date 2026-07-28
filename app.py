@@ -32,6 +32,10 @@ app.include_router(tenants_router, prefix="/api")
 from server.routes.users import router as users_router
 app.include_router(users_router, prefix="/api")
 
+# Dashboard asset registry (operator CRUD API).
+from server.routes.assets_admin import router as assets_admin_router
+app.include_router(assets_admin_router, prefix="/api")
+
 # Conversation history + user filter preferences, persisted in Lakebase.
 from server.routes.apex import router as apex_router
 app.include_router(apex_router, prefix="/api/apex")
