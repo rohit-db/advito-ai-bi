@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 import os
 
-from databricks.sdk.service.iam import AccessControlRequest
+from databricks.sdk.service.iam import AccessControlRequest, PermissionLevel
 
 from . import runtime
 
@@ -33,7 +33,10 @@ _PERM_OBJECT_TYPES = {
     "dashboard": "dashboards",
     "genie_space": "genie",
 }
-_PERMISSION_LEVEL = "CAN_RUN"
+# Must be the SDK enum, not the bare string — AccessControlRequest serialization
+# calls `.value` on permission_level (a plain "CAN_RUN" str raises
+# 'str' object has no attribute 'value' when the grant request is sent).
+_PERMISSION_LEVEL = PermissionLevel.CAN_RUN
 
 
 def _parse(raw: str) -> list[dict]:

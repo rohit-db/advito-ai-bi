@@ -55,3 +55,35 @@ def test_access_matrix_empty_sp_list_is_hermetic(monkeypatch):
     monkeypatch.setattr(resources, "_acl_entries", _boom)
     assert resources.access_matrix([]) == {}
     assert called["n"] == 0
+
+
+def test_permission_level_is_sdk_enum_not_bare_string():
+    """Regression: grant() must use the SDK PermissionLevel enum, not the string
+    "CAN_RUN". AccessControlRequest serialization calls `.value` on
+    permission_level, so a bare str raises 'str' object has no attribute 'value'
+    the moment a grant is actually sent (read paths never build the request, so
+    the bug only surfaced on a live toggle)."""
+    from databricks.sdk.service.iam import PermissionLevel
+    assert resources._PERMISSION_LEVEL is PermissionLevel.CAN_RUN
+    assert not isinstance(resources._PERMISSION_LEVEL, str)
+
+
+def test_grant_builds_serializable_access_control_request(monkeypatch):
+    """The request grant() hands the SDK must serialize (.as_dict()) without the
+    'str' object has no attribute 'value' error — i.e. permission_level is an enum."""
+    captured = {}
+
+    class _FakePerms:
+        def update(self, object_type, resource_id, access_control_list):
+            # Serializing is exactly what the real SDK client does before the HTTP
+            # call — and where the bare-string bug used to blow up.
+            captured["acl"] = [a.as_dict() for a in access_control_list]
+
+    class _FakeClient:
+        permissions = _FakePerms()
+
+    monkeypatch.setattr(resources.runtime, "admin_client", lambda: _FakeClient())
+    resources.grant("sp-123", "dashboard", "dash-abc")
+    assert captured["acl"] == [
+        {"service_principal_name": "sp-123", "permission_level": "CAN_RUN"}
+    ]
