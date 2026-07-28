@@ -149,6 +149,26 @@ def has_access(sp_app_id: str, resource_type: str, resource_id: str) -> bool:
     return _sp_has_access(_acl_entries(resource_type, resource_id), sp_app_id)
 
 
+def access_matrix(sp_app_ids: list[str]) -> dict:
+    """Access for MANY SPs at once, fetching each resource ACL exactly once.
+
+    Returns ``{sp_app_id: {dashboards:{id:bool}, genie_spaces:{id:bool}}}``. Cost
+    scales with the number of resources, not tenants*resources — the right shape
+    for the admin access grid.
+    """
+    cat = catalog()
+    # Fetch each resource ACL once.
+    dash_acls = {d["id"]: _acl_entries("dashboard", d["id"]) for d in cat["dashboards"]}
+    space_acls = {s["id"]: _acl_entries("genie_space", s["id"]) for s in cat["genie_spaces"]}
+    out: dict = {}
+    for sp in sp_app_ids:
+        out[sp] = {
+            "dashboards": {rid: _sp_has_access(acl, sp) for rid, acl in dash_acls.items()},
+            "genie_spaces": {rid: _sp_has_access(acl, sp) for rid, acl in space_acls.items()},
+        }
+    return out
+
+
 def tenant_access(sp_app_id: str) -> dict:
     """Return ``{dashboards:{id:bool}, genie_spaces:{id:bool}}`` for the SP."""
     cat = catalog()

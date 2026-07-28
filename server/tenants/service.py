@@ -72,6 +72,19 @@ def available_clients() -> dict:
         }
 
 
+def access_matrix() -> dict:
+    """Resource access for every registered tenant SP (one ACL fetch per resource)."""
+    rows = registry.list_tenants()
+    sp_by_tenant = {r.tenant_id: r.sp_app_id for r in rows}
+    matrix = resources.access_matrix(list(sp_by_tenant.values()))
+    return {
+        "tenants": {
+            tid: {"sp_app_id": sp, "access": matrix.get(sp, {"dashboards": {}, "genie_spaces": {}})}
+            for tid, sp in sp_by_tenant.items()
+        }
+    }
+
+
 def get_access(tenant_id: str) -> dict:
     """Current resource access for one tenant's Service Principal."""
     row = registry.get_tenant(tenant_id)

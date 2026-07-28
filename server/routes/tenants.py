@@ -134,6 +134,16 @@ def list_available_clients(request: Request):
     return service.available_clients()
 
 
+@router.get("/tenants/access-matrix")
+def tenant_access_matrix(request: Request):
+    """Access for ALL tenants at once (for the admin access grid)."""
+    _require_operator(request)
+    try:
+        return service.access_matrix()
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/tenants/{tenant_id}/access")
 def tenant_access(request: Request, tenant_id: str):
     """Which catalog resources this tenant's SP currently has CAN_RUN on."""
