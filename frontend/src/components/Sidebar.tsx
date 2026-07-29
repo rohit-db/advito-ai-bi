@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import { ICON_MAP } from "@/config";
 import { useRoutes } from "@/registry/useRegistry";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PanelLeftClose, PanelLeft, ArrowLeft } from "lucide-react";
+import { PanelLeftClose, PanelLeft, ArrowLeft, Settings } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
-import { ADMIN_BASE, ADMIN_SECTIONS } from "@/components/admin/adminContext";
+import { ADMIN_BASE, ADMIN_SECTIONS, ADMIN_ASSETS_PATH } from "@/components/admin/adminContext";
 import { brand } from "@/theme/brand";
 import { BrandLogo } from "@/components/BrandLogo";
 
@@ -219,6 +219,28 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </>
         )}
       </ScrollArea>
+
+      {/* Admin footer (operator-only, analytics view only) */}
+      {isOperator && !inAdmin && (
+        <div className="px-3 py-3 border-t border-white/10 shrink-0">
+          <button
+            onClick={() => navigate(ADMIN_ASSETS_PATH)}
+            title={collapsed ? "Admin" : undefined}
+            className={cn(
+              "group w-full flex items-center rounded-lg transition-all duration-150",
+              collapsed ? "justify-center px-2 py-2" : "gap-2 px-2.5 py-2",
+              "text-white/55 hover:bg-white/5 hover:text-white"
+            )}
+          >
+            <Settings
+              size={16}
+              strokeWidth={1.75}
+              className="shrink-0 text-white/55 group-hover:text-white transition-colors"
+            />
+            {!collapsed && <span className="text-[13px] font-medium">Admin</span>}
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

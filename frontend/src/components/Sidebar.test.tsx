@@ -74,4 +74,25 @@ describe("Sidebar", () => {
     expect(screen.queryByText(/administration/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/back to apex/i)).not.toBeInTheDocument();
   });
+
+  it("shows an Admin entry for an operator on the analytics view", async () => {
+    renderSidebarAt({ assets: { spend: asset("Spend", "/spend-custom", 1) } }, "/", "operator");
+    await screen.findByText("Spend"); // wait for analytics context to settle
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+  });
+
+  it("does NOT show the Admin entry for a non-operator", async () => {
+    renderSidebarAt({ assets: { spend: asset("Spend", "/spend-custom", 1) } }, "/", "user");
+    await screen.findByText("Spend"); // wait for analytics context to settle
+    expect(screen.queryByText("Admin")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show the Admin entry when already under /admin", async () => {
+    renderSidebarAt({ assets: {} }, ADMIN_ASSETS_PATH, "operator");
+    await screen.findByText("Back to APEX"); // wait for admin context to settle
+    // Use getByRole to specifically target button roles in the admin context
+    const adminButtons = screen.getAllByRole("button");
+    const adminFooterButton = adminButtons.find(btn => btn.textContent?.includes("Admin"));
+    expect(adminFooterButton).toBeUndefined();
+  });
 });
