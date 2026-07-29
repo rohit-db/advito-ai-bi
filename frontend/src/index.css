@@ -1,25 +1,101 @@
 @import "tailwindcss";
 
-/* Layer 1 — raw brand vars with DEFAULT values (branded first paint, no FOUC).
-   ThemeProvider overwrites these on :root at runtime from brand.config.json. */
+/* ============================================================================
+   APEX tokens — DuBois design system ported into the existing brand seam.
+   LIGHT IS DEFAULT: :root = DuBois light values, [data-theme="dark"] = dark.
+   (Inverts DuBois's own dark-first order — see the adoption spec.)
+   Layer 1: DuBois primitives · Layer 2: semantic aliases · Layer 3: accent seam.
+   ============================================================================ */
+
+/* ── Layer 1 — DuBois primitives (LIGHT default) ─────────────────────────── */
 :root {
-  --brand-primary: #4f46e5;
-  --brand-primary-dark: #3730a3;
-  --brand-primary-light: #e0e7ff;
-  --brand-accent: #6366f1;
-  --brand-accent-dark: #4f46e5;
-  --brand-sidebar-from: #211d52;
-  --brand-sidebar-via: #2d2a6e;
-  --brand-sidebar-to: #16142e;
-  --brand-bg: #f8fafc;
-  --brand-border: #e2e8f0;
+  /* Neutral ramp */
+  --n0:#FFFFFF; --n1:#F8F7F6; --n2:#F0EFEE; --n3:#E6E5E3; --n4:#D9D8D6;
+  --n5:#C5C4C2; --n6:#A1A09E; --n7:#797876; --n8:#5D5C5A; --n9:#47464A;
+  --n10:#313034; --n11:#1F1E22; --n12:#0F0E12;
+
+  /* State (the only chrome color) */
+  --danger:#D04040; --warning:#B8892E; --success:#28A745;
+  --danger-fg:#C03020; --warning-fg:#9A6D00; --success-fg:#1A9035;
+
+  /* Data-viz (charts only) */
+  --viz1:#C44040; --viz2:#B8892E; --viz3:#358B57;
+
+  /* Overlay system — RGB triple, flips per theme; 4 opacities only. THEME-VARIANT. */
+  --overlay: 14,14,18;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 2px 6px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.10);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.14);
+
+  /* Radius — one base, derive via calc() */
+  --radius:0.5rem;
+  --radius-sm:calc(var(--radius)*0.5);
+  --radius-md:calc(var(--radius)*0.75);
+  --radius-lg:var(--radius);
+  --radius-xl:calc(var(--radius)*1.5);
+  --radius-full:9999px;
+
+  /* Motion */
+  --dur-instant:50ms; --dur-fast:100ms; --dur-normal:150ms;
+
+  /* Fonts — sans still driven by brand.config.json via --brand-font-sans */
   --brand-font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+
+  /* ── Layer 2 — semantic aliases (reference the ramp; theme-invariant defs) ── */
+  --surface:var(--n1); --surface-2:var(--n2); --surface-3:var(--n3);
+  --fg:var(--n11); --fg-2:var(--n10); --fg-muted:var(--n9); --fg-subtle:var(--n8);
+  --fg-ghost:var(--n7); --fg-disabled:var(--n6);
+  --border:rgba(var(--overlay),0.08);
+  --border-hover:rgba(var(--overlay),0.10);
+  --border-emphasis:rgba(var(--overlay),0.12);
+  --fill-hover:rgba(var(--overlay),0.04);
+  --fill-active:rgba(var(--overlay),0.08);
+  --fill-press:rgba(var(--overlay),0.10);
+  --fill-emphasis:rgba(var(--overlay),0.12);
+
+  /* ── Layer 3 — customizable accent seam (ThemeProvider overwrites at runtime) ── */
+  --accent:#4f46e5;
+  --accent-fg:#ffffff;
+  --accent-hover:#4338ca;
+
+  /* ── Legacy brand vars (retained for the ~33 already-migrated utilities;
+        Phase 4 reconciles). ThemeProvider still overwrites these too. ────────── */
+  --brand-primary:#4f46e5;
+  --brand-primary-dark:#3730a3;
+  --brand-primary-light:#e0e7ff;
+  --brand-accent:#6366f1;
+  --brand-accent-dark:#4f46e5;
+  --brand-sidebar-from:#211d52;
+  --brand-sidebar-via:#2d2a6e;
+  --brand-sidebar-to:#16142e;
+  --brand-bg:#f8fafc;
+  --brand-border:#e2e8f0;
 }
 
-/* Layer 2 — map Tailwind's color/font namespace onto the raw vars.
-   `inline` = utilities carry `var(--brand-*)` directly (resolve at the element),
-   enabling future scoped / per-tenant overrides. Fallbacks guard color-mix. */
+/* ── Layer 1 — DuBois primitives (DARK override) ─────────────────────────── */
+[data-theme="dark"] {
+  --n0:#0A0A0B; --n1:#121214; --n2:#1A1A1C; --n3:#222224; --n4:#2C2C2E;
+  --n5:#393939; --n6:#4B4B4D; --n7:#69696B; --n8:#8A8A8C; --n9:#ABABAE;
+  --n10:#C7C7CA; --n11:#E0E0E3; --n12:#F1F1F4;
+
+  --danger:#C44040; --warning:#B8892E; --success:#30A050;
+  --danger-fg:#EB6B6B; --warning-fg:#E8B84A; --success-fg:#4CD964;
+
+  --overlay: 228,228,232;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.20);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.30);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.50);
+}
+
+/* ── Tailwind namespace mapping — existing brand-* PLUS new token utilities.
+   `inline` = utilities carry var() so they resolve at the element (per-tenant
+   scoping stays possible). Fallbacks guard color-mix. ─────────────────────── */
 @theme inline {
+  /* existing brand-* (unchanged) */
   --color-brand-primary: var(--brand-primary, #4f46e5);
   --color-brand-primary-dark: var(--brand-primary-dark, #3730a3);
   --color-brand-primary-light: var(--brand-primary-light, #e0e7ff);
@@ -30,10 +106,48 @@
   --color-brand-sidebar-to: var(--brand-sidebar-to, #16142e);
   --color-brand-bg: var(--brand-bg, #f8fafc);
   --color-brand-border: var(--brand-border, #e2e8f0);
+
+  /* new DuBois surface/fg/border tokens */
+  --color-surface: var(--surface, #F8F7F6);
+  --color-surface-2: var(--surface-2, #F0EFEE);
+  --color-surface-3: var(--surface-3, #E6E5E3);
+  --color-fg: var(--fg, #1F1E22);
+  --color-fg-2: var(--fg-2, #313034);
+  --color-fg-muted: var(--fg-muted, #47464A);
+  --color-fg-subtle: var(--fg-subtle, #5D5C5A);
+  --color-fg-ghost: var(--fg-ghost, #797876);
+  --color-fg-disabled: var(--fg-disabled, #A1A09E);
+  --color-border: var(--border, rgba(14,14,18,0.08));
+  --color-border-hover: var(--border-hover, rgba(14,14,18,0.10));
+  --color-border-emphasis: var(--border-emphasis, rgba(14,14,18,0.12));
+
+  /* accent seam */
+  --color-accent: var(--accent, #4f46e5);
+  --color-accent-fg: var(--accent-fg, #ffffff);
+  --color-accent-hover: var(--accent-hover, #4338ca);
+
+  /* radii + fonts */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
   --font-sans: var(--brand-font-sans, "Inter", system-ui, sans-serif);
+  --font-mono: var(--font-mono, "JetBrains Mono", monospace);
 }
 
 html, body, #root {
   height: 100%;
   margin: 0;
+}
+
+/* DuBois root defaults — 12/18 body on the page surface. Existing components
+   still set their own colors; this only affects unstyled/base text. */
+body {
+  font-family: var(--brand-font-sans);
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--fg);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
