@@ -11,8 +11,10 @@
     "primary": "#4f46e5",
     "primaryDark": "#3730a3",
     "primaryLight": "#e0e7ff",
-    "accent": "#6366f1",
+    "accent": "#4f46e5",
     "accentDark": "#4f46e5",
+    "accentFg": "#ffffff",
+    "accentHover": "#4338ca",
     "sidebarFrom": "#211d52",
     "sidebarVia": "#2d2a6e",
     "sidebarTo": "#16142e",
@@ -21,5 +23,8 @@
   },
   "typography": {
     "fontSans": "Inter, system-ui, -apple-system, sans-serif"
+  },
+  "defaults": {
+    "theme": "light"
   }
 }
