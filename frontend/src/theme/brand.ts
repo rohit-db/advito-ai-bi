@@ -17,6 +17,7 @@ export interface Brand {
     primaryLight: string;
     accent: string;
     accentDark: string;
+    duboisAccent: string;
     accentFg: string;
     accentHover: string;
     sidebarFrom: string;
@@ -37,7 +38,7 @@ export const DEFAULT_THEME: Theme = brand.defaults?.theme ?? "light";
  *  The neutral ramp + --overlay are theme-variant and stay CSS-only. */
 export function accentVars(b: Brand): Record<string, string> {
   return {
-    "--accent": b.colors.accent,
+    "--accent": b.colors.duboisAccent,
     "--accent-fg": b.colors.accentFg,
     "--accent-hover": b.colors.accentHover,
   };

@@ -22,7 +22,7 @@ describe("brandToCssVars", () => {
 describe("accentVars", () => {
   it("emits exactly the three accent vars from config", () => {
     const vars = accentVars(brand);
-    expect(vars["--accent"]).toBe(brand.colors.accent);
+    expect(vars["--accent"]).toBe(brand.colors.duboisAccent);
     expect(vars["--accent-fg"]).toBe(brand.colors.accentFg);
     expect(vars["--accent-hover"]).toBe(brand.colors.accentHover);
     expect(Object.keys(vars).sort()).toEqual(["--accent", "--accent-fg", "--accent-hover"]);
