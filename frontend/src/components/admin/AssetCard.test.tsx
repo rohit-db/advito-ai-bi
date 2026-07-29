@@ -14,7 +14,7 @@ it("renders label, key, meta, and status; fires Edit and Access", () => {
   expect(screen.getByText("Spend Analytics")).toBeInTheDocument();
   expect(screen.getByText(/spend/)).toBeInTheDocument();       // key in meta line
   expect(screen.getByText(/1 page/)).toBeInTheDocument();
-  expect(screen.getByText(/active/i)).toBeInTheDocument();
+  expect(screen.getByText("Active")).toBeInTheDocument();       // exact status badge text (avoids aria-label ambiguity)
   fireEvent.click(screen.getByRole("button", { name: /edit/i }));
   fireEvent.click(screen.getByRole("button", { name: /access/i }));
   expect(onEdit).toHaveBeenCalled();
@@ -24,4 +24,5 @@ it("renders label, key, meta, and status; fires Edit and Access", () => {
 it("disables Edit/Delete when not writable", () => {
   render(<AssetCard asset={asset} writable={false} busy={false} onEdit={() => {}} onAccess={() => {}} onToggleActive={() => {}} onDelete={() => {}} />);
   expect(screen.getByRole("button", { name: /edit/i })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /delete asset/i })).toBeDisabled();
 });

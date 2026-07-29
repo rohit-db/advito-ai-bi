@@ -17,6 +17,7 @@ export default function AssetCard({
           <LayoutDashboard size={18} />
         </div>
         <button onClick={onToggleActive} disabled={!writable || busy}
+          aria-label={asset.active ? "Deactivate asset" : "Activate asset"}
           className={`rounded-full px-2 py-0.5 text-[11px] font-medium disabled:opacity-60 ${asset.active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
           {asset.active ? "Active" : "Inactive"}
         </button>
@@ -24,7 +25,7 @@ export default function AssetCard({
       <div className="mt-2.5 text-sm font-semibold text-slate-900">{asset.spec.label}</div>
       <div className="font-mono text-[11px] text-slate-400">{meta}</div>
       <div className="mt-3 flex items-center gap-1.5">
-        <button onClick={onEdit} disabled={!writable}
+        <button onClick={onEdit} disabled={!writable || busy}
           className="inline-flex flex-1 items-center justify-center gap-1 rounded-md bg-brand-primary-light px-2 py-1.5 text-xs font-medium text-brand-primary-dark hover:bg-brand-primary hover:text-white disabled:opacity-50">
           <Pencil size={13} /> Edit
         </button>
