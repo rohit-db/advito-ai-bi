@@ -5,7 +5,7 @@ import type { AssetRow } from "@/lib/adminApi";
 
 const asset: AssetRow = {
   asset_key: "spend", sort_order: 0, active: true,
-  spec: { label: "Spend Analytics", dashboardId: "d1", globalFilterPage: "", filters: { client: "w1" }, pages: [{ pageId: "p1", label: "P1", summaryPrompt: "", suggestions: [] }] },
+  spec: { label: "Spend Analytics", dashboardId: "d1", globalFilterPage: "", filters: { travelSector: "w1" }, pages: [{ pageId: "p1", label: "P1", summaryPrompt: "", suggestions: [] }] },
 };
 
 it("renders label, key, meta, and status; fires Edit and Access", () => {
