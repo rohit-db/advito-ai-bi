@@ -14,6 +14,7 @@ import Placeholder from "@/pages/Placeholder";
 import AdminLayout from "@/pages/admin/AdminLayout";
 import AssetsPage from "@/pages/admin/AssetsPage";
 import TenantsPage from "@/pages/admin/TenantsPage";
+import AccessPage from "@/pages/admin/AccessPage";
 import { ADMIN_BASE, ADMIN_ASSETS_PATH } from "@/components/admin/adminContext";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -238,6 +239,7 @@ export default function App() {
               <Route path={ADMIN_BASE} element={<AdminLayout />}>
                 <Route index element={<Navigate to={ADMIN_ASSETS_PATH} replace />} />
                 <Route path="assets" element={<AssetsPage />} />
+                <Route path="access" element={<AccessPage />} />
                 <Route path="tenants" element={<TenantsPage />} />
               </Route>
               {routes.map((route) => (
