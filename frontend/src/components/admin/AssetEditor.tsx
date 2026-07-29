@@ -152,13 +152,22 @@ export default function AssetEditor({
   const input = "w-full rounded-md border border-brand-border bg-white px-2.5 py-1.5 text-sm";
   const lbl = "text-[11px] font-semibold uppercase tracking-wide text-slate-500";
 
+  const sectionHeading = "text-sm font-semibold text-slate-700 mb-3";
+  const SECTIONS = [
+    { id: "sec-basics", label: "Basics" },
+    { id: "sec-data", label: "Data" },
+    { id: "sec-navigation", label: "Navigation" },
+    { id: "sec-filters", label: "Filters" },
+    { id: "sec-pages", label: "Pages" },
+  ] as const;
+
   return (
     <Modal
       title={creating ? "Add asset" : `Edit asset · ${initial?.asset_key}`}
       subtitle="Dashboard spec, filter wiring, and per-page Genie prompts. Changes apply on next load."
       icon={<LayoutDashboard size={18} />}
       onClose={onClose}
-      maxWidthClass="max-w-2xl"
+      maxWidthClass="max-w-3xl"
       footer={
         <div className="flex items-center justify-end gap-2">
           <button onClick={onClose} className="rounded-md px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">
@@ -174,190 +183,229 @@ export default function AssetEditor({
         </div>
       }
     >
-      <div className="space-y-5">
-        {error && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>
-        )}
+      <div className="flex gap-4">
+        {/* Jump-nav column */}
+        <nav aria-label="Section navigation" className="shrink-0 w-28 pt-1">
+          <ul className="sticky top-0 space-y-1">
+            {SECTIONS.map(({ id, label }) => (
+              <li key={id}>
+                <button
+                  type="button"
+                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  className="w-full rounded px-2 py-1 text-left text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                >
+                  {label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-        {/* Scalars */}
-        <div className="grid grid-cols-2 gap-3">
-          <label className="space-y-1">
-            <span className={lbl}>Asset key</span>
-            <input aria-label="Asset key" className={input} value={assetKey} disabled={!creating}
-              onChange={(e) => setAssetKey(e.target.value)} placeholder="spend" />
-          </label>
-          <label className="space-y-1">
-            <span className={lbl}>Label</span>
-            <input aria-label="Label" className={input} value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Spend" />
-          </label>
-          <label className="space-y-1">
-            <span className={lbl}>Dashboard</span>
-            {dashboards.length > 0 ? (
-              (() => {
-                const known = dashboards.some((d) => d.id === dashboardId);
-                // Select value: a known id, "" (placeholder) when empty, else the
-                // "custom" sentinel (non-empty id not in the workspace list).
-                const selectValue = known ? dashboardId : dashboardId ? "__custom__" : "";
-                return (
-                  <>
-                    <select
-                      aria-label="Dashboard"
-                      className={input}
-                      value={selectValue}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        // Picking "custom" keeps the current id and reveals the
-                        // free-text box; picking a real dashboard sets its id.
-                        setDashboardId(v === "__custom__" ? (dashboardId || " ") : v === "" ? "" : v);
-                      }}
-                    >
-                      <option value="">Select a dashboard…</option>
-                      {dashboards.map((d) => (
-                        <option key={d.id} value={d.id}>{d.name}</option>
-                      ))}
-                      <option value="__custom__">Other (enter id manually)…</option>
-                    </select>
-                    {/* Free-text fallback: shown when the id isn't a known workspace
-                        dashboard (custom entry / edit of an off-list id). */}
-                    {selectValue === "__custom__" && (
-                      <input aria-label="Dashboard id" className={input + " mt-1"} value={dashboardId.trim()}
-                        placeholder="dashboard id" onChange={(e) => setDashboardId(e.target.value)} />
-                    )}
-                  </>
-                );
-              })()
-            ) : (
-              <input aria-label="Dashboard id" className={input} value={dashboardId}
-                placeholder="dashboard id" onChange={(e) => setDashboardId(e.target.value)} />
-            )}
-          </label>
-          <label className="space-y-1">
-            <span className={lbl}>Global filter page</span>
-            <input aria-label="Global filter page" className={input} value={globalFilterPage} onChange={(e) => setGlobalFilterPage(e.target.value)} />
-          </label>
-          <label className="space-y-1">
-            <span className={lbl}>Workspace (optional)</span>
-            <input aria-label="Workspace" className={input} value={workspace} onChange={(e) => setWorkspace(e.target.value)} placeholder="brand default" />
-          </label>
-          <label className="space-y-1">
-            <span className={lbl}>Org (optional)</span>
-            <input aria-label="Org" className={input} value={org} onChange={(e) => setOrg(e.target.value)} placeholder="brand default" />
-          </label>
-        </div>
-
-        {/* Navigation (PR3c): sidebar entry + route derived from this asset */}
-        <div className="space-y-2 rounded-lg border border-brand-border p-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" aria-label="Show in navigation" checked={navEnabled}
-              onChange={(e) => setNavEnabled(e.target.checked)} />
-            <span className={lbl}>Show in navigation</span>
-          </label>
-          {navEnabled && (
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <label className="space-y-1">
-                <span className={lbl}>Nav path</span>
-                <input aria-label="Nav path" className={input} value={navPath} placeholder="/spend-custom"
-                  onChange={(e) => setNavPath(e.target.value)} />
-              </label>
-              <label className="space-y-1">
-                <span className={lbl}>Icon</span>
-                <select aria-label="Nav icon" className={input} value={navIcon}
-                  onChange={(e) => setNavIcon(e.target.value)}>
-                  {ICON_KEYS.map((k) => (
-                    <option key={k} value={k}>{k}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="space-y-1">
-                <span className={lbl}>Section</span>
-                <select aria-label="Nav section" className={input} value={navSection}
-                  onChange={(e) => setNavSection(e.target.value as RouteSection)}>
-                  {NAV_SECTIONS.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="space-y-1">
-                <span className={lbl}>Order</span>
-                <input aria-label="Nav order" type="number" className={input} value={navOrder}
-                  onChange={(e) => setNavOrder(e.target.value)} />
-              </label>
-            </div>
+        {/* Sectioned form body */}
+        <div className="flex-1 min-w-0 space-y-6">
+          {error && (
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>
           )}
-        </div>
 
-        {/* Filters */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className={lbl}>Filters</span>
-            <button onClick={() => setFilterRows((r) => [...r, { uid: nextUid(), key: FILTER_KEYS[0], widget: "" }])}
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark">
-              <Plus size={13} /> Add filter
-            </button>
-          </div>
-          {filterRows.length === 0 && <p className="text-xs text-slate-400">No filters wired.</p>}
-          {filterRows.map((row, i) => (
-            <div key={row.uid} className="flex items-center gap-2">
-              <select aria-label="Filter key" className={input + " flex-1"} value={row.key}
-                onChange={(e) => setFilterRows((r) => r.map((x, j) => (j === i ? { ...x, key: e.target.value as FilterKey } : x)))}>
-                {FILTER_KEYS.map((k) => (
-                  <option key={k} value={k}>{FILTERS[k].label} ({k})</option>
-                ))}
-              </select>
-              <span className="text-slate-400">→</span>
-              <input aria-label="Widget id" className={input + " flex-1"} value={row.widget} placeholder="widget id"
-                onChange={(e) => setFilterRows((r) => r.map((x, j) => (j === i ? { ...x, widget: e.target.value } : x)))} />
-              <button aria-label="Remove filter" onClick={() => setFilterRows((r) => r.filter((_, j) => j !== i))}
-                className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500">
-                <Trash2 size={14} />
-              </button>
+          {/* Basics */}
+          <section id="sec-basics" aria-labelledby="heading-basics">
+            <h3 id="heading-basics" className={sectionHeading}>Basics</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="space-y-1">
+                <span className={lbl}>Asset key</span>
+                <input aria-label="Asset key" className={input} value={assetKey} disabled={!creating}
+                  onChange={(e) => setAssetKey(e.target.value)} placeholder="spend" />
+              </label>
+              <label className="space-y-1">
+                <span className={lbl}>Label</span>
+                <input aria-label="Label" className={input} value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Spend" />
+              </label>
             </div>
-          ))}
-        </div>
+          </section>
 
-        {/* Pages */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className={lbl}>Pages</span>
-            <button onClick={() => setPages((p) => [...p, blankPage()])}
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark">
-              <Plus size={13} /> Add page
-            </button>
-          </div>
-          {pages.map((page, i) => (
-            <div key={page.uid} className="rounded-lg border border-brand-border p-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <input aria-label="Page id" className={input + " flex-1"} value={page.pageId} placeholder="pageId"
-                  onChange={(e) => setPage(i, { pageId: e.target.value })} />
-                <input aria-label="Page label" className={input + " flex-1"} value={page.label} placeholder="Label"
-                  onChange={(e) => setPage(i, { label: e.target.value })} />
-                <button aria-label="Remove page" disabled={pages.length === 1}
-                  onClick={() => setPages((p) => p.filter((_, j) => j !== i))}
-                  className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500 disabled:opacity-40">
-                  <Trash2 size={14} />
+          {/* Data */}
+          <section id="sec-data" aria-labelledby="heading-data">
+            <h3 id="heading-data" className={sectionHeading}>Data</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="space-y-1">
+                <span className={lbl}>Dashboard</span>
+                {dashboards.length > 0 ? (
+                  (() => {
+                    const known = dashboards.some((d) => d.id === dashboardId);
+                    // Select value: a known id, "" (placeholder) when empty, else the
+                    // "custom" sentinel (non-empty id not in the workspace list).
+                    const selectValue = known ? dashboardId : dashboardId ? "__custom__" : "";
+                    return (
+                      <>
+                        <select
+                          aria-label="Dashboard"
+                          className={input}
+                          value={selectValue}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            // Picking "custom" keeps the current id and reveals the
+                            // free-text box; picking a real dashboard sets its id.
+                            setDashboardId(v === "__custom__" ? (dashboardId || " ") : v === "" ? "" : v);
+                          }}
+                        >
+                          <option value="">Select a dashboard…</option>
+                          {dashboards.map((d) => (
+                            <option key={d.id} value={d.id}>{d.name}</option>
+                          ))}
+                          <option value="__custom__">Other (enter id manually)…</option>
+                        </select>
+                        {/* Free-text fallback: shown when the id isn't a known workspace
+                            dashboard (custom entry / edit of an off-list id). */}
+                        {selectValue === "__custom__" && (
+                          <input aria-label="Dashboard id" className={input + " mt-1"} value={dashboardId.trim()}
+                            placeholder="dashboard id" onChange={(e) => setDashboardId(e.target.value)} />
+                        )}
+                      </>
+                    );
+                  })()
+                ) : (
+                  <input aria-label="Dashboard id" className={input} value={dashboardId}
+                    placeholder="dashboard id" onChange={(e) => setDashboardId(e.target.value)} />
+                )}
+              </label>
+              <label className="space-y-1">
+                <span className={lbl}>Global filter page</span>
+                <input aria-label="Global filter page" className={input} value={globalFilterPage} onChange={(e) => setGlobalFilterPage(e.target.value)} />
+              </label>
+              <label className="space-y-1">
+                <span className={lbl}>Workspace (optional)</span>
+                <input aria-label="Workspace" className={input} value={workspace} onChange={(e) => setWorkspace(e.target.value)} placeholder="brand default" />
+              </label>
+              <label className="space-y-1">
+                <span className={lbl}>Org (optional)</span>
+                <input aria-label="Org" className={input} value={org} onChange={(e) => setOrg(e.target.value)} placeholder="brand default" />
+              </label>
+            </div>
+          </section>
+
+          {/* Navigation (PR3c): sidebar entry + route derived from this asset */}
+          <section id="sec-navigation" aria-labelledby="heading-navigation">
+            <h3 id="heading-navigation" className={sectionHeading}>Navigation</h3>
+            <div className="space-y-2 rounded-lg border border-brand-border p-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" aria-label="Show in navigation" checked={navEnabled}
+                  onChange={(e) => setNavEnabled(e.target.checked)} />
+                <span className={lbl}>Show in navigation</span>
+              </label>
+              {navEnabled && (
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <label className="space-y-1">
+                    <span className={lbl}>Nav path</span>
+                    <input aria-label="Nav path" className={input} value={navPath} placeholder="/spend-custom"
+                      onChange={(e) => setNavPath(e.target.value)} />
+                  </label>
+                  <label className="space-y-1">
+                    <span className={lbl}>Icon</span>
+                    <select aria-label="Nav icon" className={input} value={navIcon}
+                      onChange={(e) => setNavIcon(e.target.value)}>
+                      {ICON_KEYS.map((k) => (
+                        <option key={k} value={k}>{k}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1">
+                    <span className={lbl}>Section</span>
+                    <select aria-label="Nav section" className={input} value={navSection}
+                      onChange={(e) => setNavSection(e.target.value as RouteSection)}>
+                      {NAV_SECTIONS.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1">
+                    <span className={lbl}>Order</span>
+                    <input aria-label="Nav order" type="number" className={input} value={navOrder}
+                      onChange={(e) => setNavOrder(e.target.value)} />
+                  </label>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Filters */}
+          <section id="sec-filters" aria-labelledby="heading-filters">
+            <h3 id="heading-filters" className={sectionHeading}>Filters</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className={lbl}>Filter wiring</span>
+                <button onClick={() => setFilterRows((r) => [...r, { uid: nextUid(), key: FILTER_KEYS[0], widget: "" }])}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark">
+                  <Plus size={13} /> Add filter
                 </button>
               </div>
-              <textarea aria-label="Summary prompt" className={input + " min-h-[60px]"} value={page.summaryPrompt}
-                placeholder="Executive summary prompt…" onChange={(e) => setPage(i, { summaryPrompt: e.target.value })} />
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase tracking-wide text-slate-400">Suggestions</span>
-                {page.suggestions.map((s, si) => (
-                  <div key={`${page.uid}:${si}`} className="flex items-center gap-2">
-                    <input aria-label="Suggestion" className={input + " flex-1"} value={s}
-                      onChange={(e) => setSuggestion(i, si, e.target.value)} />
-                    <button aria-label="Remove suggestion" onClick={() => removeSuggestion(i, si)}
-                      className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500">
-                      <Trash2 size={13} />
+              {filterRows.length === 0 && <p className="text-xs text-slate-400">No filters wired.</p>}
+              {filterRows.map((row, i) => (
+                <div key={row.uid} className="flex items-center gap-2">
+                  <select aria-label="Filter key" className={input + " flex-1"} value={row.key}
+                    onChange={(e) => setFilterRows((r) => r.map((x, j) => (j === i ? { ...x, key: e.target.value as FilterKey } : x)))}>
+                    {FILTER_KEYS.map((k) => (
+                      <option key={k} value={k}>{FILTERS[k].label} ({k})</option>
+                    ))}
+                  </select>
+                  <span className="text-slate-400">→</span>
+                  <input aria-label="Widget id" className={input + " flex-1"} value={row.widget} placeholder="widget id"
+                    onChange={(e) => setFilterRows((r) => r.map((x, j) => (j === i ? { ...x, widget: e.target.value } : x)))} />
+                  <button aria-label="Remove filter" onClick={() => setFilterRows((r) => r.filter((_, j) => j !== i))}
+                    className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Pages */}
+          <section id="sec-pages" aria-labelledby="heading-pages">
+            <h3 id="heading-pages" className={sectionHeading}>Pages</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className={lbl}>Page editors</span>
+                <button onClick={() => setPages((p) => [...p, blankPage()])}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark">
+                  <Plus size={13} /> Add page
+                </button>
+              </div>
+              {pages.map((page, i) => (
+                <div key={page.uid} className="rounded-lg border border-brand-border p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input aria-label="Page id" className={input + " flex-1"} value={page.pageId} placeholder="pageId"
+                      onChange={(e) => setPage(i, { pageId: e.target.value })} />
+                    <input aria-label="Page label" className={input + " flex-1"} value={page.label} placeholder="Label"
+                      onChange={(e) => setPage(i, { label: e.target.value })} />
+                    <button aria-label="Remove page" disabled={pages.length === 1}
+                      onClick={() => setPages((p) => p.filter((_, j) => j !== i))}
+                      className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500 disabled:opacity-40">
+                      <Trash2 size={14} />
                     </button>
                   </div>
-                ))}
-                <button onClick={() => addSuggestion(i)}
-                  className="inline-flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark">
-                  <Plus size={12} /> Add suggestion
-                </button>
-              </div>
+                  <textarea aria-label="Summary prompt" className={input + " min-h-[60px]"} value={page.summaryPrompt}
+                    placeholder="Executive summary prompt…" onChange={(e) => setPage(i, { summaryPrompt: e.target.value })} />
+                  <div className="space-y-1">
+                    <span className="text-[10px] uppercase tracking-wide text-slate-400">Suggestions</span>
+                    {page.suggestions.map((s, si) => (
+                      <div key={`${page.uid}:${si}`} className="flex items-center gap-2">
+                        <input aria-label="Suggestion" className={input + " flex-1"} value={s}
+                          onChange={(e) => setSuggestion(i, si, e.target.value)} />
+                        <button aria-label="Remove suggestion" onClick={() => removeSuggestion(i, si)}
+                          className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                    <button onClick={() => addSuggestion(i)}
+                      className="inline-flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark">
+                      <Plus size={12} /> Add suggestion
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </section>
         </div>
       </div>
     </Modal>

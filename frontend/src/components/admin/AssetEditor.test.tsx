@@ -107,6 +107,13 @@ describe("AssetEditor", () => {
     });
   });
 
+  it("shows section headings and a jump-nav", () => {
+    render(<AssetEditor initial={null} existingKeys={[]} onSave={async () => {}} onClose={() => {}} />);
+    for (const s of ["Basics", "Data", "Navigation", "Filters", "Pages"]) {
+      expect(screen.getAllByText(new RegExp(`^${s}$`, "i")).length).toBeGreaterThan(0);
+    }
+  });
+
   it("lets the operator pick a workspace dashboard by name (sets its id in the payload)", async () => {
     vi.spyOn(adminApi, "listWorkspaceDashboards").mockResolvedValue({
       dashboards: [
