@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { LayoutDashboard, Plus, Pencil, Trash2, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { LayoutDashboard, Plus, RefreshCw } from "lucide-react";
 import * as adminApi from "@/lib/adminApi";
 import type { AssetRow, SaveAssetBody } from "@/lib/adminApi";
 import { Spinner } from "@/components/admin/shared";
 import AssetEditor from "@/components/admin/AssetEditor";
-import AccessGrid from "@/components/admin/AccessGrid";
-import { useAdminOutlet } from "@/components/admin/adminContext";
+import AssetCard from "@/components/admin/AssetCard";
+import { useAdminOutlet, ADMIN_ACCESS_PATH } from "@/components/admin/adminContext";
 
 export default function AssetsPage() {
   const { reportAccessError } = useAdminOutlet();
+  const navigate = useNavigate();
   const [assets, setAssets] = useState<AssetRow[]>([]);
   const [writable, setWritable] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -71,6 +73,9 @@ export default function AssetsPage() {
     }
   }, [load, reportAccessError]);
 
+  const activeCount = assets.filter((a) => a.active).length;
+  const pageCount = assets.reduce((n, a) => n + (a.spec.pages?.length ?? 0), 0);
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-6 space-y-6">
       {/* Header */}
@@ -94,7 +99,7 @@ export default function AssetsPage() {
 
       {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>}
 
-      {/* Registry table */}
+      {/* Asset grid */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dashboard assets</h2>
@@ -115,48 +120,42 @@ export default function AssetsPage() {
         ) : assets.length === 0 ? (
           <p className="rounded-lg border border-dashed border-brand-border px-3 py-4 text-xs text-slate-400">No assets configured.</p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-brand-border">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50">
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="px-3 py-2">Key</th><th className="px-3 py-2">Label</th>
-                  <th className="px-3 py-2">Dashboard id</th><th className="px-3 py-2">Pages</th>
-                  <th className="px-3 py-2">Active</th><th className="px-3 py-2 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {assets.map((a) => (
-                  <tr key={a.asset_key} className={a.active ? "" : "opacity-50"}>
-                    <td className="px-3 py-2 font-mono text-xs text-slate-700">{a.asset_key}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">{a.spec.label}</td>
-                    <td className="px-3 py-2 font-mono text-[11px] text-slate-500">{a.spec.dashboardId}</td>
-                    <td className="px-3 py-2 text-slate-600">{a.spec.pages?.length ?? 0}</td>
-                    <td className="px-3 py-2">
-                      <button disabled={!writable || busyKey === a.asset_key} onClick={() => onToggleActive(a)}
-                        className="text-xs font-medium text-brand-primary hover:text-brand-primary-dark disabled:opacity-50">
-                        {a.active ? "Active" : "Inactive"}
-                      </button>
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <button aria-label="Edit asset" disabled={!writable} onClick={() => setEditing(a)}
-                          className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-brand-primary disabled:opacity-40"><Pencil size={14} /></button>
-                        <button aria-label="Delete asset" disabled={!writable || busyKey === a.asset_key} onClick={() => onDelete(a)}
-                          className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500 disabled:opacity-40"><Trash2 size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+          <>
+            {/* Stat strip */}
+            <div className="flex items-center gap-4 rounded-lg border border-brand-border bg-slate-50 px-4 py-2">
+              <span className="text-xs text-slate-500"><span className="font-semibold text-slate-800">{activeCount}</span> active</span>
+              <span className="text-xs text-slate-300">·</span>
+              <span className="text-xs text-slate-500"><span className="font-semibold text-slate-800">{assets.length}</span> total</span>
+              <span className="text-xs text-slate-300">·</span>
+              <span className="text-xs text-slate-500"><span className="font-semibold text-slate-800">{pageCount}</span> pages</span>
+            </div>
 
-      {/* Access grid */}
-      <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tenant access</h2>
-        <AccessGrid onAccessError={reportAccessError} />
+            {/* Card grid */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {assets.map((a) => (
+                <AssetCard
+                  key={a.asset_key}
+                  asset={a}
+                  writable={writable}
+                  busy={busyKey === a.asset_key}
+                  onEdit={() => setEditing(a)}
+                  onAccess={() => navigate(ADMIN_ACCESS_PATH)}
+                  onToggleActive={() => onToggleActive(a)}
+                  onDelete={() => onDelete(a)}
+                />
+              ))}
+              {/* Dashed add tile */}
+              <button
+                aria-label="Create a new asset"
+                onClick={() => setEditing("create")}
+                disabled={!writable}
+                className="flex min-h-[120px] items-center justify-center gap-2 rounded-xl border border-dashed border-brand-border bg-white text-xs font-medium text-slate-400 hover:border-brand-primary hover:text-brand-primary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Plus size={15} /> Add asset
+              </button>
+            </div>
+          </>
+        )}
       </section>
 
       {editing && (
