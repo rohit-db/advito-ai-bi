@@ -4,6 +4,7 @@ import { useRoutes } from "@/registry/useRegistry";
 import { useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import ThemeToggle from "@/theme/ThemeToggle";
 
 const SECTION_LABELS: Record<string, string> = {
   insights: "Insights & Analytics",
@@ -47,8 +48,10 @@ export default function Header() {
         </span>
       </nav>
 
-      {/* User menu */}
-      <Popover>
+      {/* Right cluster: theme toggle + user menu */}
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <Popover>
         <PopoverTrigger className="group gap-2.5 rounded-full pl-1 pr-2.5 py-1 hover:bg-slate-100 transition-colors">
           <Avatar size="sm" className="ring-2 ring-white shadow-sm">
             <AvatarFallback className="bg-linear-to-br from-brand-primary to-brand-accent text-white text-[11px] font-semibold">
@@ -81,6 +84,7 @@ export default function Header() {
           </a>
         </PopoverContent>
       </Popover>
+      </div>
     </header>
   );
 }
