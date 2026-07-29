@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { ChevronRight, LogOut } from "lucide-react";
-import { ROUTES } from "@/config";
+import { useRoutes } from "@/registry/useRegistry";
 import { useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,8 +13,9 @@ const SECTION_LABELS: Record<string, string> = {
 export default function Header() {
   const location = useLocation();
   const { user } = useUser();
+  const routes = useRoutes();
 
-  const currentRoute = ROUTES.find((r) => r.path === location.pathname);
+  const currentRoute = routes.find((r) => r.path === location.pathname);
   const pageTitle = currentRoute?.label ?? "APEX";
   const sectionLabel = currentRoute ? SECTION_LABELS[currentRoute.section] : undefined;
 

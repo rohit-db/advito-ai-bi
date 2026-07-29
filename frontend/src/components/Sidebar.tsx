@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ROUTES, ICON_MAP } from "@/config";
+import { ICON_MAP } from "@/config";
+import { useRoutes } from "@/registry/useRegistry";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PanelLeftClose, PanelLeft } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
@@ -21,8 +22,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const isOperator = user?.role === "operator";
   const clientName = user?.tenant || "All clients";
 
-  const insightsRoutes = ROUTES.filter((r) => r.section === "insights");
-  const explorationRoutes = ROUTES.filter((r) => r.section === "exploration");
+  const routes = useRoutes();
+  const insightsRoutes = routes.filter((r) => r.section === "insights");
+  const explorationRoutes = routes.filter((r) => r.section === "exploration");
 
   function NavItem({ path, label, icon, placeholder }: {
     path: string;

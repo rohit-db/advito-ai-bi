@@ -69,6 +69,44 @@ describe("AssetEditor", () => {
     expect(screen.getByText(/already exists/i)).toBeInTheDocument();
   });
 
+  it("preserves existing nav metadata on save", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const withNav: AssetRow = {
+      ...SPEND,
+      spec: { ...SPEND.spec, nav: { path: "/spend-custom", icon: "DollarSign", section: "insights", order: 1 } },
+    };
+    render(<AssetEditor initial={withNav} existingKeys={["spend"]} onSave={onSave} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0].spec.nav).toMatchObject({
+      path: "/spend-custom", icon: "DollarSign", section: "insights", order: 1,
+    });
+  });
+
+  it("adds nav via the toggle and validates the path", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<AssetEditor initial={null} existingKeys={[]} onSave={onSave} onClose={() => {}} />);
+    fireEvent.change(screen.getByLabelText(/asset key/i), { target: { value: "revenue" } });
+    fireEvent.change(screen.getByLabelText(/dashboard id/i), { target: { value: "d" } });
+    fireEvent.click(screen.getByLabelText(/show in navigation/i));
+
+    // Bad path (no leading slash) blocks save.
+    fireEvent.change(screen.getByLabelText(/nav path/i), { target: { value: "revenue" } });
+    fireEvent.click(screen.getByRole("button", { name: /^create$/i }));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByText(/must start with/i)).toBeInTheDocument();
+
+    // Fix path + set section/order → persists nav.
+    fireEvent.change(screen.getByLabelText(/nav path/i), { target: { value: "/revenue" } });
+    fireEvent.change(screen.getByLabelText(/nav section/i), { target: { value: "exploration" } });
+    fireEvent.change(screen.getByLabelText(/nav order/i), { target: { value: "5" } });
+    fireEvent.click(screen.getByRole("button", { name: /^create$/i }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0].spec.nav).toMatchObject({
+      path: "/revenue", section: "exploration", order: 5,
+    });
+  });
+
   it("lets the operator pick a workspace dashboard by name (sets its id in the payload)", async () => {
     vi.spyOn(adminApi, "listWorkspaceDashboards").mockResolvedValue({
       dashboards: [

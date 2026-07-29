@@ -1,5 +1,5 @@
 {
-  "_note": "Dashboard asset registry (seed / JSON fallback). Server-owned source of truth for AI/BI dashboard specs + per-page Genie prompts, resolved by server/assets/registry.py and exposed via GET /api/assets. The frontend bundles a copy for fail-soft. Filter render vocabulary (FilterKey) lives in frontend/src/config.ts FILTERS; the `filters` map here only references those keys. Nav (order/icon/section) lives in config.ts ROUTES, which references an asset by key via its `dashboard` field.",
+  "_note": "Dashboard asset registry (seed / JSON fallback). Server-owned source of truth for AI/BI dashboard specs + per-page Genie prompts, resolved by server/assets/registry.py and exposed via GET /api/assets. The frontend bundles a copy for fail-soft. Filter render vocabulary (FilterKey) lives in frontend/src/config.ts FILTERS; the `filters` map here only references those keys. Nav (path/icon/section/order) for a dashboard lives on the asset's `nav` object and drives its sidebar entry + route via config.ts buildRoutes(); fixed non-asset pages (Home, Ask APEX, My Filters) stay in config.ts FIXED_REACT_ROUTES.",
   "assets": {
     "spend": {
       "label": "Spend",
@@ -32,7 +32,13 @@
             "How do forecasted emissions compare to last year?"
           ]
         }
-      ]
+      ],
+      "nav": {
+        "path": "/spend-custom",
+        "icon": "DollarSign",
+        "section": "insights",
+        "order": 1
+      }
     },
     "sustainability": {
       "label": "Sustainability",
@@ -65,7 +71,13 @@
             "How do forecasted emissions compare to last year?"
           ]
         }
-      ]
+      ],
+      "nav": {
+        "path": "/sustainability",
+        "icon": "Leaf",
+        "section": "insights",
+        "order": 2
+      }
     }
   }
 }

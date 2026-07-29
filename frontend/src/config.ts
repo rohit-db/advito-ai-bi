@@ -23,7 +23,8 @@ import {
 //
 // This file owns:
 //   1. FILTERS  — the logical filter vocabulary the UI knows about
-//   2. ROUTES   — nav entries (dashboard key → asset registry; no inline pages)
+//   2. FIXED_REACT_ROUTES + buildRoutes() — fixed pages merged with dashboard
+//      nav entries derived from the asset registry (no inline dashboard pages)
 //   3. Embed-URL helpers — buildPageEmbedUrl, buildTokenEmbedUrl, etc.
 //   4. KPI + persistence helpers
 //
@@ -482,39 +483,46 @@ export function filtersToContext(filters: FilterState, spec?: DashboardSpec): st
 // Pages and Genie wiring are resolved at runtime from the registry.
 
 export type RouteMode = "custom" | "placeholder" | "react";
+export type RouteSection = "insights" | "exploration";
 
 export interface RouteConfig {
   path: string;
   label: string;
   icon: string; // key into ICON_MAP
-  section: "insights" | "exploration";
+  section: RouteSection;
   mode: RouteMode;
   dashboard?: string; // key into the asset registry (server/assets/dashboards.seed.json)
+  order?: number;     // sort within a section (fixed routes + registry-derived, merged)
 }
 
-export const ROUTES: RouteConfig[] = [
+// Minimal structural view of the registry that buildRoutes needs. Declared here
+// (rather than importing from registry/types) because registry/types already
+// imports FilterKey from this module — a back-import would be circular.
+interface RouteNavLike {
+  path: string;
+  icon: string;
+  section: RouteSection;
+  order: number;
+}
+interface AssetSpecLike {
+  label: string;
+  nav?: RouteNavLike;
+}
+interface RegistryLike {
+  assets: Record<string, AssetSpecLike>;
+}
+
+// Fixed, non-asset pages (mode:"react"). Dashboard (mode:"custom") routes are NOT
+// listed here — they are derived at runtime from the asset registry's `nav`
+// metadata via buildRoutes(), so adding an asset in admin produces a nav entry.
+export const FIXED_REACT_ROUTES: RouteConfig[] = [
   {
     path: "/",
     label: "Home",
     icon: "LayoutDashboard",
     section: "insights",
     mode: "react",
-  },
-  {
-    path: "/spend-custom",
-    label: "Spend",
-    icon: "DollarSign",
-    section: "insights",
-    mode: "custom",
-    dashboard: "spend",
-  },
-  {
-    path: "/sustainability",
-    label: "Sustainability",
-    icon: "Leaf",
-    section: "insights",
-    mode: "custom",
-    dashboard: "sustainability",
+    order: 0,
   },
   {
     path: "/genie-mcp",
@@ -522,6 +530,7 @@ export const ROUTES: RouteConfig[] = [
     icon: "Sparkles",
     section: "exploration",
     mode: "react",
+    order: 0,
   },
   {
     path: "/ask-apex-live",
@@ -529,6 +538,7 @@ export const ROUTES: RouteConfig[] = [
     icon: "BarChart3",
     section: "exploration",
     mode: "react",
+    order: 1,
   },
   {
     path: "/preferences",
@@ -536,8 +546,32 @@ export const ROUTES: RouteConfig[] = [
     icon: "SlidersHorizontal",
     section: "exploration",
     mode: "react",
+    order: 90,
   },
 ];
+
+/**
+ * Merge the fixed react routes with dashboard routes derived from the asset
+ * registry. Each asset carrying `nav` metadata becomes a mode:"custom" route.
+ * The combined list is sorted by `order` (stable) so that, once the Sidebar
+ * filters by section, each group renders in its intended sequence.
+ */
+export function buildRoutes(registry: RegistryLike): RouteConfig[] {
+  const custom: RouteConfig[] = Object.entries(registry.assets)
+    .filter(([, spec]) => !!spec.nav)
+    .map(([key, spec]) => ({
+      path: spec.nav!.path,
+      label: spec.label,
+      icon: spec.nav!.icon,
+      section: spec.nav!.section,
+      mode: "custom" as const,
+      dashboard: key,
+      order: spec.nav!.order,
+    }));
+  return [...FIXED_REACT_ROUTES, ...custom].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  );
+}
 
 // ─── Executive summary prompt formatting ──────────────────────────────────────
 // The Executive Summary modal calls the workspace-wide Genie MCP ("multi" mode)

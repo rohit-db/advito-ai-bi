@@ -1,10 +1,11 @@
 import { useLocation } from "react-router-dom";
 import { Construction } from "lucide-react";
-import { ROUTES } from "@/config";
+import { useRoutes } from "@/registry/useRegistry";
 
 export default function Placeholder() {
   const location = useLocation();
-  const currentRoute = ROUTES.find((r) => r.path === location.pathname);
+  const routes = useRoutes();
+  const currentRoute = routes.find((r) => r.path === location.pathname);
   const label = currentRoute?.label ?? "This Module";
 
   return (

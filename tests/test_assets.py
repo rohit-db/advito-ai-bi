@@ -61,6 +61,64 @@ def test_get_api_assets_returns_registry(monkeypatch):
     assert body["assets"]["spend"]["dashboardId"] == "01f1271698161d42b3c66528415775e8"
 
 
+def test_get_api_assets_filters_by_tenant_entitlement(monkeypatch):
+    """A tenant sees only assets whose dashboardId its SP can access."""
+    import app as app_module
+    from server.routes import api as api_module
+
+    # Registry: two assets on two distinct physical dashboards.
+    reg = {"assets": {
+        "spend": {"label": "Spend", "dashboardId": "DASH-A", "pages": []},
+        "sustain": {"label": "Sustainability", "dashboardId": "DASH-B", "pages": []},
+    }}
+    monkeypatch.setattr(api_module.assets_registry, "load_registry", lambda: reg)
+    # A resolved tenant SP whose ACL grants only DASH-A.
+    monkeypatch.setattr(api_module, "resolve_tenant_sp",
+                        lambda request: ("tok", type("Row", (), {"sp_app_id": "sp-1"})()))
+    monkeypatch.setattr(api_module, "tenant_access",
+                        lambda sp: {"dashboards": {"DASH-A": True, "DASH-B": False}, "genie_spaces": {}})
+
+    client = TestClient(app_module.app)
+    body = client.get("/api/assets").json()
+    assert "spend" in body["assets"]
+    assert "sustain" not in body["assets"]  # ungranted -> hidden
+
+
+def test_get_api_assets_operator_sees_all(monkeypatch):
+    """resolve_tenant_sp None (operator/*/pre-onboarding) -> unfiltered registry."""
+    import app as app_module
+    from server.routes import api as api_module
+
+    reg = {"assets": {
+        "spend": {"label": "Spend", "dashboardId": "DASH-A", "pages": []},
+        "sustain": {"label": "Sustainability", "dashboardId": "DASH-B", "pages": []},
+    }}
+    monkeypatch.setattr(api_module.assets_registry, "load_registry", lambda: reg)
+    monkeypatch.setattr(api_module, "resolve_tenant_sp", lambda request: None)
+
+    client = TestClient(app_module.app)
+    body = client.get("/api/assets").json()
+    assert set(body["assets"].keys()) == {"spend", "sustain"}
+
+
+def test_get_api_assets_failsoft_on_acl_error(monkeypatch):
+    """If entitlement lookup raises, return the full registry rather than lock out."""
+    import app as app_module
+    from server.routes import api as api_module
+
+    reg = {"assets": {"spend": {"label": "Spend", "dashboardId": "DASH-A", "pages": []}}}
+    monkeypatch.setattr(api_module.assets_registry, "load_registry", lambda: reg)
+    monkeypatch.setattr(api_module, "resolve_tenant_sp",
+                        lambda request: ("tok", type("Row", (), {"sp_app_id": "sp-1"})()))
+    def _boom(sp):
+        raise RuntimeError("workspace down")
+    monkeypatch.setattr(api_module, "tenant_access", _boom)
+
+    client = TestClient(app_module.app)
+    body = client.get("/api/assets").json()
+    assert "spend" in body["assets"]  # failed soft -> visible
+
+
 def test_resources_catalog_uses_registry_dashboards(monkeypatch):
     # SET envs to empty string (NOT delenv): server.lakebase's module-level
     # load_dotenv(override=False) re-adds DELETED vars from .env, but leaves

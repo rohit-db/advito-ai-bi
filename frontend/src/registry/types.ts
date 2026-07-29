@@ -14,6 +14,18 @@ export interface AssetPage {
  * `dashboardId`). Filter render vocabulary (FilterKey) lives in config.ts FILTERS;
  * `filters` only references those keys.
  */
+/**
+ * Optional nav metadata that lets an asset generate its own sidebar entry +
+ * route (PR3c). When absent, the asset is still embeddable but does not appear
+ * in the nav on its own — the fixed react routes in config.ts are separate.
+ */
+export interface AssetNav {
+  path: string;                          // route path, must start with "/"
+  icon: string;                          // key into config.ts ICON_MAP
+  section: "insights" | "exploration";   // which sidebar group
+  order: number;                         // sort within the section
+}
+
 export interface AssetSpec {
   label: string;
   dashboardId: string;
@@ -22,6 +34,7 @@ export interface AssetSpec {
   workspace?: string;
   org?: string;
   pages: AssetPage[];
+  nav?: AssetNav;
 }
 
 export interface Registry {

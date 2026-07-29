@@ -17,6 +17,8 @@ export default defineConfig({
     fs: { allow: [path.resolve(__dirname, ".."), path.resolve(__dirname, ".")] },
     proxy: {
       "/api": "http://localhost:8000",
+      "/login": "http://localhost:8000",
+      "/logout": "http://localhost:8000",
     },
   },
   test: {

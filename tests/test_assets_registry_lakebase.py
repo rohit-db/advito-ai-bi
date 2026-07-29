@@ -36,6 +36,35 @@ def test_validate_asset_rejects_nonstring_dashboardid_and_long_key():
     areg.validate_asset("ok", {"dashboardId": "d", "filters": {}, "pages": []})
 
 
+def test_validate_asset_accepts_optional_nav():
+    # nav is optional and backward-compatible: an asset without it still validates.
+    areg.validate_asset("ok", {"dashboardId": "d", "pages": []})
+    # a well-formed nav object is accepted.
+    areg.validate_asset(
+        "ok",
+        {
+            "dashboardId": "d",
+            "pages": [],
+            "nav": {"path": "/spend", "icon": "DollarSign", "section": "insights", "order": 3},
+        },
+    )
+    # nav may be partial — every field is individually optional.
+    areg.validate_asset("ok", {"dashboardId": "d", "nav": {"section": "exploration"}})
+
+
+def test_validate_asset_rejects_bad_nav():
+    with pytest.raises(ValueError):
+        areg.validate_asset("ok", {"dashboardId": "d", "nav": "notanobject"})
+    with pytest.raises(ValueError):
+        areg.validate_asset("ok", {"dashboardId": "d", "nav": {"path": "no-leading-slash"}})
+    with pytest.raises(ValueError):
+        areg.validate_asset("ok", {"dashboardId": "d", "nav": {"section": "nope"}})
+    with pytest.raises(ValueError):
+        areg.validate_asset("ok", {"dashboardId": "d", "nav": {"icon": 123}})
+    with pytest.raises(ValueError):
+        areg.validate_asset("ok", {"dashboardId": "d", "nav": {"order": "notanint"}})
+
+
 def test_save_and_delete_require_lakebase(monkeypatch):
     monkeypatch.setattr(areg, "_lb_enabled", lambda: False)
     with pytest.raises(RuntimeError, match="LAKEBASE_ENABLED"):

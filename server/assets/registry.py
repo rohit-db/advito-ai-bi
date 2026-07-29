@@ -158,6 +158,35 @@ def validate_asset(asset_key: str, spec: dict) -> None:
     pages = spec.get("pages", [])
     if not isinstance(pages, list):
         raise ValueError("spec.pages must be a list")
+    _validate_nav(spec.get("nav"))
+
+
+_NAV_SECTIONS = {"insights", "exploration"}
+
+
+def _validate_nav(nav: Any) -> None:
+    """Validate the optional ``nav`` object that drives sidebar/route generation.
+
+    Every field is individually optional (partial nav is allowed); when present
+    each must be well-formed so the frontend can build a route from it.
+    """
+    if nav is None:
+        return
+    if not isinstance(nav, dict):
+        raise ValueError("spec.nav must be an object")
+    path = nav.get("path")
+    if path is not None and (not isinstance(path, str) or not path.startswith("/")):
+        raise ValueError("spec.nav.path must be a string starting with '/'")
+    icon = nav.get("icon")
+    if icon is not None and not isinstance(icon, str):
+        raise ValueError("spec.nav.icon must be a string")
+    section = nav.get("section")
+    if section is not None and section not in _NAV_SECTIONS:
+        raise ValueError(f"spec.nav.section must be one of {sorted(_NAV_SECTIONS)}")
+    order = nav.get("order")
+    # bool is an int subclass — reject it explicitly so True/False isn't an "order".
+    if order is not None and (isinstance(order, bool) or not isinstance(order, int)):
+        raise ValueError("spec.nav.order must be an integer")
 
 
 def registry_writable() -> bool:

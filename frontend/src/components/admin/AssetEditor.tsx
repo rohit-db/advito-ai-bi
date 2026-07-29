@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2, LayoutDashboard } from "lucide-react";
 import { Modal } from "./shared";
-import { FILTERS } from "@/config";
-import type { FilterKey } from "@/config";
+import { FILTERS, ICON_MAP } from "@/config";
+import type { FilterKey, RouteSection } from "@/config";
 import type { AssetPage } from "@/registry/types";
 import * as adminApi from "@/lib/adminApi";
 import type { AssetRow, SaveAssetBody, ResourceItem } from "@/lib/adminApi";
 
 const FILTER_KEYS = Object.keys(FILTERS) as FilterKey[];
+const ICON_KEYS = Object.keys(ICON_MAP);
+const NAV_SECTIONS: RouteSection[] = ["insights", "exploration"];
 const SLUG_RE = /^[a-z0-9_-]+$/;
 
 // Stable uid counter for list keys — editor-local only, never persisted.
@@ -54,6 +56,16 @@ export default function AssetEditor({
   const [globalFilterPage, setGlobalFilterPage] = useState(initial?.spec.globalFilterPage ?? "");
   const [workspace, setWorkspace] = useState(initial?.spec.workspace ?? "");
   const [org, setOrg] = useState(initial?.spec.org ?? "");
+  // Nav metadata (PR3c): drives the asset's sidebar entry + route. Optional —
+  // when "Show in navigation" is off, no nav is persisted and the asset is
+  // embeddable but does not appear in the sidebar on its own.
+  const [navEnabled, setNavEnabled] = useState(!!initial?.spec.nav);
+  const [navPath, setNavPath] = useState(initial?.spec.nav?.path ?? "");
+  const [navIcon, setNavIcon] = useState(initial?.spec.nav?.icon ?? ICON_KEYS[0]);
+  const [navSection, setNavSection] = useState<RouteSection>(initial?.spec.nav?.section ?? "insights");
+  const [navOrder, setNavOrder] = useState<string>(
+    initial?.spec.nav?.order != null ? String(initial.spec.nav.order) : "0"
+  );
   const [filterRows, setFilterRows] = useState<FilterRow[]>(
     Object.entries(initial?.spec.filters ?? {}).map(([k, v]) => ({ uid: nextUid(), key: k as FilterKey, widget: v as string }))
   );
@@ -95,6 +107,15 @@ export default function AssetEditor({
     if (creating && existingKeys.includes(key)) return setError(`An asset with key "${key}" already exists.`);
     if (!dashboardId.trim()) return setError("Dashboard id is required.");
 
+    let nav: AssetRow["spec"]["nav"] | undefined;
+    if (navEnabled) {
+      const path = navPath.trim();
+      if (!path.startsWith("/")) return setError("Nav path must start with '/'.");
+      const order = Number(navOrder);
+      if (!Number.isInteger(order)) return setError("Nav order must be a whole number.");
+      nav = { path, icon: navIcon, section: navSection, order };
+    }
+
     const filters: Partial<Record<FilterKey, string>> = {};
     for (const r of filterRows) if (r.widget.trim()) filters[r.key] = r.widget.trim();
 
@@ -109,6 +130,7 @@ export default function AssetEditor({
         filters,
         ...(workspace.trim() ? { workspace: workspace.trim() } : {}),
         ...(org.trim() ? { org: org.trim() } : {}),
+        ...(nav ? { nav } : {}),
         pages: pages.map((p) => ({
           pageId: p.pageId.trim(),
           label: p.label.trim(),
@@ -221,6 +243,47 @@ export default function AssetEditor({
             <span className={lbl}>Org (optional)</span>
             <input aria-label="Org" className={input} value={org} onChange={(e) => setOrg(e.target.value)} placeholder="brand default" />
           </label>
+        </div>
+
+        {/* Navigation (PR3c): sidebar entry + route derived from this asset */}
+        <div className="space-y-2 rounded-lg border border-brand-border p-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" aria-label="Show in navigation" checked={navEnabled}
+              onChange={(e) => setNavEnabled(e.target.checked)} />
+            <span className={lbl}>Show in navigation</span>
+          </label>
+          {navEnabled && (
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <label className="space-y-1">
+                <span className={lbl}>Nav path</span>
+                <input aria-label="Nav path" className={input} value={navPath} placeholder="/spend-custom"
+                  onChange={(e) => setNavPath(e.target.value)} />
+              </label>
+              <label className="space-y-1">
+                <span className={lbl}>Icon</span>
+                <select aria-label="Nav icon" className={input} value={navIcon}
+                  onChange={(e) => setNavIcon(e.target.value)}>
+                  {ICON_KEYS.map((k) => (
+                    <option key={k} value={k}>{k}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-1">
+                <span className={lbl}>Section</span>
+                <select aria-label="Nav section" className={input} value={navSection}
+                  onChange={(e) => setNavSection(e.target.value as RouteSection)}>
+                  {NAV_SECTIONS.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-1">
+                <span className={lbl}>Order</span>
+                <input aria-label="Nav order" type="number" className={input} value={navOrder}
+                  onChange={(e) => setNavOrder(e.target.value)} />
+              </label>
+            </div>
+          )}
         </div>
 
         {/* Filters */}

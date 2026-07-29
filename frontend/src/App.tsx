@@ -18,7 +18,6 @@ import { ADMIN_BASE, ADMIN_ASSETS_PATH } from "@/components/admin/adminContext";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ROUTES,
   filtersToContext,
   getSupportedFilterKeys,
   DEFAULT_FILTERS,
@@ -26,7 +25,7 @@ import {
   saveFilterPrefs,
 } from "@/config";
 import type { FilterState, RouteConfig, DashboardSpec } from "@/config";
-import { useRegistry, useDashboardAsset } from "@/registry/useRegistry";
+import { useRegistry, useDashboardAsset, useRoutes } from "@/registry/useRegistry";
 import type { AssetSpec, AssetPage } from "@/registry/types";
 
 /** The embedded-dashboard SDK + URL helpers key off `id`; map the asset onto that shape. */
@@ -121,7 +120,8 @@ export default function App() {
   const location = useLocation();
 
   const registry = useRegistry();
-  const currentRoute = ROUTES.find((r) => r.path === location.pathname);
+  const routes = useRoutes();
+  const currentRoute = routes.find((r) => r.path === location.pathname);
   const isCustom = currentRoute?.mode === "custom";
   const currentAsset: AssetSpec | undefined = currentRoute?.dashboard ? registry.assets[currentRoute.dashboard] : undefined;
   const pages: AssetPage[] = currentAsset?.pages ?? [];
@@ -240,7 +240,7 @@ export default function App() {
                 <Route path="assets" element={<AssetsPage />} />
                 <Route path="tenants" element={<TenantsPage />} />
               </Route>
-              {ROUTES.map((route) => (
+              {routes.map((route) => (
                 <Route
                   key={route.path}
                   path={route.path}
