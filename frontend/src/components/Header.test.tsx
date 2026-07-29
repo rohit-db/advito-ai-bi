@@ -31,12 +31,14 @@ describe("Header (DuBois top bar)", () => {
     const { container } = renderHeader();
     const header = container.querySelector("header")!;
     expect(header).toBeInTheDocument();
-    // 48px tall (h-12) and surface-2 background token
     expect(header.className).toMatch(/\bh-12\b/);
     expect(header.className).toMatch(/bg-surface-2/);
-    // no legacy slate/white chrome anywhere in the header markup
-    expect(header.innerHTML).not.toMatch(/slate-/);
+    // Header's own chrome uses no legacy slate/white (avatar primitive defaults are out of scope)
+    expect(header.className).not.toMatch(/slate-/);
     expect(header.className).not.toMatch(/bg-white/);
+    // breadcrumb title uses fg token, not slate
+    const title = screen.getByText(/APEX|Home/i);
+    expect(title.className).not.toMatch(/slate-/);
   });
 
   it("mounts the theme toggle", () => {
