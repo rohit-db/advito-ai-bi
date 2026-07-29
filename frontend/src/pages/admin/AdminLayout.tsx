@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, ShieldCheck, LockKeyhole, ShieldX } from "lucide-react";
+import { Outlet } from "react-router-dom";
+import { LockKeyhole, ShieldX } from "lucide-react";
 import * as adminApi from "@/lib/adminApi";
 import type { AuditRow } from "@/lib/adminApi";
 import { isAdminApiError } from "@/lib/adminApi";
-import { ADMIN_ASSETS_PATH, ADMIN_TENANTS_PATH } from "@/components/admin/adminContext";
 import type { AdminOutletContext } from "@/components/admin/adminContext";
 
 const AUDIT_POLL_MS = 8000;
@@ -53,20 +52,9 @@ export default function AdminLayout() {
   if (accessError) return <AccessGate status={accessError.status} detail={accessError.detail} />;
 
   const ctx: AdminOutletContext = { audit, auditLoading, auditError, auditRefreshing, reportAccessError, refreshAll };
-  const tab = "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors";
 
   return (
     <div className="h-full overflow-y-auto bg-slate-50">
-      <div className="sticky top-0 z-10 border-b border-brand-border bg-white/80 px-6 py-2.5 backdrop-blur">
-        <nav className="mx-auto flex max-w-6xl items-center gap-1">
-          <NavLink to={ADMIN_ASSETS_PATH} className={({ isActive }) => `${tab} ${isActive ? "bg-brand-primary-light text-brand-primary-dark" : "text-slate-500 hover:bg-slate-100"}`}>
-            <LayoutDashboard size={15} /> Manage Assets
-          </NavLink>
-          <NavLink to={ADMIN_TENANTS_PATH} className={({ isActive }) => `${tab} ${isActive ? "bg-brand-primary-light text-brand-primary-dark" : "text-slate-500 hover:bg-slate-100"}`}>
-            <ShieldCheck size={15} /> Manage Users & SPs
-          </NavLink>
-        </nav>
-      </div>
       {/* The bare /admin path is handled by the router `index` route (App.tsx),
           which renders AssetsPage — no redirect needed here. */}
       <Outlet context={ctx} />
