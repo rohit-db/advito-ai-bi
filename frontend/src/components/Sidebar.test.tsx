@@ -4,11 +4,26 @@ import { MemoryRouter } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { RegistryContext } from "@/registry/useRegistry";
 import type { Registry } from "@/registry/types";
+import { ADMIN_ASSETS_PATH } from "@/components/admin/adminContext";
 
 function renderSidebar(registry: Registry) {
   return render(
     <RegistryContext.Provider value={registry}>
       <MemoryRouter>
+        <Sidebar collapsed={false} onToggle={() => {}} />
+      </MemoryRouter>
+    </RegistryContext.Provider>
+  );
+}
+
+function renderSidebarAt(registry: Registry, path: string, role: "operator" | "user" = "operator") {
+  vi.stubGlobal("fetch", vi.fn(async () => ({
+    ok: true, status: 200,
+    json: async () => ({ email: "dana@advito.com", role, tenant: "*", authenticated: true }),
+  })));
+  return render(
+    <RegistryContext.Provider value={registry}>
+      <MemoryRouter initialEntries={[path]}>
         <Sidebar collapsed={false} onToggle={() => {}} />
       </MemoryRouter>
     </RegistryContext.Provider>
@@ -44,5 +59,19 @@ describe("Sidebar", () => {
     // asset simply is not in the registry the Sidebar receives.
     renderSidebar({ assets: { spend: asset("Spend", "/spend-custom", 1) } });
     expect(screen.queryByText("Sustainability")).not.toBeInTheDocument();
+  });
+
+  it("shows admin sections and Back to APEX when under /admin (operator)", async () => {
+    renderSidebarAt({ assets: {} }, ADMIN_ASSETS_PATH, "operator");
+    expect(await screen.findByText(/back to apex/i)).toBeInTheDocument();
+    expect(screen.getByText("Assets")).toBeInTheDocument();
+    expect(screen.getByText("Tenant access")).toBeInTheDocument();
+    expect(screen.getByText("Users & SPs")).toBeInTheDocument();
+  });
+
+  it("does NOT show an Administration block on the analytics view", () => {
+    renderSidebarAt({ assets: { spend: asset("Spend", "/spend-custom", 1) } }, "/", "operator");
+    expect(screen.queryByText(/administration/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/back to apex/i)).not.toBeInTheDocument();
   });
 });

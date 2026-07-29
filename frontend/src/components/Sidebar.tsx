@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import { ICON_MAP } from "@/config";
 import { useRoutes } from "@/registry/useRegistry";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PanelLeftClose, PanelLeft } from "lucide-react";
+import { PanelLeftClose, PanelLeft, ArrowLeft } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
-import { ADMIN_ASSETS_PATH, ADMIN_TENANTS_PATH } from "@/components/admin/adminContext";
+import { ADMIN_BASE, ADMIN_SECTIONS } from "@/components/admin/adminContext";
 import { brand } from "@/theme/brand";
 import { BrandLogo } from "@/components/BrandLogo";
 
@@ -21,6 +21,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { user } = useUser();
   const isOperator = user?.role === "operator";
   const clientName = user?.tenant || "All clients";
+
+  const inAdmin = location.pathname.startsWith(ADMIN_BASE);
 
   const routes = useRoutes();
   const insightsRoutes = routes.filter((r) => r.section === "insights");
@@ -130,59 +132,91 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Nav sections */}
       <ScrollArea className={cn("flex-1 py-4", collapsed ? "px-1.5" : "px-3")}>
-        {/* Insights & Analytics */}
-        <div className="mb-4">
-          {!collapsed && (
-            <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
-              Insights & Analytics
-            </div>
-          )}
-          <div className="flex flex-col gap-0.5">
-            {insightsRoutes.map((route) => (
-              <NavItem
-                key={route.path}
-                path={route.path}
-                label={route.label}
-                icon={route.icon}
-                placeholder={route.mode === "placeholder"}
+        {inAdmin && isOperator ? (
+          /* ── Admin context: Back link + admin sections ── */
+          <div>
+            {/* Back to APEX */}
+            <button
+              onClick={() => navigate("/")}
+              title={collapsed ? "Back to APEX" : undefined}
+              className={cn(
+                "group w-full flex items-center rounded-lg transition-all duration-150 mb-3",
+                collapsed ? "justify-center px-2 py-2" : "gap-2 px-2.5 py-2",
+                "text-white/55 hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <ArrowLeft
+                size={16}
+                strokeWidth={1.75}
+                className="shrink-0 text-white/55 group-hover:text-white transition-colors"
               />
-            ))}
-          </div>
-        </div>
+              {!collapsed && (
+                <span className="text-[13px] font-medium">Back to APEX</span>
+              )}
+            </button>
 
-        {/* Exploration */}
-        <div>
-          {!collapsed && (
-            <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
-              Exploration
-            </div>
-          )}
-          <div className="flex flex-col gap-0.5">
-            {explorationRoutes.map((route) => (
-              <NavItem
-                key={route.path}
-                path={route.path}
-                label={route.label}
-                icon={route.icon}
-                placeholder={route.mode === "placeholder"}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Administration (operators only) — asset registry + tenant Service Principals */}
-        {isOperator && (
-          <div className="mt-4">
+            {/* Administration section heading */}
             {!collapsed && (
               <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
                 Administration
               </div>
             )}
+
+            {/* Admin nav items */}
             <div className="flex flex-col gap-0.5">
-              <NavItem path={ADMIN_ASSETS_PATH} label="Manage Assets" icon="LayoutDashboard" />
-              <NavItem path={ADMIN_TENANTS_PATH} label="Manage Users & SPs" icon="ShieldCheck" />
+              {ADMIN_SECTIONS.map((section) => (
+                <NavItem
+                  key={section.path}
+                  path={section.path}
+                  label={section.label}
+                  icon={section.icon}
+                />
+              ))}
             </div>
           </div>
+        ) : (
+          /* ── Analytics context: Insights + Exploration ── */
+          <>
+            {/* Insights & Analytics */}
+            <div className="mb-4">
+              {!collapsed && (
+                <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
+                  Insights & Analytics
+                </div>
+              )}
+              <div className="flex flex-col gap-0.5">
+                {insightsRoutes.map((route) => (
+                  <NavItem
+                    key={route.path}
+                    path={route.path}
+                    label={route.label}
+                    icon={route.icon}
+                    placeholder={route.mode === "placeholder"}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Exploration */}
+            <div>
+              {!collapsed && (
+                <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
+                  Exploration
+                </div>
+              )}
+              <div className="flex flex-col gap-0.5">
+                {explorationRoutes.map((route) => (
+                  <NavItem
+                    key={route.path}
+                    path={route.path}
+                    label={route.label}
+                    icon={route.icon}
+                    placeholder={route.mode === "placeholder"}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </ScrollArea>
     </aside>
