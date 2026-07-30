@@ -8,10 +8,10 @@ interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: "bg-brand-primary text-white border-transparent",
-  secondary: "bg-slate-100 text-slate-700 border-transparent",
-  outline: "border border-slate-300 text-slate-700 bg-transparent",
-  destructive: "bg-red-500 text-white border-transparent",
+  default: "bg-accent text-accent-fg border-transparent",
+  secondary: "bg-surface-2 text-fg-2 border-transparent",
+  outline: "border border-border text-fg-2 bg-transparent",
+  destructive: "text-[var(--danger-fg)] border-transparent bg-[rgba(196,64,64,0.12)]",
 };
 
 export function Badge({ className, variant = "default", children, ...props }: BadgeProps) {
@@ -19,7 +19,7 @@ export function Badge({ className, variant = "default", children, ...props }: Ba
     <div
       className={cn(
         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
-        "focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2",
+        "focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
         variantClasses[variant],
         className
       )}

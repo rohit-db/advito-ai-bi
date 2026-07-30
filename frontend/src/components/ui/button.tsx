@@ -11,12 +11,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  default:
-    "bg-brand-primary text-white hover:bg-brand-primary-dark shadow-sm",
-  outline:
-    "border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 hover:text-slate-900 shadow-sm",
-  ghost:
-    "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+  default: "bg-accent text-accent-fg hover:bg-accent-hover shadow-sm",
+  outline: "border border-border bg-surface text-fg hover:bg-[var(--fill-hover)] shadow-sm",
+  ghost: "text-fg-2 hover:bg-[var(--fill-hover)] hover:text-fg",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -42,7 +39,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={cn(
           "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium",
-          "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent",
+          "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
           "disabled:pointer-events-none disabled:opacity-50",
           variantClasses[variant],
           sizeClasses[size],
