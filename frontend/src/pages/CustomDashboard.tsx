@@ -175,7 +175,7 @@ export default function CustomDashboard({
 
   if (pages.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-sm text-slate-400">
+      <div className="h-full flex items-center justify-center text-sm text-fg-muted">
         No pages configured for this dashboard.
       </div>
     );
@@ -184,12 +184,12 @@ export default function CustomDashboard({
   if (phase === "error") {
     return (
       <div className="h-full flex items-center justify-center p-6">
-        <div className="max-w-md rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
+        <div className="max-w-md rounded-xl border border-[color:var(--danger)] bg-[rgba(208,64,64,0.06)] p-5 text-sm text-[var(--danger-fg)]">
           <div className="mb-1 flex items-center gap-2 font-semibold">
             <AlertCircle size={16} />
             Could not load the dashboard
           </div>
-          <p className="text-rose-600">{error}</p>
+          <p className="text-[var(--danger-fg)]">{error}</p>
         </div>
       </div>
     );
@@ -197,11 +197,11 @@ export default function CustomDashboard({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 relative overflow-hidden bg-brand-bg">
+      <div className="flex-1 relative overflow-hidden bg-surface">
         {phase === "loading" && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-brand-bg">
-            <div className="flex flex-col items-center gap-3 text-slate-400">
-              <Loader2 size={28} className="animate-spin text-brand-accent" />
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface">
+            <div className="flex flex-col items-center gap-3 text-fg-muted">
+              <Loader2 size={28} className="animate-spin text-accent" />
               <span className="text-xs font-medium">Preparing secure dashboard…</span>
             </div>
           </div>
