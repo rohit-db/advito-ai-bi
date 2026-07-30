@@ -65,7 +65,6 @@ export default function AskApexLive() {
         onNew={clearChat}
         onDelete={removeConversation}
         disabled={isLoading}
-        accent="fuchsia"
       />
 
       <div className="relative flex h-full min-w-0 flex-1 flex-col bg-slate-50">
