@@ -61,19 +61,17 @@ Ordered by the recommended sequence; each is its own PR-sized plan + SDD run:
 2. **Login page** (`server/`-rendered Python template — user-facing, still slate/indigo).
 3. **Dashboard toolbar + Spend/Sustainability dashboard frames** (the `isCustom` toolbar
    in `App.tsx` with the page tabs + Exec Summary / Ask APEX buttons — still `bg-white`).
-4. **Shell-polish** — Rohit's early feedback that the shell felt weak: top-bar presence,
-   elevation/contrast. Re-evaluate now that page bodies are converted.
-   **★ ROHIT REQUEST (2026-07-30, tackle this iteration): FULL-WIDTH TOP BAR like
-   Lakewatch.** Currently APEX puts the sidebar full-height on the LEFT with the top bar
-   only spanning the content area to its right. Lakewatch inverts this: the **top bar
-   runs edge-to-edge across the ENTIRE page width at the very top** (brand logo/name in
-   the top-left corner within the bar), and the **sidebar starts BELOW the top bar**.
-   This is a structural layout change to the app shell (`App.tsx` flex structure +
-   `Header.tsx` + `Sidebar.tsx`): change from `[sidebar | (header / main)]` (sidebar is
-   the tall left column) to `[header spanning full width] / [sidebar | main]` (header is
-   the tall top row, sidebar+main sit under it). The brand mark/app name moves from the
-   sidebar header into the top-left of the full-width bar. Verify against Lakewatch
-   screenshots. This is the anchor move that will make the shell feel more premium/app-like.
+4. **Shell-polish** — Rohit's early feedback that the shell felt weak: elevation/contrast.
+   Re-evaluate now that page bodies are converted.
+   **★ FULL-WIDTH TOP BAR — ✅ DONE 2026-07-30 (HEAD `6ec4c41`, plan
+   `plans/2026-07-30-full-width-topbar.md`).** Built as a MODULAR shell under
+   `frontend/src/components/shell/` = {Breadcrumb, ClientBadge, UserMenu, BrandBlock, TopBar}.
+   App.tsx flipped row→column `[TopBar] / [Sidebar | main]`; Sidebar slimmed to pure nav
+   (dropped brand header + client badge + collapse toggle + `onToggle`); `Header.tsx` retired.
+   Dark L-shape brand block (`bg-brand-sidebar-from`) width tracks sidebar 224↔60 lockstep;
+   collapse toggle + client badge relocated into the bar. Config-driven preserved. Live-verified
+   both themes, final review APPROVED 0 findings, 94/94. NOT pushed yet.
+   Remaining shell-polish = just elevation/contrast tuning.
 5. **Phase-4 cleanup** (see backlog below).
 
 **Open priority question for Rohit (unanswered):** admin is operator-only (low
