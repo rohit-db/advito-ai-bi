@@ -8,6 +8,7 @@
    ============================================================================ */
 
 /* ── Layer 1 — DuBois primitives (LIGHT default) ─────────────────────────── */
+/* Fallback default — authoritative palette lives in brand.config.json colors.neutrals; ThemeProvider injects #apex-neutrals at runtime. */
 :root {
   /* Neutral ramp — COOL/CRISP (Lakewatch-style): near-white content, cool-gray chrome.
      SPIKE: tuned directly here to validate; to be wired through brand.config.json. */
@@ -60,6 +61,7 @@
 
   /* ── Layer 3 — customizable accent seam (ThemeProvider overwrites at runtime) ── */
   --accent:#4f46e5;
+  --accent-gradient: var(--accent);
   --accent-fg:#ffffff;
   --accent-hover:#4338ca;
 
@@ -78,6 +80,7 @@
 }
 
 /* ── Layer 1 — DuBois primitives (DARK override) ─────────────────────────── */
+/* Fallback default — authoritative palette lives in brand.config.json colors.neutrals; ThemeProvider injects #apex-neutrals at runtime. */
 [data-theme="dark"] {
   --n0:#0A0A0B; --n1:#121214; --n2:#1A1A1C; --n3:#222224; --n4:#2C2C2E;
   --n5:#393939; --n6:#4B4B4D; --n7:#69696B; --n8:#8A8A8C; --n9:#ABABAE;
@@ -135,6 +138,16 @@
   --radius-xl: var(--radius-xl);
   --font-sans: var(--brand-font-sans, "Inter", system-ui, sans-serif);
   --font-mono: var(--font-mono, "JetBrains Mono", monospace);
+}
+
+/* Gradient flourish border (Lakewatch-style). Falls back to a solid accent
+   ring when --accent-gradient resolves to var(--accent). */
+.gradient-border {
+  position: relative;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    var(--accent-gradient) border-box;
+  border: 1.5px solid transparent;
 }
 
 html, body, #root {
