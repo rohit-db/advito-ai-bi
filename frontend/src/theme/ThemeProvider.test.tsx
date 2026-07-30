@@ -32,4 +32,24 @@ describe("ThemeProvider", () => {
     render(<ThemeProvider>x</ThemeProvider>);
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
   });
+
+  it("injects a <style id=apex-neutrals> with :root and dark ramp rules", () => {
+    render(<ThemeProvider>x</ThemeProvider>);
+    const el = document.getElementById("apex-neutrals");
+    expect(el).toBeTruthy();
+    expect(el!.textContent).toMatch(/:root\{[^}]*--n1:#FCFCFD/);
+    expect(el!.textContent).toMatch(/\[data-theme="dark"\]\{[^}]*--n1:#121214/);
+  });
+
+  it("writes --accent-gradient inline (gradient flourish var)", () => {
+    render(<ThemeProvider>x</ThemeProvider>);
+    expect(document.documentElement.style.getPropertyValue("--accent-gradient")).toMatch(/linear-gradient/);
+  });
+
+  it("still does NOT write --overlay/--n* as inline element styles", () => {
+    render(<ThemeProvider>x</ThemeProvider>);
+    const s = document.documentElement.style;
+    expect(s.getPropertyValue("--overlay")).toBe("");
+    expect(s.getPropertyValue("--n1")).toBe("");
+  });
 });

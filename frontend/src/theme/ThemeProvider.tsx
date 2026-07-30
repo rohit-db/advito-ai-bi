@@ -1,6 +1,6 @@
 import { useLayoutEffect } from "react";
 import type { ReactNode } from "react";
-import { brand, brandToCssVars, accentVars } from "./brand";
+import { brand, brandToCssVars, accentVars, neutralsStyleSheet } from "./brand";
 import { readStoredTheme, applyTheme } from "./useTheme";
 
 /**
@@ -14,6 +14,19 @@ import { readStoredTheme, applyTheme } from "./useTheme";
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
+    // Inject the config-driven neutral ramp as real cascade rules (theme-variant;
+    // must NOT be inline element styles or the dark cascade breaks).
+    const css = neutralsStyleSheet(brand);
+    if (css) {
+      let styleEl = document.getElementById("apex-neutrals") as HTMLStyleElement | null;
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = "apex-neutrals";
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = css;
+    }
+
     const root = document.documentElement;
     const vars = { ...brandToCssVars(brand), ...accentVars(brand) };
     for (const [key, value] of Object.entries(vars)) {
