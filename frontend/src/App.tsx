@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Sparkles, MessageCircle } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
+import TopBar from "@/components/shell/TopBar";
 import FilterBar from "@/components/FilterBar";
 import DashboardWorkspace from "@/components/DashboardWorkspace";
 import CustomDashboard from "@/pages/CustomDashboard";
@@ -180,89 +180,91 @@ export default function App() {
   }, [location.pathname, effectivePageId]);
 
   return (
-    <div className="h-full flex bg-surface-2">
-      <Sidebar
+    <div className="h-full flex flex-col bg-surface-2">
+      <TopBar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Header />
+      <div className="flex-1 flex min-h-0">
+        <Sidebar collapsed={sidebarCollapsed} />
+        <div className="flex-1 flex flex-col min-w-0">
 
-        {/* Unified dashboard toolbar: page tabs (left) + page actions (right) */}
-        {isCustom && (
-          <div className="shrink-0 bg-white px-5 pt-3 pb-1 flex items-center justify-between gap-3">
-            {isCustom && pages.length > 0 ? (
-              <Tabs value={effectivePageId} onValueChange={setActivePageId}>
-                <TabsList>
-                  {pages.map((page) => (
-                    <TabsTrigger key={page.pageId} value={page.pageId}>
-                      {page.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            ) : (
-              <div />
-            )}
+          {/* Unified dashboard toolbar: page tabs (left) + page actions (right) */}
+          {isCustom && (
+            <div className="shrink-0 bg-white px-5 pt-3 pb-1 flex items-center justify-between gap-3">
+              {isCustom && pages.length > 0 ? (
+                <Tabs value={effectivePageId} onValueChange={setActivePageId}>
+                  <TabsList>
+                    {pages.map((page) => (
+                      <TabsTrigger key={page.pageId} value={page.pageId}>
+                        {page.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              ) : (
+                <div />
+              )}
 
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setSummaryOpen(true)}
-                className="gap-1.5 text-brand-primary border-brand-primary-light hover:bg-brand-primary-light hover:text-brand-primary-dark"
-              >
-                <Sparkles size={14} />
-                <span>Executive Summary</span>
-              </Button>
-              <Button
-                size="sm"
-                variant={railOpen ? "default" : "outline"}
-                onClick={() => setRailOpen((o) => !o)}
-                className="gap-1.5"
-              >
-                <MessageCircle size={14} />
-                <span>Ask APEX</span>
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSummaryOpen(true)}
+                  className="gap-1.5 text-brand-primary border-brand-primary-light hover:bg-brand-primary-light hover:text-brand-primary-dark"
+                >
+                  <Sparkles size={14} />
+                  <span>Executive Summary</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant={railOpen ? "default" : "outline"}
+                  onClick={() => setRailOpen((o) => !o)}
+                  className="gap-1.5"
+                >
+                  <MessageCircle size={14} />
+                  <span>Ask APEX</span>
+                </Button>
+              </div>
             </div>
+          )}
+
+          {isCustom && filterKeys.length > 0 && (
+            <FilterBar filters={filters} onChange={handleFilterChange} filterKeys={filterKeys} />
+          )}
+
+          <div className="flex-1 flex min-h-0">
+            <main className="flex-1 flex flex-col min-w-0 bg-surface border border-border rounded-lg mr-2 mb-2 overflow-y-auto">
+              <Routes>
+                {/* Operator-only admin. Self-guards via 401/403 in AdminLayout; nav hidden for non-operators. */}
+                <Route path={ADMIN_BASE} element={<AdminLayout />}>
+                  <Route index element={<Navigate to={ADMIN_ASSETS_PATH} replace />} />
+                  <Route path="assets" element={<AssetsPage />} />
+                  <Route path="access" element={<AccessPage />} />
+                  <Route path="tenants" element={<TenantsPage />} />
+                </Route>
+                {routes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={
+                      <RouteRenderer
+                        route={route}
+                        filters={filters}
+                        filtersReady={filtersReady}
+                        activePageId={effectivePageId}
+                        railOpen={railOpen}
+                        onRailOpenChange={setRailOpen}
+                        summaryOpen={summaryOpen}
+                        onSummaryOpenChange={setSummaryOpen}
+                      />
+                    }
+                  />
+                ))}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
           </div>
-        )}
-
-        {isCustom && filterKeys.length > 0 && (
-          <FilterBar filters={filters} onChange={handleFilterChange} filterKeys={filterKeys} />
-        )}
-
-        <div className="flex-1 flex min-h-0">
-          <main className="flex-1 flex flex-col min-w-0 bg-surface border border-border rounded-lg mr-2 mb-2 overflow-y-auto">
-            <Routes>
-              {/* Operator-only admin. Self-guards via 401/403 in AdminLayout; nav hidden for non-operators. */}
-              <Route path={ADMIN_BASE} element={<AdminLayout />}>
-                <Route index element={<Navigate to={ADMIN_ASSETS_PATH} replace />} />
-                <Route path="assets" element={<AssetsPage />} />
-                <Route path="access" element={<AccessPage />} />
-                <Route path="tenants" element={<TenantsPage />} />
-              </Route>
-              {routes.map((route) => (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  element={
-                    <RouteRenderer
-                      route={route}
-                      filters={filters}
-                      filtersReady={filtersReady}
-                      activePageId={effectivePageId}
-                      railOpen={railOpen}
-                      onRailOpenChange={setRailOpen}
-                      summaryOpen={summaryOpen}
-                      onSummaryOpenChange={setSummaryOpen}
-                    />
-                  }
-                />
-              ))}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
         </div>
       </div>
     </div>

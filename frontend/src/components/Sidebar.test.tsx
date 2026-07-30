@@ -10,7 +10,7 @@ function renderSidebar(registry: Registry) {
   return render(
     <RegistryContext.Provider value={registry}>
       <MemoryRouter>
-        <Sidebar collapsed={false} onToggle={() => {}} />
+        <Sidebar collapsed={false} />
       </MemoryRouter>
     </RegistryContext.Provider>
   );
@@ -24,7 +24,7 @@ function renderSidebarAt(registry: Registry, path: string, role: "operator" | "u
   return render(
     <RegistryContext.Provider value={registry}>
       <MemoryRouter initialEntries={[path]}>
-        <Sidebar collapsed={false} onToggle={() => {}} />
+        <Sidebar collapsed={false} />
       </MemoryRouter>
     </RegistryContext.Provider>
   );
