@@ -6,17 +6,17 @@ import { DEFAULT_FILTERS, FILTERS } from "@/config";
 import type { FilterKey, FilterState } from "@/config";
 
 const DATE_INPUT_CLS =
-  "h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 focus:bg-white focus:outline-none focus:border-brand-accent focus:ring-2 focus:ring-brand-primary-light transition-colors";
+  "h-8 px-2.5 text-xs rounded-lg border border-border bg-surface text-fg hover:border-border focus:bg-surface focus:outline-none focus:border-border-emphasis focus:ring-2 focus:ring-[rgba(var(--overlay),0.06)] transition-colors";
 
 function StyledSelect({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) {
   return (
     <div className="relative">
       <select
         className={cn(
-          "h-8 px-2.5 pr-7 text-xs font-medium rounded-lg border border-slate-200 bg-slate-50/80 text-slate-700",
+          "h-8 px-2.5 pr-7 text-xs font-medium rounded-lg border border-border bg-surface text-fg",
           "appearance-none cursor-pointer",
-          "focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary-light focus:border-brand-accent",
-          "hover:border-slate-300 transition-colors",
+          "focus:bg-surface focus:outline-none focus:ring-2 focus:ring-[rgba(var(--overlay),0.06)] focus:border-border-emphasis",
+          "hover:border-border transition-colors",
           className
         )}
         style={{ backgroundImage: "none" }}
@@ -24,13 +24,13 @@ function StyledSelect({ className, children, ...props }: React.SelectHTMLAttribu
       >
         {children}
       </select>
-      <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+      <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-fg-muted pointer-events-none" />
     </div>
   );
 }
 
 function Divider() {
-  return <div className="h-5 w-px bg-slate-200 shrink-0" />;
+  return <div className="h-5 w-px bg-border shrink-0" />;
 }
 
 interface FilterBarProps {
@@ -71,13 +71,13 @@ export default function FilterBar({ filters, onChange, filterKeys }: FilterBarPr
     filters.currentPeriodTo !== DEFAULT_FILTERS.currentPeriodTo;
 
   return (
-    <div className="shrink-0 bg-white border-b border-slate-100">
+    <div className="shrink-0 bg-surface border-b border-border">
       <div className="px-4 py-2 flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="grid place-items-center w-6 h-6 rounded-lg bg-brand-primary-light text-brand-primary">
+          <span className="grid place-items-center w-6 h-6 rounded-lg bg-[var(--fill-active)] text-accent">
             <Filter size={12} />
           </span>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 select-none">Filters</span>
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-fg-muted select-none">Filters</span>
         </div>
 
         {filterKeys.map((key) => {
@@ -87,14 +87,14 @@ export default function FilterBar({ filters, onChange, filterKeys }: FilterBarPr
               <Divider />
               {def.kind === "dateRange" ? (
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-slate-500 font-medium">{def.label}</span>
+                  <span className="text-xs text-fg-muted font-medium">{def.label}</span>
                   <input
                     type="date"
                     value={(draft[def.fromField] as string) || ""}
                     onChange={(e) => setDraft({ ...draft, [def.fromField]: e.target.value })}
                     className={DATE_INPUT_CLS}
                   />
-                  <span className="text-xs text-slate-300">→</span>
+                  <span className="text-xs text-fg-2">→</span>
                   <input
                     type="date"
                     value={(draft[def.toField] as string) || ""}
@@ -104,7 +104,7 @@ export default function FilterBar({ filters, onChange, filterKeys }: FilterBarPr
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-xs text-slate-500 font-medium">{def.label}</span>
+                  <span className="text-xs text-fg-muted font-medium">{def.label}</span>
                   <StyledSelect
                     value={(draft[def.field] as string) || ""}
                     onChange={(e) => setDraft({ ...draft, [def.field]: e.target.value || undefined })}
@@ -132,17 +132,17 @@ export default function FilterBar({ filters, onChange, filterKeys }: FilterBarPr
             className={cn(
               "h-8 text-xs transition-all",
               isDirty
-                ? "bg-linear-to-r from-brand-primary to-brand-accent hover:from-brand-primary-dark hover:to-brand-accent-dark ring-2 ring-brand-primary-light"
+                ? "bg-linear-to-r from-accent to-accent-alt hover:from-accent-hover hover:to-accent-alt-hover ring-2 ring-[rgba(var(--overlay),0.06)]"
                 : "opacity-40 cursor-not-allowed"
             )}
           >
-            {isDirty && <span className="w-1.5 h-1.5 rounded-full bg-white/90" />}
+            {isDirty && <span className="w-1.5 h-1.5 rounded-full bg-fg/90" />}
             Apply
           </Button>
           {hasNonDefault && (
             <button
               onClick={clear}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors"
+              className="flex items-center gap-1 text-xs text-accent hover:text-accent-hover transition-colors"
             >
               <X size={11} /> Clear
             </button>
