@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import Breadcrumb from "./Breadcrumb";
 import ClientBadge from "./ClientBadge";
 import UserMenu from "./UserMenu";
+import BrandBlock from "./BrandBlock";
 
 describe("shell — Breadcrumb", () => {
   it("renders the page title with fg token, no slate", () => {
@@ -41,5 +42,25 @@ describe("shell — UserMenu", () => {
   it("falls back to 'User' / '?' when user is null", () => {
     render(<UserMenu user={null} />);
     expect(screen.getByText("User")).toBeInTheDocument();
+  });
+});
+
+describe("shell — BrandBlock", () => {
+  it("expanded: shows app name + a collapse toggle, dark rail background", () => {
+    const { container } = render(<BrandBlock collapsed={false} onToggle={() => {}} />);
+    expect(container.innerHTML).toMatch(/bg-brand-sidebar-from/);
+    expect(container.innerHTML).toMatch(/w-\[224px\]/);
+    expect(screen.getByTitle(/collapse sidebar/i)).toBeInTheDocument();
+  });
+  it("collapsed: shrinks to 60px and offers an expand affordance", () => {
+    const { container } = render(<BrandBlock collapsed={true} onToggle={() => {}} />);
+    expect(container.innerHTML).toMatch(/w-\[60px\]/);
+    expect(screen.getByTitle(/expand sidebar/i)).toBeInTheDocument();
+  });
+  it("fires onToggle when the toggle is clicked", () => {
+    let n = 0;
+    render(<BrandBlock collapsed={false} onToggle={() => { n++; }} />);
+    screen.getByTitle(/collapse sidebar/i).click();
+    expect(n).toBe(1);
   });
 });
