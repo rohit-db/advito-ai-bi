@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUser } from "@/hooks/useUser";
 import { useGenieAppView, type AppViewMessage } from "@/hooks/useGenieAppView";
 import ConversationRail from "@/components/genie/ConversationRail";
+import GradientMark from "@/theme/GradientMark";
 
 const SUGGESTIONS = [
   "Show total travel spend in 2025 as a chart",
@@ -67,19 +68,19 @@ export default function AskApexLive() {
         disabled={isLoading}
       />
 
-      <div className="relative flex h-full min-w-0 flex-1 flex-col bg-slate-50">
+      <div className="relative flex h-full min-w-0 flex-1 flex-col bg-surface">
       {/* Header */}
-      <header className="z-10 shrink-0 border-b border-slate-200/70 bg-white/70 px-6 py-3 backdrop-blur-md">
+      <header className="z-10 shrink-0 border-b border-border bg-surface-2 px-6 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-600 to-brand-primary shadow-sm shadow-brand-primary-light/50">
-              <BarChart3 className="h-[18px] w-[18px] text-white" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-3">
+              <BarChart3 className="h-[18px] w-[18px] text-fg-muted" />
             </div>
             <div>
-              <h1 className="text-[15px] font-semibold leading-tight tracking-tight text-slate-900">
+              <h1 className="text-[15px] font-medium leading-tight tracking-tight text-fg">
                 Ask APEX MCP View
               </h1>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-fg-muted">
                 Interactive Genie answers with charts, rendered inline
               </p>
             </div>
@@ -89,7 +90,7 @@ export default function AskApexLive() {
       </header>
 
       {viewUnavailable && (
-        <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-2.5 text-[13px] text-amber-800">
+        <div className="shrink-0 border-b border-[color:var(--warning)] bg-[rgba(184,137,46,0.12)] px-6 py-2.5 text-[13px] text-[var(--warning-fg)]">
           <div className="mx-auto flex max-w-3xl items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>
@@ -102,28 +103,22 @@ export default function AskApexLive() {
 
       {empty ? (
         <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div className="absolute left-1/2 top-[22%] h-72 w-72 -translate-x-1/2 rounded-full bg-fuchsia-400/15 blur-3xl" />
-            <div className="absolute left-[30%] top-[55%] h-56 w-56 rounded-full bg-brand-accent/10 blur-3xl" />
-          </div>
           <div className="relative z-10 w-full max-w-2xl text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-fuchsia-600 to-brand-primary shadow-lg shadow-brand-primary-light/40 ring-1 ring-white/40">
-              <BarChart3 className="h-7 w-7 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Ask APEX, see the chart</h2>
-            <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-slate-500">
+            <GradientMark size={56} className="mx-auto mb-5" />
+            <h2 className="text-3xl font-medium tracking-tight text-fg">Ask APEX, see the chart</h2>
+            <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-fg-muted">
               Genie writes the SQL and renders the answer as a live, interactive visualization —
               right here in the conversation.
             </p>
             <div className="mt-7">
-              <Composer value={input} onChange={setInput} onSubmit={submit} disabled={isLoading} autoFocus />
+              <HeroComposer value={input} onChange={setInput} onSubmit={submit} disabled={isLoading} />
             </div>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((q) => (
                 <button
                   key={q}
                   onClick={() => !isLoading && sendMessage(q)}
-                  className="rounded-full border border-slate-200 bg-white/70 px-3.5 py-1.5 text-[13px] text-slate-600 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 hover:shadow"
+                  className="rounded-sm border border-border bg-surface px-3.5 py-1.5 text-[13px] text-fg-2 transition-colors hover:bg-[var(--fill-hover)] hover:text-fg"
                 >
                   {q}
                 </button>
@@ -150,18 +145,18 @@ export default function AskApexLive() {
               )}
             </div>
           </div>
-          <div className="shrink-0 bg-linear-to-t from-slate-50 via-slate-50 to-transparent px-6 pb-5 pt-3">
+          <div className="shrink-0 bg-surface px-6 pb-5 pt-3">
             <div className="mx-auto flex max-w-3xl items-center gap-2.5">
               <button
                 type="button"
                 onClick={clearChat}
                 title="New conversation"
-                className="flex h-11 shrink-0 items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
+                className="flex h-11 shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface px-3.5 text-sm font-medium text-fg-2 transition-colors hover:bg-[var(--fill-hover)] hover:text-fg"
               >
                 <Plus size={16} />
                 <span className="hidden sm:inline">New</span>
               </button>
-              <Composer value={input} onChange={setInput} onSubmit={submit} disabled={isLoading} />
+              <FooterComposer value={input} onChange={setInput} onSubmit={submit} disabled={isLoading} />
             </div>
           </div>
         </>
@@ -190,19 +185,19 @@ function AssistantView({
   return (
     <div className="flex items-start gap-2">
       <Avatar className="h-8 w-8 shrink-0">
-        <AvatarFallback className="bg-linear-to-br from-fuchsia-500 to-brand-primary text-white text-xs">
+        <AvatarFallback className="bg-surface-3 text-fg-muted text-xs">
           <Sparkles size={15} />
         </AvatarFallback>
       </Avatar>
-      <div className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-slate-200 bg-white px-3 py-3 shadow-sm">
+      <div className="min-w-0 flex-1 text-fg">
         {message.isLoading && (
-          <div className="flex items-center gap-2 text-sm text-slate-400">
+          <div className="flex items-center gap-2 text-sm text-fg-muted">
             <Loader2 size={14} className="animate-spin" /> Asking Genie…
           </div>
         )}
 
         {message.error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="rounded-lg border border-[color:var(--danger)] bg-[rgba(196,64,64,0.12)] px-3 py-2 text-sm text-[var(--danger-fg)]">
             {message.error}
           </div>
         )}
@@ -235,14 +230,14 @@ function AssistantView({
         )}
 
         {ask && !canRender && !message.error && (
-          <div className="text-sm text-slate-600">
+          <div className="text-sm text-fg-2">
             Genie answered, but no interactive View was returned.
             {ask.deepLink && (
               <a
                 href={ask.deepLink}
                 target="_blank"
                 rel="noreferrer"
-                className="ml-1 inline-flex items-center gap-1 font-medium text-brand-primary hover:text-brand-primary-dark"
+                className="ml-1 inline-flex items-center gap-1 font-medium text-accent hover:text-accent-hover"
               >
                 Open in Genie <ExternalLink size={13} />
               </a>
@@ -266,7 +261,7 @@ function HealthPill({
 }) {
   if (health.state === "connecting") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-fg-muted">
         <Loader2 size={11} className="animate-spin" /> Connecting…
       </span>
     );
@@ -275,32 +270,30 @@ function HealthPill({
     return (
       <button
         onClick={onRetry}
-        className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-medium text-red-600 hover:bg-red-100"
+        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(196,64,64,0.12)] px-2.5 py-1 text-[11px] font-medium text-[var(--danger-fg)]"
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> MCP offline — retry
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" /> MCP offline — retry
       </button>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
-      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(48,160,80,0.12)] px-2.5 py-1 text-[11px] font-medium text-[var(--success-fg)]">
+      <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
       {health.hasViewAsk ? "Genie One MCP · View ready" : "Genie One MCP"}
     </span>
   );
 }
 
-function Composer({
+function HeroComposer({
   value,
   onChange,
   onSubmit,
   disabled,
-  autoFocus,
 }: {
   value: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
   disabled?: boolean;
-  autoFocus?: boolean;
 }) {
   return (
     <form
@@ -308,38 +301,76 @@ function Composer({
         e.preventDefault();
         onSubmit();
       }}
-      className="group relative flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm transition-all focus-within:border-fuchsia-400 focus-within:ring-2 focus-within:ring-fuchsia-100"
+      className="gradient-border group relative flex items-center rounded-md bg-[var(--fill-hover)] px-4 py-2.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
     >
-      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-fuchsia-400" />
+      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-fg-muted" />
+      {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
       <input
-        // eslint-disable-next-line jsx-a11y/no-autofocus
-        autoFocus={autoFocus}
+        autoFocus
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ask about spend, emissions, bookings…"
         disabled={disabled}
-        className="flex-1 bg-transparent py-1 text-[15px] text-slate-800 placeholder-slate-400 focus:outline-none disabled:cursor-not-allowed"
+        className="flex-1 bg-transparent py-1.5 text-[15px] text-fg placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed"
       />
-      <button
-        type="submit"
-        disabled={disabled || !value.trim()}
-        className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-600 to-brand-primary text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
-      >
-        <ArrowUp size={16} strokeWidth={2.5} />
-      </button>
+      <SendButton disabled={disabled || !value.trim()} />
     </form>
+  );
+}
+
+function FooterComposer({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+      className="flex flex-1 items-center rounded-md border border-border bg-[var(--fill-hover)] px-4 py-1.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
+    >
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Ask about spend, emissions, bookings…"
+        disabled={disabled}
+        className="h-8 flex-1 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed"
+      />
+      <SendButton disabled={disabled || !value.trim()} />
+    </form>
+  );
+}
+
+function SendButton({ disabled }: { disabled?: boolean }) {
+  return (
+    <button
+      type="submit"
+      disabled={disabled}
+      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-accent text-accent-fg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-30"
+    >
+      <ArrowUp size={16} strokeWidth={2.5} />
+    </button>
   );
 }
 
 function UserBubble({ message, initials }: { message: AppViewMessage; initials: string }) {
   return (
     <div className="flex items-start justify-end gap-2.5">
-      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-linear-to-br from-fuchsia-600 to-brand-primary px-4 py-2.5 text-white shadow-sm shadow-brand-primary-light/50">
+      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-[var(--fill-active)] px-4 py-2.5 text-fg">
         <p className="text-sm leading-relaxed">{message.content}</p>
       </div>
-      <Avatar className="h-7 w-7 shrink-0 ring-2 ring-white">
-        <AvatarFallback className="bg-fuchsia-100 text-[10px] font-semibold text-fuchsia-700">
+      <Avatar className="h-7 w-7 shrink-0 ring-2 ring-[var(--surface)]">
+        <AvatarFallback className="bg-surface-3 text-[10px] font-semibold text-fg-muted">
           {initials}
         </AvatarFallback>
       </Avatar>
