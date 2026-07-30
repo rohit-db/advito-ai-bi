@@ -11,6 +11,7 @@ import { SUGGESTIONS_BY_MODE } from "@/components/genie/genieModes";
 import { McpStatusPill } from "@/components/genie/GenieMcpStatus";
 import GenieAssistantMessage from "@/components/genie/GenieAssistantMessage";
 import ConversationRail from "@/components/genie/ConversationRail";
+import GradientMark from "@/theme/GradientMark";
 
 export default function GenieMcpExperience() {
   const {
@@ -93,9 +94,7 @@ export default function GenieMcpExperience() {
           /* ───── Landing: centered hero composer ───── */
           <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
             <div className="relative z-10 w-full max-w-2xl text-center">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-3">
-                <Sparkles className="h-7 w-7 text-fg-muted" />
-              </div>
+              <GradientMark size={56} className="mx-auto mb-5" />
               <h2 className="text-3xl font-medium tracking-tight text-fg">
                 Ask APEX anything
               </h2>
@@ -197,7 +196,7 @@ function HeroComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="group relative flex items-center rounded-md border border-border bg-[var(--fill-hover)] px-4 py-2.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
+      className="gradient-border group relative flex items-center rounded-md bg-[var(--fill-hover)] px-4 py-2.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
     >
       <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-fg-muted" />
       {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
