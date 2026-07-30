@@ -180,7 +180,7 @@ export default function App() {
   }, [location.pathname, effectivePageId]);
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex bg-surface-2">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -233,7 +233,7 @@ export default function App() {
         )}
 
         <div className="flex-1 flex min-h-0">
-          <main className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 flex flex-col min-w-0 bg-surface border border-border rounded-lg mr-2 mb-2 overflow-y-auto">
             <Routes>
               {/* Operator-only admin. Self-guards via 401/403 in AdminLayout; nav hidden for non-operators. */}
               <Route path={ADMIN_BASE} element={<AdminLayout />}>
