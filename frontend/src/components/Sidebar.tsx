@@ -42,7 +42,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         onClick={() => navigate(path)}
         title={collapsed ? label : undefined}
         className={cn(
-          "group relative w-full flex items-center rounded-lg transition-all duration-150",
+          "group relative w-full flex items-center rounded-md transition-all duration-150",
           collapsed ? "justify-center px-2 py-2" : "gap-2.5 px-2.5 py-2",
           isActive
             ? "bg-white/10 text-white"
@@ -50,13 +50,13 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         )}
       >
         {isActive && !collapsed && (
-          <span className="absolute left-0 inset-y-1.5 w-[3px] rounded-r-full bg-brand-accent" />
+          <span className="absolute left-0 inset-y-1.5 w-[3px] rounded-r-full bg-accent" />
         )}
         {Icon && (
           <Icon
             size={17}
             strokeWidth={isActive ? 2.2 : 1.75}
-            className={cn("shrink-0 transition-colors", isActive ? "text-brand-accent" : "text-white/55 group-hover:text-white")}
+            className={cn("shrink-0 transition-colors", isActive ? "text-accent" : "text-white/55 group-hover:text-white")}
           />
         )}
         {!collapsed && (
@@ -140,7 +140,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               onClick={() => navigate("/")}
               title={collapsed ? "Back to APEX" : undefined}
               className={cn(
-                "group w-full flex items-center rounded-lg transition-all duration-150 mb-3",
+                "group w-full flex items-center rounded-md transition-all duration-150 mb-3",
                 collapsed ? "justify-center px-2 py-2" : "gap-2 px-2.5 py-2",
                 "text-white/55 hover:bg-white/5 hover:text-white"
               )}
@@ -227,7 +227,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             onClick={() => navigate(ADMIN_ASSETS_PATH)}
             title={collapsed ? "Admin" : undefined}
             className={cn(
-              "group w-full flex items-center rounded-lg transition-all duration-150",
+              "group w-full flex items-center rounded-md transition-all duration-150",
               collapsed ? "justify-center px-2 py-2" : "gap-2 px-2.5 py-2",
               "text-white/55 hover:bg-white/5 hover:text-white"
             )}

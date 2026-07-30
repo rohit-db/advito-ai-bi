@@ -95,4 +95,13 @@ describe("Sidebar", () => {
     const adminFooterButton = adminButtons.find(btn => btn.textContent?.includes("Admin"));
     expect(adminFooterButton).toBeUndefined();
   });
+
+  it("marks the active nav row with the DuBois accent (bg-accent), not the legacy brand-accent", () => {
+    renderSidebar({ assets: { spend: asset("Spend", "/", 1) } });
+    // The "/" (Home) route is active in MemoryRouter's default location.
+    const home = screen.getByText("Home").closest("button")!;
+    // active left marker span uses bg-accent
+    expect(home.innerHTML).toMatch(/bg-accent\b/);
+    expect(home.innerHTML).not.toMatch(/bg-brand-accent\b/);
+  });
 });
