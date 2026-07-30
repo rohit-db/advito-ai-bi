@@ -52,7 +52,8 @@ describe("shell — UserMenu", () => {
 describe("shell — BrandBlock", () => {
   it("expanded: shows app name + a collapse toggle, dark rail background", () => {
     const { container } = render(<BrandBlock collapsed={false} onToggle={() => {}} />);
-    expect(container.innerHTML).toMatch(/bg-brand-sidebar-from/);
+    // light brand block (dark rail retired) — no dark classes
+    expect(container.innerHTML).not.toMatch(/bg-brand-sidebar-from|text-white|white\//);
     expect(container.innerHTML).toMatch(/w-\[224px\]/);
     expect(screen.getByTitle(/collapse sidebar/i)).toBeInTheDocument();
   });
