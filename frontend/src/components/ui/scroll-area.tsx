@@ -11,8 +11,8 @@ export function ScrollArea({ className, children, ...props }: ScrollAreaProps) {
         // Thin custom scrollbar
         "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar]:h-1.5",
         "[&::-webkit-scrollbar-track]:bg-transparent",
-        "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300",
-        "hover:[&::-webkit-scrollbar-thumb]:bg-slate-400",
+        "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[rgba(var(--overlay),0.20)]",
+        "hover:[&::-webkit-scrollbar-thumb]:bg-[rgba(var(--overlay),0.30)]",
         className
       )}
       {...props}

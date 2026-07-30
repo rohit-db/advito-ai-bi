@@ -4,6 +4,7 @@ import { Badge } from "./badge";
 import { Button } from "./button";
 import { Tabs, TabsList, TabsTrigger } from "./tabs";
 import { Popover, PopoverContent } from "./popover";
+import { Avatar, AvatarFallback } from "./avatar";
 
 describe("UI primitives — DuBois tokens", () => {
   it("Badge default uses accent fill, no slate/brand-primary", () => {
@@ -40,5 +41,11 @@ describe("UI primitives — DuBois tokens", () => {
     const content = container.querySelector('[class*="absolute"]') as HTMLElement;
     expect(content.className).toMatch(/bg-surface/);
     expect(content.className).not.toMatch(/slate-\d|bg-white/);
+  });
+  it("AvatarFallback default uses surface/fg tokens, not slate (carried-over fix)", () => {
+    const { container } = render(<Avatar><AvatarFallback>AB</AvatarFallback></Avatar>);
+    const fb = container.querySelector('[class*="rounded-full"][class*="items-center"]') as HTMLElement;
+    expect(fb.className).toMatch(/bg-surface-3/);
+    expect(fb.className).not.toMatch(/slate-/);
   });
 });
