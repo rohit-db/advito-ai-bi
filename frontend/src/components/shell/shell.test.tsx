@@ -1,9 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import Breadcrumb from "./Breadcrumb";
 import ClientBadge from "./ClientBadge";
 import UserMenu from "./UserMenu";
 import BrandBlock from "./BrandBlock";
+import TopBar from "./TopBar";
+import { RegistryContext } from "@/registry/useRegistry";
+import type { Registry } from "@/registry/types";
 
 describe("shell — Breadcrumb", () => {
   it("renders the page title with fg token, no slate", () => {
@@ -62,5 +66,33 @@ describe("shell — BrandBlock", () => {
     render(<BrandBlock collapsed={false} onToggle={() => { n++; }} />);
     screen.getByTitle(/collapse sidebar/i).click();
     expect(n).toBe(1);
+  });
+});
+
+function renderTopBar(collapsed = false) {
+  vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) })));
+  const registry: Registry = { assets: {} };
+  return render(
+    <RegistryContext.Provider value={registry}>
+      <MemoryRouter initialEntries={["/"]}>
+        <TopBar collapsed={collapsed} onToggle={() => {}} />
+      </MemoryRouter>
+    </RegistryContext.Provider>
+  );
+}
+
+describe("shell — TopBar", () => {
+  afterEach(() => vi.restoreAllMocks());
+  it("renders a full-width h-12 bar with a light surface section, no slate", () => {
+    const { container } = renderTopBar();
+    const header = container.querySelector("header")!;
+    expect(header.className).toMatch(/\bh-12\b/);
+    expect(container.innerHTML).toMatch(/bg-surface-2/);
+    expect(header.className).not.toMatch(/slate-/);
+  });
+  it("mounts the theme toggle and the collapse toggle", () => {
+    renderTopBar(false);
+    expect(screen.getByRole("button", { name: /switch to (dark|light) theme/i })).toBeInTheDocument();
+    expect(screen.getByTitle(/collapse sidebar/i)).toBeInTheDocument();
   });
 });
