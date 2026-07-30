@@ -21,6 +21,7 @@ import {
   type TrendPoint,
 } from "@/config";
 import { useUser } from "@/hooks/useUser";
+import GradientMark from "@/theme/GradientMark";
 
 // ─── KPI presentation config ──────────────────────────────────────────────────
 
@@ -30,7 +31,6 @@ interface KpiMeta {
   key: KpiKey;
   label: string;
   icon: LucideIcon;
-  accent: string; // icon chip gradient
   format: (n: number) => string;
   // Whether an increase is "good" (green), "bad" (rose), or neutral (slate).
   goodDirection: "up" | "down" | "neutral";
@@ -52,7 +52,6 @@ const KPIS: KpiMeta[] = [
     key: "spend",
     label: "Total Spend",
     icon: DollarSign,
-    accent: "from-brand-primary to-brand-accent",
     format: (n) => currency.format(n),
     goodDirection: "neutral",
   },
@@ -60,7 +59,6 @@ const KPIS: KpiMeta[] = [
     key: "emissions",
     label: "CO₂ Emissions",
     icon: Leaf,
-    accent: "from-emerald-500 to-teal-500",
     format: (n) => `${compact.format(n)} tCO₂e`,
     goodDirection: "down",
   },
@@ -68,7 +66,6 @@ const KPIS: KpiMeta[] = [
     key: "travelers",
     label: "Travelers",
     icon: Users,
-    accent: "from-sky-500 to-cyan-500",
     format: (n) => compact.format(n),
     goodDirection: "neutral",
   },
@@ -76,7 +73,6 @@ const KPIS: KpiMeta[] = [
     key: "trips",
     label: "Trips",
     icon: Plane,
-    accent: "from-fuchsia-500 to-pink-500",
     format: (n) => compact.format(n),
     goodDirection: "neutral",
   },
@@ -133,24 +129,19 @@ export default function HomePage() {
   const showKpis = kpiLoading || (kpis?.ok && kpis.current);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-linear-to-b from-slate-50 to-white">
+    <div className="flex-1 overflow-y-auto bg-surface">
       <div className="mx-auto w-full max-w-5xl px-6 py-8 md:py-10">
         {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-sidebar-from via-brand-sidebar-via to-brand-primary px-7 py-8 md:px-10 md:py-10 shadow-xl shadow-brand-primary-dark/20">
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div className="absolute -right-10 -top-16 h-64 w-64 rounded-full bg-brand-accent/20 blur-3xl" />
-            <div className="absolute right-1/3 bottom-[-30%] h-56 w-56 rounded-full bg-brand-primary-light/10 blur-3xl" />
-          </div>
-
+        <section className="rounded-2xl border border-border bg-surface-2 px-7 py-8 md:px-10 md:py-10">
           <div className="relative z-10">
-            <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.16em] text-brand-primary-light/80">
-              <Sparkles size={14} />
+            <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.16em] text-fg-muted">
+              <GradientMark size={20} />
               {user?.tenant || "APEX Travel Intelligence"}
             </div>
-            <h1 className="mt-2 text-2xl md:text-[28px] font-bold tracking-tight text-white">
+            <h1 className="mt-2 text-2xl md:text-[28px] font-bold tracking-tight text-fg">
               {greeting()}, {firstName}.
             </h1>
-            <p className="mt-1.5 max-w-lg text-[14px] leading-relaxed text-brand-primary-light/80">
+            <p className="mt-1.5 max-w-lg text-[14px] leading-relaxed text-fg-muted">
               Ask anything about your travel program, or jump into a dashboard. Grounded
               answers with live SQL — governed end to end.
             </p>
@@ -161,21 +152,21 @@ export default function HomePage() {
                 e.preventDefault();
                 ask(input);
               }}
-              className="group relative mt-6 flex items-center rounded-2xl border border-white/15 bg-white/95 px-4 py-2.5 shadow-2xl shadow-brand-primary-dark/30 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-white/20"
+              className="gradient-border group relative mt-6 flex items-center rounded-md bg-[var(--fill-hover)] px-4 py-2.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
             >
-              <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-brand-accent" />
+              <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-fg-muted" />
               {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
               <input
                 autoFocus
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask APEX about spend, emissions, bookings…"
-                className="flex-1 bg-transparent py-1 text-[15px] text-slate-800 placeholder-slate-400 focus:outline-none"
+                className="flex-1 bg-transparent py-1 text-[15px] text-fg placeholder:text-fg-muted focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent text-white shadow-sm transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300"
+                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-accent text-accent-fg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ArrowUp size={16} strokeWidth={2.5} />
               </button>
@@ -186,7 +177,7 @@ export default function HomePage() {
                 <button
                   key={q}
                   onClick={() => ask(q)}
-                  className="rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[12.5px] text-brand-primary-light backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/20"
+                  className="rounded-sm border border-border bg-surface px-3.5 py-1.5 text-[12.5px] text-fg-2 transition-colors hover:bg-[var(--fill-hover)] hover:text-fg"
                 >
                   {q}
                 </button>
@@ -199,10 +190,10 @@ export default function HomePage() {
         {showKpis && (
           <section className="mt-6">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">
                 This year at a glance
               </h2>
-              <span className="text-[11px] text-slate-400">vs. prior year</span>
+              <span className="text-[11px] text-fg-muted">vs. prior year</span>
             </div>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {KPIS.map((meta) =>
@@ -227,7 +218,7 @@ export default function HomePage() {
             <TrendCard
               title="Spend trend"
               subtitle="Monthly gross spend"
-              accent="var(--brand-accent)"
+              accent="var(--accent)"
               points={trend}
               loading={trendLoading}
               variant="area"
@@ -249,27 +240,24 @@ export default function HomePage() {
 
         {/* ── Quick access ─────────────────────────────────────────────── */}
         <section className="mt-8">
-          <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">
             Jump back in
           </h2>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <QuickCard
               icon={DollarSign}
-              accent="from-brand-primary to-brand-accent"
               title="Spend"
               desc="Category, destination & year-over-year spend analysis."
               onClick={() => navigate("/spend-custom")}
             />
             <QuickCard
               icon={Leaf}
-              accent="from-emerald-500 to-teal-500"
               title="Sustainability"
               desc="Emissions, carbon intensity & forecasting."
               onClick={() => navigate("/sustainability")}
             />
             <QuickCard
               icon={MessageCircle}
-              accent="from-fuchsia-500 to-pink-500"
               title="Ask APEX"
               desc="Full conversational analytics with history."
               onClick={() => navigate("/genie-mcp")}
@@ -301,17 +289,17 @@ function KpiCard({
   }
 
   return (
-    <div className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <div className="group rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-border-hover">
       <div className="flex items-center justify-between">
         <div
-          className={`flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br ${meta.accent} shadow-sm`}
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[color-mix(in_oklab,var(--accent)_12%,transparent)] text-accent"
         >
-          <Icon size={17} className="text-white" />
+          <Icon size={17} />
         </div>
         <DeltaChip pct={deltaPct} goodDirection={meta.goodDirection} />
       </div>
-      <div className="mt-3 text-2xl font-bold tracking-tight text-slate-900">{value}</div>
-      <div className="mt-0.5 text-[12.5px] font-medium text-slate-500">{meta.label}</div>
+      <div className="mt-3 text-2xl font-bold tracking-tight text-fg">{value}</div>
+      <div className="mt-0.5 text-[12.5px] font-medium text-fg-muted">{meta.label}</div>
     </div>
   );
 }
@@ -327,10 +315,12 @@ function DeltaChip({
   const up = pct >= 0;
   const rounded = Math.abs(pct) < 0.1 ? "0" : Math.abs(pct).toFixed(0);
 
-  let tone = "bg-slate-100 text-slate-600"; // neutral
+  let tone = "bg-surface-3 text-fg-2"; // neutral
   if (goodDirection !== "neutral") {
     const good = goodDirection === "up" ? up : !up;
-    tone = good ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600";
+    tone = good
+      ? "bg-[rgba(48,160,80,0.12)] text-[var(--success-fg)]"
+      : "bg-[rgba(196,64,64,0.12)] text-[var(--danger-fg)]";
   }
 
   const Arrow = up ? TrendingUp : TrendingDown;
@@ -346,10 +336,10 @@ function DeltaChip({
 
 function KpiSkeleton() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="h-9 w-9 animate-pulse rounded-xl bg-slate-200" />
-      <div className="mt-3 h-7 w-24 animate-pulse rounded bg-slate-200" />
-      <div className="mt-2 h-3.5 w-16 animate-pulse rounded bg-slate-100" />
+    <div className="rounded-2xl border border-border bg-surface p-4">
+      <div className="h-9 w-9 animate-pulse rounded-xl bg-surface-3" />
+      <div className="mt-3 h-7 w-24 animate-pulse rounded bg-surface-3" />
+      <div className="mt-2 h-3.5 w-16 animate-pulse rounded bg-surface-2" />
     </div>
   );
 }
@@ -395,25 +385,25 @@ function TrendCard({
   const latest = data.length ? data[data.length - 1].value : null;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-border bg-surface p-4">
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-[14px] font-semibold text-slate-900">{title}</div>
-          <div className="text-[12px] text-slate-500">{subtitle}</div>
+          <div className="text-[14px] font-semibold text-fg">{title}</div>
+          <div className="text-[12px] text-fg-muted">{subtitle}</div>
         </div>
         {latest != null && (
           <div className="text-right">
-            <div className="text-[11px] uppercase tracking-wide text-slate-400">Latest</div>
-            <div className="text-[15px] font-bold text-slate-800">{format(latest)}</div>
+            <div className="text-[11px] uppercase tracking-wide text-fg-subtle">Latest</div>
+            <div className="text-[15px] font-bold text-fg">{format(latest)}</div>
           </div>
         )}
       </div>
 
       <div className="mt-3 h-28">
         {loading ? (
-          <div className="h-full w-full animate-pulse rounded-lg bg-slate-100" />
+          <div className="h-full w-full animate-pulse rounded-lg bg-surface-2" />
         ) : data.length < 2 ? (
-          <div className="flex h-full items-center justify-center text-[12px] text-slate-400">
+          <div className="flex h-full items-center justify-center text-[12px] text-fg-muted">
             Not enough data
           </div>
         ) : variant === "area" ? (
@@ -424,7 +414,7 @@ function TrendCard({
       </div>
 
       {data.length >= 2 && (
-        <div className="mt-1.5 flex justify-between text-[10px] text-slate-400">
+        <div className="mt-1.5 flex justify-between text-[10px] text-fg-muted">
           <span>{data[0].label}</span>
           <span>{data[data.length - 1].label}</span>
         </div>
@@ -518,13 +508,11 @@ function BarChart({
 
 function QuickCard({
   icon: Icon,
-  accent,
   title,
   desc,
   onClick,
 }: {
   icon: LucideIcon;
-  accent: string;
   title: string;
   desc: string;
   onClick: () => void;
@@ -532,22 +520,22 @@ function QuickCard({
   return (
     <button
       onClick={onClick}
-      className="group flex items-start gap-3.5 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-primary-light hover:shadow-md"
+      className="group flex items-start gap-3.5 rounded-2xl border border-border bg-surface p-4 text-left transition-colors hover:border-border-hover"
     >
       <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br ${accent} shadow-sm`}
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_oklab,var(--accent)_12%,transparent)] text-accent"
       >
-        <Icon size={19} className="text-white" />
+        <Icon size={19} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="text-[14px] font-semibold text-slate-900">{title}</span>
+          <span className="text-[14px] font-semibold text-fg">{title}</span>
           <ArrowRight
             size={14}
-            className="text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-brand-accent"
+            className="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent"
           />
         </div>
-        <p className="mt-0.5 text-[12.5px] leading-relaxed text-slate-500">{desc}</p>
+        <p className="mt-0.5 text-[12.5px] leading-relaxed text-fg-muted">{desc}</p>
       </div>
     </button>
   );
