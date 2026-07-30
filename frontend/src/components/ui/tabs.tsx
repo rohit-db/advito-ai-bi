@@ -48,7 +48,7 @@ export function TabsList({ className, children, ...props }: TabsListProps) {
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-start rounded-xl bg-slate-100/80 p-1 gap-1 ring-1 ring-slate-200/60",
+        "inline-flex items-center justify-start rounded-xl bg-surface-2 p-1 gap-1 border border-border",
         className
       )}
       role="tablist"
@@ -74,11 +74,11 @@ export function TabsTrigger({ className, value, children, ...props }: TabsTrigge
       onClick={() => setActiveTab(value)}
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-[13px] font-semibold",
-        "transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent",
+        "transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
         "disabled:pointer-events-none disabled:opacity-50",
         isActive
-          ? "bg-white text-brand-primary shadow-sm ring-1 ring-slate-200/70"
-          : "text-slate-500 hover:text-slate-800",
+          ? "bg-surface text-accent shadow-sm"
+          : "text-fg-muted hover:text-fg",
         className
       )}
       {...props}
@@ -101,7 +101,7 @@ export function TabsContent({ className, value, children, ...props }: TabsConten
     <div
       role="tabpanel"
       className={cn(
-        "mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent",
+        "mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
         className
       )}
       {...props}

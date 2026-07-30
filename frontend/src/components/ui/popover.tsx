@@ -106,7 +106,7 @@ export function PopoverContent({
       ref={ref}
       style={{ marginTop: sideOffset }}
       className={cn(
-        "absolute z-50 w-72 rounded-md border border-slate-200 bg-white p-4 shadow-md outline-none",
+        "absolute z-50 w-72 rounded-md border border-border bg-surface p-4 shadow-md outline-none",
         "top-full",
         alignClasses[align],
         className
