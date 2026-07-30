@@ -35,7 +35,7 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
 
   if (!steps || steps.length === 0) {
     return isStreaming ? (
-      <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+      <div className="flex items-center gap-2 text-xs text-fg-muted mb-1">
         <ThinkingDots accent="bg-brand-accent" />
         <span>Genie is thinking…</span>
       </div>
@@ -70,11 +70,11 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
           {steps.map((step, idx) => {
             const pending = isStreaming && idx === steps.length - 1;
             return (
-              <li key={idx} className="flex items-start gap-2 text-xs text-slate-700">
+              <li key={idx} className="flex items-start gap-2 text-xs text-fg-2">
                 {pending ? (
                   <span className="w-3.5 h-3.5 mt-0.5 border-2 border-brand-accent border-t-transparent rounded-full animate-spin shrink-0" />
                 ) : (
-                  <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "var(--success-fg)" }} />
                 )}
                 <span className="break-words">{step}</span>
               </li>
@@ -82,7 +82,7 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
           })}
         </ol>
       ) : (
-        <p className="mt-1.5 text-xs text-slate-500 truncate">{steps[steps.length - 1]}</p>
+        <p className="mt-1.5 text-xs text-fg-muted truncate">{steps[steps.length - 1]}</p>
       )}
     </div>
   );
@@ -91,7 +91,7 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
 function CompactReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: boolean }) {
   if (!steps || steps.length === 0) {
     return isStreaming ? (
-      <div className="flex items-center gap-2 text-[11px] text-slate-500 mb-1.5">
+      <div className="flex items-center gap-2 text-[11px] text-fg-muted mb-1.5">
         <ThinkingDots accent="bg-brand-primary" />
         <span>Thinking…</span>
       </div>
@@ -100,7 +100,7 @@ function CompactReasoning({ steps, isStreaming }: { steps: string[]; isStreaming
 
   if (isStreaming) {
     return (
-      <div className="mb-2 flex items-start gap-1.5 text-[11px] text-slate-600">
+      <div className="mb-2 flex items-start gap-1.5 text-[11px] text-fg-2">
         <span className="w-3 h-3 mt-0.5 border-2 border-brand-primary border-t-transparent rounded-full animate-spin shrink-0" />
         <span className="break-words">{steps[steps.length - 1]}</span>
       </div>
@@ -108,8 +108,8 @@ function CompactReasoning({ steps, isStreaming }: { steps: string[]; isStreaming
   }
 
   return (
-    <div className="mb-2 flex items-start gap-1.5 text-[11px] text-slate-500">
-      <CheckCircle2 className="w-3 h-3 mt-0.5 text-emerald-600 shrink-0" />
+    <div className="mb-2 flex items-start gap-1.5 text-[11px] text-fg-muted">
+      <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0" style={{ color: "var(--success-fg)" }} />
       <span className="break-words">
         {steps.length} reasoning step{steps.length > 1 ? "s" : ""} · {steps[steps.length - 1]}
       </span>

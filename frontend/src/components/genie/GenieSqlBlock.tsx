@@ -22,11 +22,11 @@ export default function GenieSqlBlock({
   const icon = compact ? "w-3.5 h-3.5" : "w-4 h-4";
   const labelText = compact ? "text-[11px]" : "text-xs";
   const pre = compact
-    ? "mt-2 bg-slate-900 text-green-300 p-2.5 rounded-lg text-[10px] font-mono overflow-x-auto"
-    : "mt-2 bg-slate-900 text-green-300 p-3 rounded-lg text-[11px] font-mono overflow-x-auto";
+    ? "mt-2 bg-surface-2 text-fg-2 p-2.5 rounded-lg text-[10px] font-mono overflow-x-auto"
+    : "mt-2 bg-surface-2 text-fg-2 p-3 rounded-lg text-[11px] font-mono overflow-x-auto";
 
   return (
-    <div className={`border-t border-slate-100 ${compact ? "mt-2 pt-2" : "mt-3 pt-3"}`}>
+    <div className={`border-t border-border ${compact ? "mt-2 pt-2" : "mt-3 pt-3"}`}>
       <button onClick={onToggle} className="flex items-center justify-between w-full text-left">
         <span className={`flex items-center gap-1.5 ${labelText} font-semibold ${accent} uppercase tracking-wide`}>
           <Terminal className={icon} />

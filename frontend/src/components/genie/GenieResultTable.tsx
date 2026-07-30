@@ -17,16 +17,16 @@ export default function GenieResultTable({
   const text = sm ? "text-[11px]" : "text-xs";
   const cell = sm ? "px-2.5 py-1.5" : "px-3 py-2";
   const wrapper = sm
-    ? "mt-3 overflow-auto max-h-60 border border-slate-200 rounded-lg"
-    : "mt-3 overflow-x-auto border border-slate-200 rounded-lg";
+    ? "mt-3 overflow-auto max-h-60 border border-border rounded-lg"
+    : "mt-3 overflow-x-auto border border-border rounded-lg";
 
   return (
     <div className={wrapper}>
-      <table className={`min-w-full divide-y divide-slate-200 ${text}`}>
-        <thead className={`bg-slate-100 ${sm ? "sticky top-0" : ""}`}>
+      <table className={`min-w-full divide-y divide-border ${text}`}>
+        <thead className={`bg-surface-2 ${sm ? "sticky top-0" : ""}`}>
           <tr>
             {columns.map((c, i) => (
-              <th key={i} className={`${cell} text-left font-semibold text-slate-700 whitespace-nowrap`}>
+              <th key={i} className={`${cell} text-left font-semibold text-fg-subtle whitespace-nowrap`}>
                 {c}
               </th>
             ))}
@@ -36,7 +36,7 @@ export default function GenieResultTable({
           {rows.map((row, r) => (
             <tr key={r}>
               {row.map((value, c) => (
-                <td key={c} className={`${cell} text-slate-600 whitespace-nowrap border-t border-slate-100`}>
+                <td key={c} className={`${cell} text-fg-2 whitespace-nowrap border-t border-border`}>
                   {value == null ? "" : String(value)}
                 </td>
               ))}
