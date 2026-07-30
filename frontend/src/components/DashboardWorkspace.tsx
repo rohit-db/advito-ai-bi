@@ -71,33 +71,33 @@ export default function DashboardWorkspace({
 
       {/* Right rail */}
       {railOpen && (
-        <aside className="w-[400px] shrink-0 border-l border-slate-200 bg-white flex flex-col h-full">
-          {/* Gradient header */}
-          <div className="bg-linear-to-r from-brand-primary to-brand-accent px-4 pt-4 pb-3 shrink-0">
+        <aside className="w-[400px] shrink-0 border-l border-border bg-surface-2 flex flex-col h-full">
+          {/* Rail header */}
+          <div className="bg-surface-3 px-4 pt-4 pb-3 shrink-0">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                  <Sparkles size={16} className="text-white" />
+                <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+                  <Sparkles size={16} className="text-accent" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-white flex items-center gap-1.5">
+                  <h2 className="text-sm font-semibold text-fg flex items-center gap-1.5">
                     Ask APEX
                     <McpStatusDot state={mcpStatus.state} />
                   </h2>
-                  <p className="text-[11px] text-brand-primary-light">AI-powered travel intelligence</p>
+                  <p className="text-[11px] text-fg-muted">AI-powered travel intelligence</p>
                 </div>
               </div>
               <div className="flex gap-1">
                 <button
                   onClick={clearChat}
-                  className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                  className="p-1.5 text-fg-muted hover:text-fg hover:bg-surface rounded-md transition-colors"
                   title="Clear conversation"
                 >
                   <Trash2 size={14} />
                 </button>
                 <button
                   onClick={() => onRailOpenChange(false)}
-                  className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                  className="p-1.5 text-fg-muted hover:text-fg hover:bg-surface rounded-md transition-colors"
                   title="Close panel"
                 >
                   <X size={14} />
@@ -107,26 +107,26 @@ export default function DashboardWorkspace({
 
             {/* Context badge */}
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <Badge className="bg-brand-accent/40 text-brand-primary-light border-brand-accent/30 text-[11px] px-2 py-0.5">
+              <Badge className="bg-accent/15 text-accent border-accent/30 text-[11px] px-2 py-0.5">
                 {pageLabel}
               </Badge>
             </div>
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-surface-2">
             {messages.length === 0 && !isLoading ? (
               <div className="space-y-4 pt-2">
-                <p className="text-xs text-slate-400 text-center">Ask about what you're viewing</p>
+                <p className="text-xs text-fg-muted text-center">Ask about what you're viewing</p>
                 <div className="space-y-1.5">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold px-1">
+                  <p className="text-[10px] uppercase tracking-wider text-fg-muted font-semibold px-1">
                     Suggested
                   </p>
                   {suggestions.map((q) => (
                     <button
                       key={q}
                       onClick={() => handleSuggestion(q)}
-                      className="w-full text-left px-3 py-2 text-sm text-slate-600 bg-white hover:bg-brand-primary-light hover:text-brand-primary rounded-lg border border-slate-200 transition-colors"
+                      className="w-full text-left px-3 py-2 text-sm text-fg-2 bg-surface hover:bg-accent/10 hover:text-accent rounded-lg border border-border transition-colors"
                     >
                       {q}
                     </button>
@@ -151,23 +151,23 @@ export default function DashboardWorkspace({
           </div>
 
           {/* Composer */}
-          <div className="border-t border-slate-200 bg-white px-3 py-3 shrink-0">
+          <div className="border-t border-border bg-surface px-3 py-3 shrink-0">
             <form
               onSubmit={handleSubmit}
-              className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 focus-within:border-brand-accent focus-within:ring-2 focus-within:ring-brand-primary-light transition-all"
+              className="flex items-center gap-2 bg-[var(--fill-hover)] border border-border rounded-md px-3 py-1.5 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 transition-all"
             >
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about your data..."
-                className="flex-1 bg-transparent text-sm text-slate-800 placeholder-slate-400 focus:outline-none py-0.5"
+                className="flex-1 bg-transparent text-sm text-fg placeholder-fg-muted focus:outline-none py-0.5"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="w-7 h-7 flex items-center justify-center bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full transition-colors shrink-0"
+                className="w-7 h-7 flex items-center justify-center bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-fg rounded-full transition-colors shrink-0"
               >
                 <Send size={12} />
               </button>
@@ -191,7 +191,7 @@ export default function DashboardWorkspace({
 function UserBubble({ message }: { message: GenieMcpMessage }) {
   return (
     <div className="flex justify-end">
-      <div className="max-w-[88%] bg-brand-primary text-white rounded-2xl rounded-br-sm px-3 py-2.5 text-sm shadow-sm">
+      <div className="max-w-[88%] bg-accent text-accent-fg rounded-2xl rounded-br-sm px-3 py-2.5 text-sm">
         <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
       </div>
     </div>
