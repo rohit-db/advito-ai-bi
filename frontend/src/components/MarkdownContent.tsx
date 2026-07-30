@@ -14,48 +14,57 @@ export default function MarkdownContent({ content, compact }: MarkdownContentPro
       remarkPlugins={[remarkGfm]}
       components={{
         h1: ({ children }) => (
-          <h1 className={`${compact ? "text-sm" : "text-lg"} font-bold text-slate-900 mt-3 mb-1`}>{children}</h1>
+          <h1 className={`${compact ? "text-sm" : "text-lg"} font-bold text-fg mt-3 mb-1`}>{children}</h1>
         ),
         h2: ({ children }) => (
-          <h2 className={`${compact ? "text-xs font-bold" : "text-base font-bold"} text-slate-900 mt-3 mb-1`}>{children}</h2>
+          <h2 className={`${compact ? "text-xs font-bold" : "text-base font-bold"} text-fg mt-3 mb-1`}>{children}</h2>
         ),
         h3: ({ children }) => (
-          <h3 className={`${base} font-semibold text-slate-800 mt-2 mb-0.5`}>{children}</h3>
+          <h3 className={`${base} font-semibold text-fg mt-2 mb-0.5`}>{children}</h3>
         ),
         p: ({ children }) => (
-          <p className={`${base} text-slate-800 leading-relaxed mb-2`}>{children}</p>
+          <p className={`${base} text-fg-2 leading-relaxed mb-2`}>{children}</p>
         ),
         strong: ({ children }) => (
           <strong className="font-semibold">{children}</strong>
         ),
         ul: ({ children }) => (
-          <ul className={`list-disc list-inside ${base} text-slate-800 mb-2 space-y-0.5`}>{children}</ul>
+          <ul className={`list-disc list-inside ${base} text-fg-2 mb-2 space-y-0.5`}>{children}</ul>
         ),
         ol: ({ children }) => (
-          <ol className={`list-decimal list-inside ${base} text-slate-800 mb-2 space-y-0.5`}>{children}</ol>
+          <ol className={`list-decimal list-inside ${base} text-fg-2 mb-2 space-y-0.5`}>{children}</ol>
+        ),
+        li: ({ children }) => (
+          <li className="marker:text-fg-muted">{children}</li>
+        ),
+        a: ({ children, href }) => (
+          <a href={href} className="text-accent hover:text-accent-hover underline">{children}</a>
         ),
         table: ({ children }) => (
           <div className="overflow-x-auto my-2">
-            <table className="min-w-full text-xs border border-slate-200 rounded">
+            <table className="min-w-full text-xs border border-border rounded">
               {children}
             </table>
           </div>
         ),
         thead: ({ children }) => (
-          <thead className="bg-slate-50 font-semibold">{children}</thead>
+          <thead className="bg-surface-2 font-semibold text-fg-subtle">{children}</thead>
         ),
         th: ({ children }) => (
-          <th className="px-2 py-1 text-left border-b border-slate-200 whitespace-nowrap">{children}</th>
+          <th className="px-2 py-1 text-left border-b border-border whitespace-nowrap text-fg-subtle">{children}</th>
         ),
         td: ({ children }) => (
-          <td className="px-2 py-1 border-b border-slate-100 whitespace-nowrap">{children}</td>
+          <td className="px-2 py-1 border-b border-border whitespace-nowrap text-fg-2">{children}</td>
+        ),
+        blockquote: ({ children }) => (
+          <blockquote className="border-l-2 border-border pl-3 my-2 text-fg-muted">{children}</blockquote>
         ),
         code: ({ children, className }) => {
           const isInline = !className;
           return isInline ? (
-            <code className="bg-slate-100 text-slate-800 text-xs px-1 py-0.5 rounded">{children}</code>
+            <code className="font-mono bg-surface-2 text-fg text-xs px-1 py-0.5 rounded">{children}</code>
           ) : (
-            <pre className="bg-slate-50 text-xs p-2 rounded-md overflow-x-auto my-2">
+            <pre className="font-mono bg-surface-2 text-fg text-xs p-2 rounded-md overflow-x-auto my-2">
               <code>{children}</code>
             </pre>
           );
