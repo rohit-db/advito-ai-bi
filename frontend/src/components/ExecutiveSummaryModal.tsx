@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, X, RefreshCw, Loader2 } from "lucide-react";
+import { X, RefreshCw, Loader2 } from "lucide-react";
 import MarkdownContent from "@/components/MarkdownContent";
 import { Badge } from "@/components/ui/badge";
 import { useGenieMcpChat } from "@/hooks/useGenieMcpChat";
@@ -7,6 +7,7 @@ import { buildExecSummaryPrompt } from "@/config";
 import GenieResultTable from "@/components/genie/GenieResultTable";
 import GenieSqlBlock from "@/components/genie/GenieSqlBlock";
 import GenieDeepLink from "@/components/genie/GenieDeepLink";
+import GradientMark from "@/theme/GradientMark";
 
 export interface ExecutiveSummaryModalProps {
   pageLabel: string;
@@ -61,26 +62,24 @@ export default function ExecutiveSummaryModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl max-h-[85vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl max-h-[85vh] flex flex-col bg-surface-2 rounded-xl border border-border shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="shrink-0 bg-linear-to-r from-brand-primary to-brand-accent px-5 py-4 flex items-start justify-between">
+        <div className="shrink-0 bg-surface-3 px-5 py-4 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <Sparkles size={18} className="text-white" />
-            </div>
+            <GradientMark size={36} />
             <div>
-              <h2 className="text-base font-semibold text-white">Executive Summary</h2>
+              <h2 className="text-base font-semibold text-fg">Executive Summary</h2>
               <div className="mt-1 flex items-center gap-2">
-                <Badge className="bg-white/20 text-white border-white/20 text-[11px] px-2 py-0.5">
+                <Badge className="bg-[var(--fill-hover)] text-fg-2 border-border text-[11px] px-2 py-0.5">
                   {pageLabel}
                 </Badge>
-                <span className="text-[11px] text-brand-primary-light">via Genie MCP</span>
+                <span className="text-[11px] text-fg-muted">via Genie MCP</span>
               </div>
             </div>
           </div>
@@ -89,14 +88,14 @@ export default function ExecutiveSummaryModal({
               onClick={handleRegenerate}
               disabled={isLoading}
               title="Regenerate"
-              className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-2 text-fg-2 hover:text-fg hover:bg-[var(--fill-hover)] rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <RefreshCw size={15} className={isLoading ? "animate-spin" : ""} />
             </button>
             <button
               onClick={onClose}
               title="Close"
-              className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 text-fg-2 hover:text-fg hover:bg-[var(--fill-hover)] rounded-lg transition-colors"
             >
               <X size={16} />
             </button>
@@ -104,21 +103,21 @@ export default function ExecutiveSummaryModal({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-5 bg-slate-50">
+        <div className="flex-1 overflow-y-auto px-5 py-5 bg-surface">
           {/* Awaiting state */}
           {streaming && !hasContent && <AwaitingState step={lastStep} />}
 
           {assistant?.error && (
-            <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-700">
+            <div className="rounded-lg bg-[rgba(196,64,64,0.12)] border border-[var(--danger)] px-3 py-2.5 text-sm text-[var(--danger-fg)]">
               {assistant.error}
             </div>
           )}
 
           {hasContent && (
-            <div className="bg-white rounded-xl border border-slate-200 px-5 py-4 shadow-sm">
+            <div className="bg-surface-2 rounded-xl border border-border px-5 py-4 shadow-sm">
               {/* While more is still streaming after first content, a subtle ribbon */}
               {streaming && (
-                <div className="mb-3 flex items-center gap-2 text-[11px] text-brand-primary">
+                <div className="mb-3 flex items-center gap-2 text-[11px] text-accent">
                   <Loader2 size={12} className="animate-spin" />
                   <span>Refining…</span>
                 </div>
@@ -140,13 +139,13 @@ export default function ExecutiveSummaryModal({
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-2.5 flex items-center justify-between">
-          <span className="text-[11px] text-slate-400">
+        <div className="shrink-0 border-t border-border bg-surface-2 px-5 py-2.5 flex items-center justify-between">
+          <span className="text-[11px] text-fg-muted">
             Generated by the managed Genie MCP server · figures may take a moment
           </span>
           <button
             onClick={onClose}
-            className="text-xs font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-xs font-medium text-fg-2 hover:text-fg px-3 py-1.5 rounded-lg hover:bg-[var(--fill-hover)] transition-colors"
           >
             Close
           </button>
@@ -158,17 +157,15 @@ export default function ExecutiveSummaryModal({
 
 function AwaitingState({ step }: { step?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 px-5 py-6 shadow-sm">
+    <div className="bg-surface-2 rounded-xl border border-border px-5 py-6 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="relative">
-          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-brand-primary to-brand-accent flex items-center justify-center">
-            <Sparkles size={16} className="text-white" />
-          </div>
-          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-brand-accent animate-pulse" />
+          <GradientMark size={36} />
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-surface-2 bg-accent animate-pulse" />
         </div>
         <div>
-          <p className="text-sm font-medium text-slate-800">Preparing your executive summary…</p>
-          <p className="text-[11px] text-slate-500 mt-0.5 min-h-[14px]">
+          <p className="text-sm font-medium text-fg">Preparing your executive summary…</p>
+          <p className="text-[11px] text-fg-muted mt-0.5 min-h-[14px]">
             {step || "Connecting to Genie and querying your data"}
           </p>
         </div>
@@ -178,11 +175,11 @@ function AwaitingState({ step }: { step?: string }) {
       <div className="mt-5 space-y-4">
         {["Overview", "KPIs", "Strategic Insights"].map((section) => (
           <div key={section}>
-            <div className="h-3 w-28 rounded bg-brand-primary-light mb-2" />
+            <div className="h-3 w-28 rounded bg-surface-3 mb-2" />
             <div className="space-y-1.5">
-              <div className="h-2.5 w-full rounded bg-slate-100 animate-pulse" />
-              <div className="h-2.5 w-[88%] rounded bg-slate-100 animate-pulse" />
-              <div className="h-2.5 w-[72%] rounded bg-slate-100 animate-pulse" />
+              <div className="h-2.5 w-full rounded bg-[var(--fill-hover)] animate-pulse" />
+              <div className="h-2.5 w-[88%] rounded bg-[var(--fill-hover)] animate-pulse" />
+              <div className="h-2.5 w-[72%] rounded bg-[var(--fill-hover)] animate-pulse" />
             </div>
           </div>
         ))}
