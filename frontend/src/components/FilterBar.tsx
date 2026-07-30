@@ -132,7 +132,7 @@ export default function FilterBar({ filters, onChange, filterKeys }: FilterBarPr
             className={cn(
               "h-8 text-xs transition-all",
               isDirty
-                ? "bg-linear-to-r from-accent to-accent-alt hover:from-accent-hover hover:to-accent-alt-hover ring-2 ring-[rgba(var(--overlay),0.06)]"
+                ? "bg-accent text-accent-fg hover:bg-accent-hover"
                 : "opacity-40 cursor-not-allowed"
             )}
           >
