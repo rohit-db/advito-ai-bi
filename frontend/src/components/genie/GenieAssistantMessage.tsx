@@ -43,13 +43,13 @@ export default function GenieAssistantMessage({
   const avatarSize = compact ? "h-7 w-7" : "h-8 w-8";
   const iconSize = compact ? 13 : 15;
   const bubble = compact
-    ? "flex-1 min-w-0 bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-slate-200"
-    : "flex-1 min-w-0 bg-white rounded-2xl rounded-tl-md px-5 py-4 shadow-sm border border-slate-200";
+    ? "flex-1 min-w-0 min-h-0 text-fg"
+    : "flex-1 min-w-0 min-h-0 text-fg";
 
   return (
     <div className="flex items-start gap-2">
       <Avatar className={`${avatarSize} shrink-0`}>
-        <AvatarFallback className="bg-linear-to-br from-brand-accent to-brand-primary text-white text-xs">
+        <AvatarFallback className="bg-surface-3 text-fg-muted">
           <Sparkles size={iconSize} />
         </AvatarFallback>
       </Avatar>
@@ -57,7 +57,7 @@ export default function GenieAssistantMessage({
         <GenieReasoning steps={message.steps} isStreaming={message.isStreaming} variant={variant} />
 
         {message.error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+          <div className="rounded-md px-3 py-2 text-sm" style={{ background: "rgba(196,64,64,0.12)", color: "var(--danger-fg)" }}>
             {message.error}
           </div>
         )}
@@ -68,12 +68,12 @@ export default function GenieAssistantMessage({
               <div className={`relative ${collapsed ? "max-h-48 overflow-hidden" : ""}`}>
                 <MarkdownContent content={message.content} />
                 {collapsed && (
-                  <div className="absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-white to-transparent pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-[var(--surface)] to-transparent pointer-events-none" />
                 )}
               </div>
               <button
                 onClick={() => setAnswerOpen((o) => !o)}
-                className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand-accent hover:text-brand-accent-dark"
+                className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent-hover"
               >
                 {answerOpen ? (
                   <>
@@ -106,17 +106,17 @@ export default function GenieAssistantMessage({
         <GenieDeepLink deepLink={message.deepLink} variant={variant} />
 
         {showFooter && !message.isStreaming && (message.content || message.error) && (
-          <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
+          <div className="mt-3 flex items-center gap-2 text-[11px] text-fg-subtle">
             <Database className="w-3.5 h-3.5" />
             <span>Answered via the managed Genie MCP server</span>
             {message.status && message.status !== "completed" && (
-              <span className="text-amber-600">· {message.status}</span>
+              <span style={{ color: "var(--warning-fg)" }}>· {message.status}</span>
             )}
           </div>
         )}
 
         {message.isStreaming && message.steps.length === 0 && !message.content && (
-          <div className={`flex items-center gap-2 ${compact ? "text-xs" : "text-sm"} text-slate-400`}>
+          <div className={`flex items-center gap-2 ${compact ? "text-xs" : "text-sm"} text-fg-muted`}>
             <Loader2 size={compact ? 12 : 14} className="animate-spin" /> Connecting…
           </div>
         )}
