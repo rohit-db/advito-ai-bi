@@ -9,10 +9,11 @@
 
 /* ── Layer 1 — DuBois primitives (LIGHT default) ─────────────────────────── */
 :root {
-  /* Neutral ramp */
-  --n0:#FFFFFF; --n1:#F8F7F6; --n2:#F0EFEE; --n3:#E6E5E3; --n4:#D9D8D6;
-  --n5:#C5C4C2; --n6:#A1A09E; --n7:#797876; --n8:#5D5C5A; --n9:#47464A;
-  --n10:#313034; --n11:#1F1E22; --n12:#0F0E12;
+  /* Neutral ramp — COOL/CRISP (Lakewatch-style): near-white content, cool-gray chrome.
+     SPIKE: tuned directly here to validate; to be wired through brand.config.json. */
+  --n0:#FFFFFF; --n1:#FCFCFD; --n2:#F1F4F8; --n3:#E7EBF0; --n4:#DBE0E7;
+  --n5:#C7CDD6; --n6:#98A0AC; --n7:#6B7280; --n8:#545B66; --n9:#3F4650;
+  --n10:#292E37; --n11:#191D24; --n12:#0A0C10;
 
   /* State (the only chrome color) */
   --danger:#D04040; --warning:#B8892E; --success:#28A745;
@@ -21,8 +22,9 @@
   /* Data-viz (charts only) */
   --viz1:#C44040; --viz2:#B8892E; --viz3:#358B57;
 
-  /* Overlay system — RGB triple, flips per theme; 4 opacities only. THEME-VARIANT. */
-  --overlay: 14,14,18;
+  /* Overlay system — RGB triple, flips per theme; 4 opacities only. THEME-VARIANT.
+     COOL slate so borders/fills read as clean gray, not muddy. */
+  --overlay: 17,24,39;
 
   /* Elevation */
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.08);
