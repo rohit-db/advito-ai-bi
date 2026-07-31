@@ -1,36 +1,28 @@
 import { useLayoutEffect } from "react";
 import type { ReactNode } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { brand, brandToCssVars, accentVars, neutralsStyleSheet, DEFAULT_THEME } from "./brand";
+import { brand, accentStyleSheet, DEFAULT_THEME } from "./brand";
 
 /**
- * Applies brand.config.json to the document at runtime as CSS custom
- * properties, and delegates light/dark to next-themes (class-based `.dark`).
- *
- * IMPORTANT: only THEME-INVARIANT vars are written inline here (brand-* +
- * accent). The neutral ramp + --overlay are theme-variant and injected as
- * real cascade rules (:root / .dark) so the class flip can still swap them;
- * writing them inline would override that rule and break dark mode.
+ * Injects the config-driven accent (the ONLY overridable color) as cascade
+ * rules so the `.dark` block can still brighten --primary, and applies the
+ * brand identity (title + favicon). Light/dark is delegated to next-themes
+ * (class-based `.dark`). All other tokens are canonical DuBois in index.css.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
-    const css = neutralsStyleSheet(brand);
-    if (css) {
-      let styleEl = document.getElementById("apex-neutrals") as HTMLStyleElement | null;
-      if (!styleEl) {
-        styleEl = document.createElement("style");
-        styleEl.id = "apex-neutrals";
-        document.head.appendChild(styleEl);
-      }
-      styleEl.textContent = css;
+    let styleEl = document.getElementById("apex-accent") as HTMLStyleElement | null;
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "apex-accent";
+      document.head.appendChild(styleEl);
     }
+    styleEl.textContent = accentStyleSheet(brand);
 
-    const root = document.documentElement;
-    const vars = { ...brandToCssVars(brand), ...accentVars(brand) };
-    for (const [key, value] of Object.entries(vars)) {
-      root.style.setProperty(key, value);
-    }
     document.title = brand.identity.appName;
+
+    const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (favicon && brand.identity.favicon) favicon.href = brand.identity.favicon;
   }, []);
 
   return (

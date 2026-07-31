@@ -8,36 +8,7 @@
     "favicon": "/brand/favicon.svg"
   },
   "colors": {
-    "primary": "#4f46e5",
-    "primaryDark": "#3730a3",
-    "primaryLight": "#e0e7ff",
-    "accent": "#6366f1",
-    "accentDark": "#4f46e5",
-    "duboisAccent": "#2272B4",
-    "accentFg": "#ffffff",
-    "accentHover": "#1B5A8F",
-    "neutrals": {
-      "light": {
-        "ramp": ["#FFFFFF","#FCFCFD","#F1F4F8","#E7EBF0","#DBE0E7","#C7CDD6","#98A0AC","#6B7280","#545B66","#3F4650","#292E37","#191D24","#0A0C10"],
-        "overlay": "17,24,39"
-      },
-      "dark": {
-        "ramp": ["#0A0A0B","#121214","#1A1A1C","#222224","#2C2C2E","#393939","#4B4B4D","#69696B","#8A8A8C","#ABABAE","#C7C7CA","#E0E0E3","#F1F1F4"],
-        "overlay": "228,228,232"
-      }
-    },
-    "accentGradient": {
-      "enabled": true,
-      "stops": ["#2272B4","#7C3AED","#F0652F"]
-    },
-    "sidebarFrom": "#211d52",
-    "sidebarVia": "#2d2a6e",
-    "sidebarTo": "#16142e",
-    "bg": "#f8fafc",
-    "border": "#e2e8f0"
-  },
-  "typography": {
-    "fontSans": "Inter, system-ui, -apple-system, sans-serif"
+    "accent": "#2272b4"
   },
   "defaults": {
     "theme": "light"

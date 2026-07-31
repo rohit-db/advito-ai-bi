@@ -4,30 +4,25 @@ import { ThemeProvider } from "./ThemeProvider";
 
 beforeEach(() => {
   localStorage.clear();
-  const root = document.documentElement;
-  root.classList.remove("dark", "light");
-  root.removeAttribute("style");
+  document.documentElement.classList.remove("dark", "light");
+  document.getElementById("apex-accent")?.remove();
 });
 
 describe("ThemeProvider", () => {
-  it("writes accent vars inline on mount", () => {
+  it("injects #apex-accent with :root and .dark --primary rules", () => {
     render(<ThemeProvider>x</ThemeProvider>);
-    expect(document.documentElement.style.getPropertyValue("--accent")).not.toBe("");
+    const el = document.getElementById("apex-accent");
+    expect(el).toBeTruthy();
+    expect(el!.textContent).toMatch(/:root\{[^}]*--primary:/);
+    expect(el!.textContent).toMatch(/\.dark\{[^}]*--primary:/);
   });
 
-  it("does NOT write theme-variant vars inline (ramp/overlay stay CSS-only)", () => {
+  it("does NOT write --primary/--overlay/--n* as inline element styles", () => {
     render(<ThemeProvider>x</ThemeProvider>);
     const s = document.documentElement.style;
+    expect(s.getPropertyValue("--primary")).toBe("");
     expect(s.getPropertyValue("--overlay")).toBe("");
     expect(s.getPropertyValue("--n1")).toBe("");
-  });
-
-  it("injects a <style id=apex-neutrals> with :root and .dark ramp rules", () => {
-    render(<ThemeProvider>x</ThemeProvider>);
-    const el = document.getElementById("apex-neutrals");
-    expect(el).toBeTruthy();
-    expect(el!.textContent).toMatch(/:root\{[^}]*--n1:#FCFCFD/);
-    expect(el!.textContent).toMatch(/\.dark\{[^}]*--n1:#121214/);
   });
 
   it("applies the stored dark theme (adds .dark class)", async () => {
@@ -38,7 +33,7 @@ describe("ThemeProvider", () => {
     );
   });
 
-  it("does not add .dark when nothing stored (defaults light)", async () => {
+  it("defaults light (no .dark class) when nothing stored", async () => {
     render(<ThemeProvider>x</ThemeProvider>);
     await waitFor(() =>
       expect(document.documentElement.classList.contains("light")).toBe(true)
@@ -46,8 +41,8 @@ describe("ThemeProvider", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
-  it("writes --accent-gradient inline (gradient flourish var)", () => {
+  it("sets document.title from brand identity", () => {
     render(<ThemeProvider>x</ThemeProvider>);
-    expect(document.documentElement.style.getPropertyValue("--accent-gradient")).toMatch(/linear-gradient/);
+    expect(document.title).toBeTruthy();
   });
 });
