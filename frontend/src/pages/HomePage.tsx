@@ -394,7 +394,7 @@ function TrendCard({
         {latest != null && (
           <div className="text-right">
             <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Latest</div>
-            <div className="text-[15px] font-bold text-foreground">{format(latest)}</div>
+            <div className="text-[15px] font-semibold text-foreground">{format(latest)}</div>
           </div>
         )}
       </div>
