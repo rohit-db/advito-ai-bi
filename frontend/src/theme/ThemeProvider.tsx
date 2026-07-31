@@ -1,21 +1,19 @@
 import { useLayoutEffect } from "react";
 import type { ReactNode } from "react";
-import { brand, brandToCssVars, accentVars, neutralsStyleSheet } from "./brand";
-import { readStoredTheme, applyTheme } from "./useTheme";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { brand, brandToCssVars, accentVars, neutralsStyleSheet, DEFAULT_THEME } from "./brand";
 
 /**
  * Applies brand.config.json to the document at runtime as CSS custom
- * properties, and applies the persisted light/dark theme.
+ * properties, and delegates light/dark to next-themes (class-based `.dark`).
  *
  * IMPORTANT: only THEME-INVARIANT vars are written inline here (brand-* +
- * accent). The neutral ramp and --overlay are theme-variant and live in
- * index.css so the [data-theme="dark"] cascade can flip them; writing them
- * inline would override that rule and break dark mode.
+ * accent). The neutral ramp + --overlay are theme-variant and injected as
+ * real cascade rules (:root / .dark) so the class flip can still swap them;
+ * writing them inline would override that rule and break dark mode.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
-    // Inject the config-driven neutral ramp as real cascade rules (theme-variant;
-    // must NOT be inline element styles or the dark cascade breaks).
     const css = neutralsStyleSheet(brand);
     if (css) {
       let styleEl = document.getElementById("apex-neutrals") as HTMLStyleElement | null;
@@ -32,9 +30,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     for (const [key, value] of Object.entries(vars)) {
       root.style.setProperty(key, value);
     }
-    applyTheme(readStoredTheme());
     document.title = brand.identity.appName;
   }, []);
 
-  return <>{children}</>;
+  return (
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme={DEFAULT_THEME}
+      enableSystem={false}
+      storageKey="apex-theme"
+      disableTransitionOnChange
+    >
+      {children}
+    </NextThemesProvider>
+  );
 }

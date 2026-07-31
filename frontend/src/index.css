@@ -1,8 +1,9 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
 
 /* ============================================================================
    APEX tokens — DuBois design system ported into the existing brand seam.
-   LIGHT IS DEFAULT: :root = DuBois light values, [data-theme="dark"] = dark.
+   LIGHT IS DEFAULT: :root = DuBois light values, .dark = dark.
    (Inverts DuBois's own dark-first order — see the adoption spec.)
    Layer 1: DuBois primitives · Layer 2: semantic aliases · Layer 3: accent seam.
    ============================================================================ */
@@ -81,7 +82,7 @@
 
 /* ── Layer 1 — DuBois primitives (DARK override) ─────────────────────────── */
 /* Fallback default — authoritative palette lives in brand.config.json colors.neutrals; ThemeProvider injects #apex-neutrals at runtime. */
-[data-theme="dark"] {
+.dark {
   --n0:#0A0A0B; --n1:#121214; --n2:#1A1A1C; --n3:#222224; --n4:#2C2C2E;
   --n5:#393939; --n6:#4B4B4D; --n7:#69696B; --n8:#8A8A8C; --n9:#ABABAE;
   --n10:#C7C7CA; --n11:#E0E0E3; --n12:#F1F1F4;

@@ -1,14 +1,14 @@
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "./useTheme";
+import { useTheme } from "next-themes";
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  const toDark = theme === "light";
+  const { theme, setTheme } = useTheme();
+  const toDark = theme !== "dark";
   const label = toDark ? "Switch to dark theme" : "Switch to light theme";
   return (
     <button
       type="button"
-      onClick={toggleTheme}
+      onClick={() => setTheme(toDark ? "dark" : "light")}
       aria-label={label}
       title={label}
       className="grid place-items-center h-6 w-6 rounded-sm text-fg-ghost hover:bg-[var(--fill-hover)] hover:text-fg-muted transition-colors"

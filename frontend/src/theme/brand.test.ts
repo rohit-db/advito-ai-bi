@@ -37,10 +37,10 @@ describe("accentVars", () => {
 });
 
 describe("neutralsStyleSheet", () => {
-  it("emits :root and [data-theme=dark] rules with all 13 ramp values + overlay", () => {
+  it("emits :root and .dark rules with all 13 ramp values + overlay", () => {
     const css = neutralsStyleSheet(brand);
     expect(css).toMatch(/:root\s*\{/);
-    expect(css).toMatch(/\[data-theme="dark"\]\s*\{/);
+    expect(css).toMatch(/\.dark\s*\{/);
     expect(css).toMatch(/--n0:\s*#FFFFFF/);
     expect(css).toMatch(/--n12:\s*#0A0C10/);      // light n12
     expect(css).toMatch(/--n1:\s*#121214/);        // dark n1
@@ -48,9 +48,9 @@ describe("neutralsStyleSheet", () => {
     expect(css).toMatch(/--overlay:\s*228,228,232/); // dark overlay
   });
 
-  it("places light values in :root block and dark values in [data-theme=dark] block (block containment)", () => {
+  it("places light values in :root block and dark values in .dark block (block containment)", () => {
     const css = neutralsStyleSheet(brand);
-    const darkIdx = css.indexOf('[data-theme="dark"]');
+    const darkIdx = css.indexOf(".dark");
     const rootBlock = css.slice(0, darkIdx);
     const darkBlock = css.slice(darkIdx);
     expect(rootBlock).toMatch(/--n1:#FCFCFD/);       // light n1 in :root

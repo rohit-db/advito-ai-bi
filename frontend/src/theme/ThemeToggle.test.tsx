@@ -1,19 +1,27 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { ThemeProvider } from "./ThemeProvider";
 import ThemeToggle from "./ThemeToggle";
 
 beforeEach(() => {
   localStorage.clear();
-  document.documentElement.removeAttribute("data-theme");
+  document.documentElement.classList.remove("dark", "light");
 });
 
 describe("ThemeToggle", () => {
-  it("renders a light-mode button that switches to dark", () => {
-    render(<ThemeToggle />);
-    const btn = screen.getByRole("button", { name: /switch to dark theme/i });
+  it("switches to dark (adds .dark class) and offers the reverse action", async () => {
+    render(
+      <ThemeProvider>
+        <ThemeToggle />
+      </ThemeProvider>
+    );
+    const btn = await screen.findByRole("button", { name: /switch to dark theme/i });
     fireEvent.click(btn);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-    // label now offers the reverse action
-    expect(screen.getByRole("button", { name: /switch to light theme/i })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.documentElement.classList.contains("dark")).toBe(true)
+    );
+    expect(
+      screen.getByRole("button", { name: /switch to light theme/i })
+    ).toBeInTheDocument();
   });
 });

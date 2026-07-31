@@ -61,13 +61,13 @@ function rampBlock(sel: string, ramp: string[], overlay: string): string {
 }
 
 /** CSS text for the injected <style> — real cascade rules so the
- *  [data-theme="dark"] flip keeps working (ramp is theme-variant). "" if unset. */
+ *  .dark class flip keeps working (ramp is theme-variant). "" if unset. */
 export function neutralsStyleSheet(b: Brand): string {
   const n = b.colors.neutrals;
   if (!n) return "";
   return (
     rampBlock(":root", n.light.ramp, n.light.overlay) +
-    rampBlock('[data-theme="dark"]', n.dark.ramp, n.dark.overlay)
+    rampBlock(".dark", n.dark.ramp, n.dark.overlay)
   );
 }
 

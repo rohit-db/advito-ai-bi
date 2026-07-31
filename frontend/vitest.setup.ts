@@ -1,5 +1,22 @@
 import "@testing-library/jest-dom/vitest";
 
+// next-themes calls window.matchMedia; jsdom doesn't implement it.
+if (!window.matchMedia) {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  });
+}
+
 // jsdom requires localStorage to be explicitly set up for tests
 try {
   localStorage.getItem("test");
