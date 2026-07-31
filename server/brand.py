@@ -27,16 +27,16 @@ DEFAULT_BRAND: dict[str, Any] = {
         "favicon": "/brand/favicon.svg",
     },
     "colors": {
-        "primary": "#4f46e5",
-        "primaryDark": "#3730a3",
-        "primaryLight": "#e0e7ff",
-        "accent": "#6366f1",
-        "accentDark": "#4f46e5",
-        "sidebarFrom": "#211d52",
-        "sidebarVia": "#2d2a6e",
-        "sidebarTo": "#16142e",
-        "bg": "#f8fafc",
-        "border": "#e2e8f0",
+        "primary": "#2272b4",        # DuBois blue-600
+        "primaryDark": "#0e538b",    # blue-700
+        "primaryLight": "#d7edfe",   # blue-200 (focus ring tint)
+        "accent": "#2272b4",         # same as primary (single-accent brand)
+        "accentDark": "#0e538b",
+        "sidebarFrom": "#04355d",    # blue-800 (deep) — login bg gradient start
+        "sidebarVia": "#0e538b",     # blue-700
+        "sidebarTo": "#2272b4",      # blue-600
+        "bg": "#f7f7f7",             # secondary warm-grey
+        "border": "#ebebeb",         # neutral-100
     },
     "typography": {"fontSans": "Inter, system-ui, -apple-system, sans-serif"},
 }
