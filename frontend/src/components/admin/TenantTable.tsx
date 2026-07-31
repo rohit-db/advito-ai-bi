@@ -47,7 +47,7 @@ export default function TenantTable(props: TenantTableProps) {
         <div className="flex items-center gap-2">
           <Button
             size="sm"
-            variant="outline"
+            variant="default"
             onClick={props.onVerify}
             className="gap-1.5 text-brand-primary border-brand-primary-light hover:bg-brand-primary-light hover:text-brand-primary-dark"
           >
@@ -142,7 +142,7 @@ function TenantRow({
           <Button
             type="button"
             size="sm"
-            variant="outline"
+            variant="default"
             disabled={busy}
             onClick={() => onManageAccess(tenant)}
             className="h-8 gap-1.5 border-brand-primary-light bg-brand-primary-light/50 text-brand-primary-dark hover:bg-brand-primary-light hover:text-brand-primary-dark"

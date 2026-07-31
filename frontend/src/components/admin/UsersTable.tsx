@@ -128,7 +128,7 @@ export default function UsersTable({
                         <Button
                           type="button"
                           size="sm"
-                          variant="outline"
+                          variant="default"
                           disabled={!writable || busy}
                           onClick={() => onEdit(u)}
                           className="h-8 gap-1"
@@ -139,7 +139,7 @@ export default function UsersTable({
                         <Button
                           type="button"
                           size="sm"
-                          variant="outline"
+                          variant="default"
                           disabled={!writable || busy}
                           onClick={() => onDelete(u)}
                           className="h-8 gap-1 text-rose-700 border-rose-200 hover:bg-rose-50"

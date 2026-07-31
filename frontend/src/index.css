@@ -536,10 +536,10 @@ html, body, #root {
   --fill-press: var(--table-row-selected-hover);
   --fill-emphasis: var(--table-row-selected-hover);
 
-  /* WARNING: this overrides the canonical DuBois --overlay scrim (rgba(0,0,0,0.26)). Phase 3 must rename
-     this to --overlay-rgb or migrate the rgba(var(--overlay),x) consumers before vendoring Dialog/Sheet/Drawer,
-     whose backdrops read var(--overlay) directly. See .superpowers ledger. */
-  /* overlay RGB triple — DuBois neutral-500 (82,82,82) so rgba(var(--overlay),x) reads neutral */
+  /* --overlay is an RGB triple for rgba(var(--overlay),x) consumers (focus rings, scrollbars,
+     dividers). VERIFIED Phase 3: canonical DuBois ui/* modals (dialog/sheet/drawer) use bg-black/50,
+     NOT var(--overlay) — so no bare-color consumer exists and this override is safe & kit-aligned.
+     (Canonical globals.css defines --overlay as a scrim rgba(0,0,0,0.26) that no component consumes.) */
   --overlay: 82, 82, 82;
 
   /* brand action color: our --accent === DuBois --primary (NOT DuBois --accent!) */

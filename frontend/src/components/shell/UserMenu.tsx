@@ -23,16 +23,18 @@ export default function UserMenu({ user }: { user: UserLike | null }) {
 
   return (
     <Popover>
-      <PopoverTrigger className="group gap-2.5 rounded-full pl-1 pr-2.5 py-1 hover:bg-[var(--fill-hover)] transition-colors">
-        <Avatar size="sm" className="ring-2 ring-[var(--surface-2)] shadow-sm">
-          <AvatarFallback className="bg-linear-to-br from-brand-primary to-brand-accent text-white text-[11px] font-semibold">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-        <span className="text-[13px] font-medium text-fg-2 max-w-[140px] truncate hidden sm:inline">
-          {displayName}
-        </span>
-        <ChevronRight size={14} className="text-fg-muted rotate-90 hidden sm:inline" />
+      <PopoverTrigger asChild>
+        <button className="group flex items-center gap-2.5 rounded-full pl-1 pr-2.5 py-1 hover:bg-[var(--fill-hover)] transition-colors">
+          <Avatar size="sm" className="ring-2 ring-[var(--surface-2)] shadow-sm">
+            <AvatarFallback className="bg-linear-to-br from-brand-primary to-brand-accent text-white text-[11px] font-semibold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-[13px] font-medium text-fg-2 max-w-[140px] truncate hidden sm:inline">
+            {displayName}
+          </span>
+          <ChevronRight size={14} className="text-fg-muted rotate-90 hidden sm:inline" />
+        </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-0 overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3.5 bg-surface-2 border-b border-border">

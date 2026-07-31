@@ -104,7 +104,7 @@ export default function UserDialog({
       onClose={onClose}
       footer={
         <>
-          <Button variant="outline" size="sm" onClick={onClose} disabled={busy}>
+          <Button variant="default" size="sm" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
           <Button size="sm" onClick={submit} disabled={!canSubmit}>

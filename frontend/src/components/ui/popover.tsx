@@ -1,119 +1,87 @@
-import React, { useState, useRef, useEffect } from "react";
-import { cn } from "../../lib/utils";
+import * as React from "react"
+import { Popover as PopoverPrimitive } from "radix-ui"
 
-interface PopoverProps {
-  children: React.ReactNode;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+import { cn } from "@/lib/utils"
+
+function Popover({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+  return <PopoverPrimitive.Root data-slot="popover" {...props} />
 }
 
-interface PopoverContextValue {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  triggerRef: React.RefObject<HTMLElement | null>;
+function PopoverTrigger({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
 }
 
-const PopoverContext = React.createContext<PopoverContextValue>({
-  open: false,
-  setOpen: () => {},
-  triggerRef: { current: null },
-});
-
-export function Popover({ children, open: controlledOpen, onOpenChange }: PopoverProps) {
-  const [internalOpen, setInternalOpen] = useState(false);
-  const triggerRef = useRef<HTMLElement | null>(null);
-  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
-
-  const setOpen = (v: boolean) => {
-    if (controlledOpen === undefined) setInternalOpen(v);
-    onOpenChange?.(v);
-  };
-
-  return (
-    <PopoverContext.Provider value={{ open, setOpen, triggerRef }}>
-      <div className="relative inline-block">{children}</div>
-    </PopoverContext.Provider>
-  );
-}
-
-interface PopoverTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  asChild?: boolean;
-}
-
-export function PopoverTrigger({ className, children, asChild, ...props }: PopoverTriggerProps) {
-  const { open, setOpen, triggerRef } = React.useContext(PopoverContext);
-
-  return (
-    <button
-      ref={triggerRef as React.RefObject<HTMLButtonElement>}
-      type="button"
-      onClick={() => setOpen(!open)}
-      className={cn("inline-flex items-center", className)}
-      aria-expanded={open}
-      aria-haspopup="true"
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
-
-interface PopoverContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  align?: "start" | "center" | "end";
-  sideOffset?: number;
-}
-
-export function PopoverContent({
+function PopoverContent({
   className,
   align = "center",
   sideOffset = 4,
-  children,
   ...props
-}: PopoverContentProps) {
-  const { open, setOpen } = React.useContext(PopoverContext);
-  const ref = useRef<HTMLDivElement>(null);
+}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Content
+        data-slot="popover-content"
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
+          className
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
+  )
+}
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open, setOpen]);
+function PopoverAnchor({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
+  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
+}
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [open, setOpen]);
-
-  if (!open) return null;
-
-  const alignClasses = {
-    start: "left-0",
-    center: "left-1/2 -translate-x-1/2",
-    end: "right-0",
-  };
-
+function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      ref={ref}
-      style={{ marginTop: sideOffset }}
-      className={cn(
-        "absolute z-50 w-72 rounded-md border border-border bg-surface p-4 shadow-md outline-none",
-        "top-full",
-        alignClasses[align],
-        className
-      )}
+      data-slot="popover-header"
+      className={cn("flex flex-col gap-1 text-sm", className)}
       {...props}
-    >
-      {children}
-    </div>
-  );
+    />
+  )
+}
+
+function PopoverTitle({ className, ...props }: React.ComponentProps<"h2">) {
+  return (
+    <div
+      data-slot="popover-title"
+      className={cn("font-medium", className)}
+      {...props}
+    />
+  )
+}
+
+function PopoverDescription({
+  className,
+  ...props
+}: React.ComponentProps<"p">) {
+  return (
+    <p
+      data-slot="popover-description"
+      className={cn("text-muted-foreground", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverDescription,
 }

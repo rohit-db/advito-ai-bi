@@ -62,7 +62,7 @@ export default function VerifyModal({ run, onClose }: VerifyModalProps) {
               {passCount}/{rows.length} tenants isolated
             </span>
           )}
-          <Button variant="outline" size="sm" onClick={execute} disabled={loading} className="gap-1.5">
+          <Button variant="default" size="sm" onClick={execute} disabled={loading} className="gap-1.5">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
             Re-run
           </Button>

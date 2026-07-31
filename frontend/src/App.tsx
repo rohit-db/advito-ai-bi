@@ -209,7 +209,7 @@ export default function App() {
               <div className="flex items-center gap-2 shrink-0">
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="default"
                   onClick={() => setSummaryOpen(true)}
                   className="gap-1.5 text-brand-primary border-brand-primary-light hover:bg-brand-primary-light hover:text-brand-primary-dark"
                 >
@@ -218,7 +218,7 @@ export default function App() {
                 </Button>
                 <Button
                   size="sm"
-                  variant={railOpen ? "default" : "outline"}
+                  variant={railOpen ? "default" : "ghost"}
                   onClick={() => setRailOpen((o) => !o)}
                   className="gap-1.5"
                 >
