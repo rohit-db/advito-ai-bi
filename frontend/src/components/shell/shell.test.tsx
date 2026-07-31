@@ -1,13 +1,13 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Breadcrumb from "./Breadcrumb";
 import ClientBadge from "./ClientBadge";
 import UserMenu from "./UserMenu";
-import BrandBlock from "./BrandBlock";
 import TopBar from "./TopBar";
 import { RegistryContext } from "@/registry/useRegistry";
 import type { Registry } from "@/registry/types";
+import { brand } from "@/theme/brand";
 
 describe("shell — Breadcrumb", () => {
   it("renders the page title with fg token, no slate", () => {
@@ -49,27 +49,6 @@ describe("shell — UserMenu", () => {
   });
 });
 
-describe("shell — BrandBlock", () => {
-  it("expanded: shows app name + a collapse toggle, dark rail background", () => {
-    const { container } = render(<BrandBlock collapsed={false} onToggle={() => {}} />);
-    // light brand block (dark rail retired) — no dark classes
-    expect(container.innerHTML).not.toMatch(/bg-brand-sidebar-from|text-white|white\//);
-    expect(container.innerHTML).toMatch(/w-\[224px\]/);
-    expect(screen.getByTitle(/collapse sidebar/i)).toBeInTheDocument();
-  });
-  it("collapsed: shrinks to 60px and offers an expand affordance", () => {
-    const { container } = render(<BrandBlock collapsed={true} onToggle={() => {}} />);
-    expect(container.innerHTML).toMatch(/w-\[60px\]/);
-    expect(screen.getByTitle(/expand sidebar/i)).toBeInTheDocument();
-  });
-  it("fires onToggle when the toggle is clicked", () => {
-    let n = 0;
-    render(<BrandBlock collapsed={false} onToggle={() => { n++; }} />);
-    screen.getByTitle(/collapse sidebar/i).click();
-    expect(n).toBe(1);
-  });
-});
-
 function renderTopBar(collapsed = false) {
   vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) })));
   const registry: Registry = { assets: {} };
@@ -84,16 +63,34 @@ function renderTopBar(collapsed = false) {
 
 describe("shell — TopBar", () => {
   afterEach(() => vi.restoreAllMocks());
-  it("renders a full-width h-12 bar with a light surface section, no slate", () => {
+  it("renders a full-width h-12 bar with bg-secondary, no slate", () => {
     const { container } = renderTopBar();
     const header = container.querySelector("header")!;
     expect(header.className).toMatch(/\bh-12\b/);
-    expect(container.innerHTML).toMatch(/bg-surface-2/);
+    expect(header.className).toMatch(/bg-secondary/);
     expect(header.className).not.toMatch(/slate-/);
   });
   it("mounts the theme toggle and the collapse toggle", () => {
     renderTopBar(false);
     expect(screen.getByRole("button", { name: /switch to (dark|light) theme/i })).toBeInTheDocument();
-    expect(screen.getByTitle(/collapse sidebar/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /collapse sidebar/i })).toBeInTheDocument();
+  });
+  it("renders the app name", () => {
+    renderTopBar();
+    expect(screen.getAllByText(brand.identity.appName).length).toBeGreaterThan(0);
+  });
+  it("fires onToggle when the collapse toggle is clicked", () => {
+    let n = 0;
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) })));
+    const registry: Registry = { assets: {} };
+    render(
+      <RegistryContext.Provider value={registry}>
+        <MemoryRouter initialEntries={["/"]}>
+          <TopBar collapsed={false} onToggle={() => { n++; }} />
+        </MemoryRouter>
+      </RegistryContext.Provider>
+    );
+    screen.getByRole("button", { name: /collapse sidebar/i }).click();
+    expect(n).toBe(1);
   });
 });
