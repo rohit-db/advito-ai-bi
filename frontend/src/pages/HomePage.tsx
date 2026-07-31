@@ -129,19 +129,19 @@ export default function HomePage() {
   const showKpis = kpiLoading || (kpis?.ok && kpis.current);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-surface">
+    <div className="flex-1 overflow-y-auto bg-background">
       <div className="mx-auto w-full max-w-5xl px-6 py-8 md:py-10">
         {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <section className="rounded-2xl border border-border bg-surface-2 px-7 py-8 md:px-10 md:py-10">
+        <section className="rounded-md border border-border bg-secondary px-7 py-8 md:px-10 md:py-10">
           <div className="relative z-10">
-            <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.16em] text-fg-muted">
+            <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
               <GradientMark size={20} />
               {user?.tenant || "APEX Travel Intelligence"}
             </div>
-            <h1 className="mt-2 text-2xl md:text-[28px] font-bold tracking-tight text-fg">
+            <h1 className="mt-2 text-2xl md:text-[28px] font-semibold tracking-tight text-foreground">
               {greeting()}, {firstName}.
             </h1>
-            <p className="mt-1.5 max-w-lg text-[14px] leading-relaxed text-fg-muted">
+            <p className="mt-1.5 max-w-lg text-[14px] leading-relaxed text-muted-foreground">
               Ask anything about your travel program, or jump into a dashboard. Grounded
               answers with live SQL — governed end to end.
             </p>
@@ -152,21 +152,21 @@ export default function HomePage() {
                 e.preventDefault();
                 ask(input);
               }}
-              className="gradient-border group relative mt-6 flex items-center rounded-md bg-[var(--fill-hover)] px-4 py-2.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
+              className="gradient-border group relative mt-6 flex items-center rounded-md bg-background px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-ring"
             >
-              <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-fg-muted" />
+              <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-muted-foreground" />
               {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
               <input
                 autoFocus
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask APEX about spend, emissions, bookings…"
-                className="flex-1 bg-transparent py-1 text-[15px] text-fg placeholder:text-fg-muted focus:outline-none"
+                className="flex-1 bg-transparent py-1 text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-accent text-accent-fg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-30"
+                className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ArrowUp size={16} strokeWidth={2.5} />
               </button>
@@ -177,7 +177,7 @@ export default function HomePage() {
                 <button
                   key={q}
                   onClick={() => ask(q)}
-                  className="rounded-sm border border-border bg-surface px-3.5 py-1.5 text-[12.5px] text-fg-2 transition-colors hover:bg-[var(--fill-hover)] hover:text-fg"
+                  className="rounded border border-border bg-background px-3.5 py-1.5 text-[12.5px] text-foreground transition-colors hover:bg-[var(--action-default-bg-hover)] hover:text-blue-700"
                 >
                   {q}
                 </button>
@@ -190,10 +190,10 @@ export default function HomePage() {
         {showKpis && (
           <section className="mt-6">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">
+              <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 This year at a glance
               </h2>
-              <span className="text-[11px] text-fg-muted">vs. prior year</span>
+              <span className="text-[11px] text-muted-foreground">vs. prior year</span>
             </div>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {KPIS.map((meta) =>
@@ -218,7 +218,7 @@ export default function HomePage() {
             <TrendCard
               title="Spend trend"
               subtitle="Monthly gross spend"
-              accent="var(--accent)"
+              accent="var(--primary)"
               points={trend}
               loading={trendLoading}
               variant="area"
@@ -228,7 +228,7 @@ export default function HomePage() {
             <TrendCard
               title="Emissions trend"
               subtitle="Monthly CO₂ (tCO₂e)"
-              accent="#10b981"
+              accent="var(--chart-2)"
               points={trend}
               loading={trendLoading}
               variant="bar"
@@ -240,7 +240,7 @@ export default function HomePage() {
 
         {/* ── Quick access ─────────────────────────────────────────────── */}
         <section className="mt-8">
-          <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">
+          <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Jump back in
           </h2>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -289,17 +289,17 @@ function KpiCard({
   }
 
   return (
-    <div className="group rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-border-hover">
+    <div className="group rounded-md border border-border bg-background p-4 transition-colors hover:border-neutral-200">
       <div className="flex items-center justify-between">
         <div
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[color-mix(in_oklab,var(--accent)_12%,transparent)] text-accent"
+          className="flex h-9 w-9 items-center justify-center rounded bg-primary/10 text-primary"
         >
           <Icon size={17} />
         </div>
         <DeltaChip pct={deltaPct} goodDirection={meta.goodDirection} />
       </div>
-      <div className="mt-3 text-2xl font-bold tracking-tight text-fg">{value}</div>
-      <div className="mt-0.5 text-[12.5px] font-medium text-fg-muted">{meta.label}</div>
+      <div className="mt-3 text-2xl font-semibold tracking-tight text-foreground">{value}</div>
+      <div className="mt-0.5 text-[12.5px] font-medium text-muted-foreground">{meta.label}</div>
     </div>
   );
 }
@@ -315,12 +315,12 @@ function DeltaChip({
   const up = pct >= 0;
   const rounded = Math.abs(pct) < 0.1 ? "0" : Math.abs(pct).toFixed(0);
 
-  let tone = "bg-surface-3 text-fg-2"; // neutral
+  let tone = "bg-secondary text-muted-foreground"; // neutral
   if (goodDirection !== "neutral") {
     const good = goodDirection === "up" ? up : !up;
     tone = good
-      ? "bg-[rgba(48,160,80,0.12)] text-[var(--success-fg)]"
-      : "bg-[rgba(196,64,64,0.12)] text-[var(--danger-fg)]";
+      ? "bg-[var(--background-success)] text-[var(--success)]"
+      : "bg-[var(--background-danger)] text-[var(--destructive)]";
   }
 
   const Arrow = up ? TrendingUp : TrendingDown;
@@ -336,10 +336,10 @@ function DeltaChip({
 
 function KpiSkeleton() {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4">
-      <div className="h-9 w-9 animate-pulse rounded-xl bg-surface-3" />
-      <div className="mt-3 h-7 w-24 animate-pulse rounded bg-surface-3" />
-      <div className="mt-2 h-3.5 w-16 animate-pulse rounded bg-surface-2" />
+    <div className="rounded-md border border-border bg-background p-4">
+      <div className="h-9 w-9 animate-pulse rounded bg-muted" />
+      <div className="mt-3 h-7 w-24 animate-pulse rounded bg-muted" />
+      <div className="mt-2 h-3.5 w-16 animate-pulse rounded bg-muted" />
     </div>
   );
 }
@@ -385,25 +385,25 @@ function TrendCard({
   const latest = data.length ? data[data.length - 1].value : null;
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4">
+    <div className="rounded-md border border-border bg-background p-4">
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-[14px] font-semibold text-fg">{title}</div>
-          <div className="text-[12px] text-fg-muted">{subtitle}</div>
+          <div className="text-[14px] font-semibold text-foreground">{title}</div>
+          <div className="text-[12px] text-muted-foreground">{subtitle}</div>
         </div>
         {latest != null && (
           <div className="text-right">
-            <div className="text-[11px] uppercase tracking-wide text-fg-subtle">Latest</div>
-            <div className="text-[15px] font-bold text-fg">{format(latest)}</div>
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Latest</div>
+            <div className="text-[15px] font-bold text-foreground">{format(latest)}</div>
           </div>
         )}
       </div>
 
       <div className="mt-3 h-28">
         {loading ? (
-          <div className="h-full w-full animate-pulse rounded-lg bg-surface-2" />
+          <div className="h-full w-full animate-pulse rounded bg-muted" />
         ) : data.length < 2 ? (
-          <div className="flex h-full items-center justify-center text-[12px] text-fg-muted">
+          <div className="flex h-full items-center justify-center text-[12px] text-muted-foreground">
             Not enough data
           </div>
         ) : variant === "area" ? (
@@ -414,7 +414,7 @@ function TrendCard({
       </div>
 
       {data.length >= 2 && (
-        <div className="mt-1.5 flex justify-between text-[10px] text-fg-muted">
+        <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground">
           <span>{data[0].label}</span>
           <span>{data[data.length - 1].label}</span>
         </div>
@@ -520,22 +520,22 @@ function QuickCard({
   return (
     <button
       onClick={onClick}
-      className="group flex items-start gap-3.5 rounded-2xl border border-border bg-surface p-4 text-left transition-colors hover:border-border-hover"
+      className="group flex items-start gap-3.5 rounded-md border border-border bg-background p-4 text-left transition-colors hover:border-neutral-200"
     >
       <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_oklab,var(--accent)_12%,transparent)] text-accent"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-primary/10 text-primary"
       >
         <Icon size={19} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="text-[14px] font-semibold text-fg">{title}</span>
+          <span className="text-[14px] font-semibold text-foreground">{title}</span>
           <ArrowRight
             size={14}
-            className="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent"
+            className="text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-primary"
           />
         </div>
-        <p className="mt-0.5 text-[12.5px] leading-relaxed text-fg-muted">{desc}</p>
+        <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">{desc}</p>
       </div>
     </button>
   );
