@@ -34,7 +34,7 @@ describe("PreferencesPage (DuBois tokens)", () => {
   it("page wrapper uses DuBois surface token", () => {
     const { container } = renderPage();
     const wrapper = container.firstElementChild as HTMLElement;
-    expect(wrapper.className).toMatch(/\bbg-surface\b/);
+    expect(wrapper.className).toMatch(/\bbg-background\b/);
   });
 
   it("date input carries DuBois input tokens and no slate/white", async () => {
@@ -42,7 +42,7 @@ describe("PreferencesPage (DuBois tokens)", () => {
     // wait for loading to finish so filter rows render
     await waitFor(() => expect(container.querySelector("input[type=date]")).toBeInTheDocument());
     const input = container.querySelector("input[type=date]") as HTMLInputElement;
-    expect(input.className).toMatch(/border-border/);
+    expect(input.className).toMatch(/border-input/);
     expect(input.className).not.toMatch(/slate-\d/);
     expect(input.className).not.toMatch(/\bbg-white\b/);
   });
@@ -51,18 +51,18 @@ describe("PreferencesPage (DuBois tokens)", () => {
     const { container } = renderPage();
     await waitFor(() => expect(container.querySelector("select")).toBeInTheDocument());
     const select = container.querySelector("select") as HTMLSelectElement;
-    expect(select.className).toMatch(/border-border/);
+    expect(select.className).toMatch(/border-input/);
     expect(select.className).not.toMatch(/slate-\d/);
     expect(select.className).not.toMatch(/\bbg-white\b/);
   });
 
-  it("save button uses solid accent tokens and no legacy brand gradient", async () => {
+  it("save button uses solid primary tokens and no legacy brand gradient", async () => {
     const { container } = renderPage();
     // Button renders as a <button> element; "Save defaults" text appears after loading
     // but the button is present even during loading (disabled)
     await waitFor(() => expect(screen.getByRole("button", { name: /save defaults/i })).toBeInTheDocument());
     const btn = screen.getByRole("button", { name: /save defaults/i });
-    expect(btn.className).toMatch(/\bbg-accent\b/);
+    expect(btn.className).toMatch(/\bbg-primary\b/);
     expect(btn.className).not.toMatch(/from-brand/);
     expect(btn.className).not.toMatch(/bg-linear/);
   });

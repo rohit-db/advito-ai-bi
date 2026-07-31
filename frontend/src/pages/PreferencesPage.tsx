@@ -20,8 +20,8 @@ import type { FilterKey, FilterState } from "@/config";
 const ALL_KEYS = Object.keys(FILTERS) as FilterKey[];
 
 const INPUT_CLS =
-  "h-9 px-3 text-sm rounded-md border border-border bg-[var(--fill-hover)] text-fg " +
-  "hover:border-border-hover focus:outline-none focus:border-border-emphasis focus:ring-2 focus:ring-[rgba(var(--overlay),0.06)] transition-colors placeholder:text-fg-muted";
+  "h-9 px-3 text-sm rounded border border-input bg-background text-foreground " +
+  "hover:border-neutral-200 focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring transition-colors placeholder:text-muted-foreground";
 
 export default function PreferencesPage() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -67,29 +67,29 @@ export default function PreferencesPage() {
   const reset = () => set({ ...DEFAULT_FILTERS });
 
   return (
-    <div className="h-full overflow-y-auto bg-surface">
+    <div className="h-full overflow-y-auto bg-background">
       <div className="mx-auto max-w-3xl px-6 py-8">
         {/* Header */}
         <div className="mb-6 flex items-start gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-accent-fg shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
             <SlidersHorizontal size={20} />
           </div>
           <div>
-            <h1 className="text-lg font-semibold tracking-tight text-fg">My Filters</h1>
-            <p className="mt-0.5 max-w-xl text-sm text-fg-muted">
+            <h1 className="text-lg font-semibold tracking-tight text-foreground">My Filters</h1>
+            <p className="mt-0.5 max-w-xl text-sm text-muted-foreground">
               Set the filters you want applied by default across your dashboards. You can still
               change filters on any individual dashboard.
             </p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface-2 shadow-sm">
+        <div className="rounded-md border border-border bg-secondary shadow-sm">
           <div className="border-b border-border px-6 py-3.5">
-            <h2 className="text-sm font-semibold text-fg">Default selection</h2>
+            <h2 className="text-sm font-semibold text-foreground">Default selection</h2>
           </div>
 
           {loading ? (
-            <div className="px-6 py-12 text-center text-sm text-fg-muted">Loading…</div>
+            <div className="px-6 py-12 text-center text-sm text-muted-foreground">Loading…</div>
           ) : (
             <div className="divide-y divide-border">
               {ALL_KEYS.map((key) => {
@@ -100,12 +100,12 @@ export default function PreferencesPage() {
                     className="flex flex-col gap-2 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-fg">
+                      <div className="text-sm font-medium text-foreground">
                         {def.kind === "dateRange" && def.label === "vs"
                           ? "Comparison period"
                           : def.label}
                       </div>
-                      <div className="text-xs text-fg-muted">
+                      <div className="text-xs text-muted-foreground">
                         {def.kind === "dateRange" ? "Date range" : "Single value"}
                       </div>
                     </div>
@@ -118,7 +118,7 @@ export default function PreferencesPage() {
                           onChange={(e) => set({ [def.fromField]: e.target.value } as Partial<FilterState>)}
                           className={INPUT_CLS}
                         />
-                        <span className="text-fg-subtle">→</span>
+                        <span className="text-muted-foreground">→</span>
                         <input
                           type="date"
                           value={(filters[def.toField] as string) || ""}
@@ -145,7 +145,7 @@ export default function PreferencesPage() {
                         </select>
                         <ChevronDown
                           size={14}
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-fg-muted"
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                         />
                       </div>
                     )}
@@ -156,22 +156,22 @@ export default function PreferencesPage() {
           )}
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between gap-3 border-t border-border bg-surface px-6 py-3.5">
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-6 py-3.5">
             <button
               onClick={reset}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-fg-2 transition-colors hover:text-fg disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
             >
               <RotateCcw size={13} />
               Reset to defaults
             </button>
             <div className="flex items-center gap-3">
               {savedAt && (
-                <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-[var(--success-fg)] bg-[rgba(48,160,80,0.12)]">
+                <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-[var(--success)] bg-[var(--background-success)]">
                   <Check size={14} /> Saved
                 </span>
               )}
-              <Button size="sm" onClick={save} disabled={!dirty || saving || loading} className="gap-1.5 bg-accent text-accent-fg hover:bg-accent-hover">
+              <Button size="sm" onClick={save} disabled={!dirty || saving || loading} className="gap-1.5 bg-primary text-primary-foreground hover:bg-blue-700">
                 {saving ? "Saving…" : "Save defaults"}
               </Button>
             </div>
