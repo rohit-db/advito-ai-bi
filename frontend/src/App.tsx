@@ -218,7 +218,7 @@ export default function App() {
                 </Button>
                 <Button
                   size="sm"
-                  variant={railOpen ? "default" : "ghost"}
+                  variant={railOpen ? "primary" : "default"}
                   onClick={() => setRailOpen((o) => !o)}
                   className="gap-1.5"
                 >
