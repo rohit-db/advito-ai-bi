@@ -37,7 +37,7 @@ export function accentStyleSheet(b: Brand): string {
     `--ring:${a};--sidebar-primary:${a};--sidebar-ring:${a};` +
     `}` +
     `.dark{` +
-    `--primary:${aDark};` +
+    `--primary:${aDark};--primary-foreground:#11171c;` +
     `--ring:${aDark};--sidebar-primary:${aDark};--sidebar-ring:${aDark};` +
     `}`
   );

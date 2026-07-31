@@ -20,9 +20,19 @@ describe("accentStyleSheet", () => {
     expect(css).toContain(brand.colors.accent);
   });
 
-  it("derives ring and sidebar-primary from the accent too", () => {
+  it("derives ring and sidebar-primary and sidebar-ring from the accent too", () => {
     const css = accentStyleSheet(brand);
     expect(css).toMatch(/--ring:/);
     expect(css).toMatch(/--sidebar-primary:/);
+    expect(css).toMatch(/--sidebar-ring:/);
+  });
+
+  it("dark block overrides --primary-foreground to dark canonical (#11171c) for WCAG contrast", () => {
+    const css = accentStyleSheet(brand);
+    // Locate the .dark block and confirm it sets the dark foreground, not white
+    const darkBlockMatch = css.match(/\.dark\{([^}]+)\}/);
+    expect(darkBlockMatch).toBeTruthy();
+    const darkBlock = darkBlockMatch![1];
+    expect(darkBlock).toContain("--primary-foreground:#11171c");
   });
 });
