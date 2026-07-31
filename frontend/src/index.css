@@ -1,169 +1,645 @@
 @import "tailwindcss";
 @custom-variant dark (&:is(.dark *));
 
-/* ============================================================================
-   APEX tokens — DuBois design system ported into the existing brand seam.
-   LIGHT IS DEFAULT: :root = DuBois light values, .dark = dark.
-   (Inverts DuBois's own dark-first order — see the adoption spec.)
-   Layer 1: DuBois primitives · Layer 2: semantic aliases · Layer 3: accent seam.
-   ============================================================================ */
+/* ─── DuBois Primitive Color Palette ────────────────────────────────────────
+ * Available as Tailwind utilities: bg-blue-600, text-grey-800, etc.
+ * Do NOT use these directly in components — use semantic CSS variables instead.
+ * ─────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* DuBois Blue */
+  --color-blue-100: #f0f8ff;
+  --color-blue-200: #d7edfe;
+  --color-blue-300: #bae1fc;
+  --color-blue-400: #8acaff;
+  --color-blue-500: #4299e0;
+  --color-blue-600: #2272b4;
+  --color-blue-700: #0e538b;
+  --color-blue-800: #04355d;
 
-/* ── Layer 1 — DuBois primitives (LIGHT default) ─────────────────────────── */
-/* Fallback default — authoritative palette lives in brand.config.json colors.neutrals; ThemeProvider injects #apex-neutrals at runtime. */
-:root {
-  /* Neutral ramp — COOL/CRISP (Lakewatch-style): near-white content, cool-gray chrome.
-     SPIKE: tuned directly here to validate; to be wired through brand.config.json. */
-  --n0:#FFFFFF; --n1:#FCFCFD; --n2:#F1F4F8; --n3:#E7EBF0; --n4:#DBE0E7;
-  --n5:#C7CDD6; --n6:#98A0AC; --n7:#6B7280; --n8:#545B66; --n9:#3F4650;
-  --n10:#292E37; --n11:#191D24; --n12:#0A0C10;
+  /* DuBois Neutral (warm/true grey — light mode semantics) */
+  --color-neutral-050: #f7f7f7;
+  --color-neutral-100: #ebebeb;
+  --color-neutral-200: #d8d8d8;
+  --color-neutral-300: #cbcbcb;
+  --color-neutral-350: #a2a2a2;
+  --color-neutral-400: #939393;
+  --color-neutral-500: #6f6f6f;
+  --color-neutral-600: #525252;
+  --color-neutral-650: #424242;
+  --color-neutral-700: #262626;
+  --color-neutral-800: #161616;
 
-  /* State (the only chrome color) */
-  --danger:#D04040; --warning:#B8892E; --success:#28A745;
-  --danger-fg:#C03020; --warning-fg:#9A6D00; --success-fg:#1A9035;
+  /* DuBois Grey (blue-tinted — dark mode semantics) */
+  --color-grey-050: #f6f7f9;
+  --color-grey-100: #e8ecf0;
+  --color-grey-200: #d1d9e1;
+  --color-grey-300: #c0cdd8;
+  --color-grey-350: #92a4b3;
+  --color-grey-400: #8396a5;
+  --color-grey-500: #5f7281;
+  --color-grey-600: #445461;
+  --color-grey-650: #37444f;
+  --color-grey-700: #1f272d;
+  --color-grey-800: #11171c;
 
-  /* Data-viz (charts only) */
-  --viz1:#C44040; --viz2:#B8892E; --viz3:#358B57;
+  /* DuBois Red */
+  --color-red-100: #fff5f7;
+  --color-red-200: #fde2e8;
+  --color-red-300: #fbd0d8;
+  --color-red-400: #f792a6;
+  --color-red-500: #e65b77;
+  --color-red-600: #c82d4c;
+  --color-red-700: #9e102c;
+  --color-red-800: #630316;
 
-  /* Overlay system — RGB triple, flips per theme; 4 opacities only. THEME-VARIANT.
-     COOL slate so borders/fills read as clean gray, not muddy. */
-  --overlay: 17,24,39;
+  /* DuBois Green */
+  --color-green-100: #f3fcf6;
+  --color-green-200: #d4f7df;
+  --color-green-300: #b1ecc5;
+  --color-green-400: #8ddda8;
+  --color-green-500: #3ba65e;
+  --color-green-600: #277c43;
+  --color-green-700: #115026;
+  --color-green-800: #093919;
 
-  /* Elevation */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md: 0 2px 6px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.10);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.14);
+  /* DuBois Yellow/Amber */
+  --color-yellow-100: #fff9eb;
+  --color-yellow-200: #fceaca;
+  --color-yellow-300: #f8d4a5;
+  --color-yellow-400: #f2be88;
+  --color-yellow-500: #de7921;
+  --color-yellow-600: #be501e;
+  --color-yellow-700: #93320b;
+  --color-yellow-800: #5f1b02;
 
-  /* Radius — one base, derive via calc() */
-  --radius:0.5rem;
-  --radius-sm:calc(var(--radius)*0.5);
-  --radius-md:calc(var(--radius)*0.75);
-  --radius-lg:var(--radius);
-  --radius-xl:calc(var(--radius)*1.5);
-  --radius-full:9999px;
+  /* Databricks Brand */
+  --color-brand-red: #FF3621;
 
-  /* Motion */
-  --dur-instant:50ms; --dur-fast:100ms; --dur-normal:150ms;
+  /* UI Conventions */
+  --color-star: #facb66; /* star/favorite — DuBois Secondary/lemon */
 
-  /* Fonts — sans still driven by brand.config.json via --brand-font-sans */
-  --brand-font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  /* DuBois Secondary Palette (for tags/badges/categorical) */
+  --color-coral-100: #fdece9;
+  --color-coral-500: #e86247;
+  --color-coral-700: #c0411e;
 
-  /* ── Layer 2 — semantic aliases (reference the ramp; theme-invariant defs) ── */
-  --surface:var(--n1); --surface-2:var(--n2); --surface-3:var(--n3);
-  --fg:var(--n11); --fg-2:var(--n10); --fg-muted:var(--n9); --fg-subtle:var(--n8);
-  --fg-ghost:var(--n7); --fg-disabled:var(--n6);
-  --border:rgba(var(--overlay),0.08);
-  --border-hover:rgba(var(--overlay),0.10);
-  --border-emphasis:rgba(var(--overlay),0.12);
-  --fill-hover:rgba(var(--overlay),0.04);
-  --fill-active:rgba(var(--overlay),0.08);
-  --fill-press:rgba(var(--overlay),0.10);
-  --fill-emphasis:rgba(var(--overlay),0.12);
+  --color-brown-100: #f3ece6;
+  --color-brown-500: #a0694a;
+  --color-brown-700: #7a4930;
 
-  /* ── Layer 3 — customizable accent seam (ThemeProvider overwrites at runtime) ── */
-  --accent:#4f46e5;
-  --accent-gradient: var(--accent);
-  --accent-fg:#ffffff;
-  --accent-hover:#4338ca;
+  --color-indigo-100: #ebf0fd;
+  --color-indigo-500: #5b7be8;
+  --color-indigo-700: #3557c7;
 
-  /* ── Legacy brand vars (retained for the ~33 already-migrated utilities;
-        Phase 4 reconciles). ThemeProvider still overwrites these too. ────────── */
-  --brand-primary:#4f46e5;
-  --brand-primary-dark:#3730a3;
-  --brand-primary-light:#e0e7ff;
-  --brand-accent:#6366f1;
-  --brand-accent-dark:#4f46e5;
-  --brand-sidebar-from:#211d52;
-  --brand-sidebar-via:#2d2a6e;
-  --brand-sidebar-to:#16142e;
-  --brand-bg:#f8fafc;
-  --brand-border:#e2e8f0;
+  --color-lemon-100: #fdf9e6;
+  --color-lemon-500: #d4a800;
+  --color-lemon-700: #9c7c00;
+
+  --color-lime-100: #eef9e6;
+  --color-lime-500: #6cbf3c;
+  --color-lime-700: #4a8c22;
+
+  --color-pink-100: #fde8f8;
+  --color-pink-500: #d966c5;
+  --color-pink-700: #b03ea0;
+
+  --color-purple-100: #f0eafd;
+  --color-purple-500: #9b6ae8;
+  --color-purple-700: #7040c8;
+
+  --color-teal-100: #e5f7f5;
+  --color-teal-500: #2db0a0;
+  --color-teal-700: #1a8578;
+
+  --color-turquoise-100: #e5f8fb;
+  --color-turquoise-500: #22b8cf;
+  --color-turquoise-700: #138b9e;
+
+  /* DuBois Shadow Scale */
+  --shadow-db-xs: 0px 1px 0px 0px rgba(0, 0, 0, 0.05);
+  --shadow-db-sm: 0px 2px 3px -1px rgba(0, 0, 0, 0.05),
+    0px 1px 0px 0px rgba(0, 0, 0, 0.02);
+  --shadow-db-md: 0px 3px 6px 0px rgba(0, 0, 0, 0.05);
+  --shadow-db-lg: 0px 2px 16px 0px rgba(0, 0, 0, 0.08);
+  --shadow-db-xl: 0px 8px 40px 0px rgba(0, 0, 0, 0.13);
+
+  /* DuBois Font Size Scale (rem ÷ 16px root, body is 13px) */
+  --text-hint: 0.75rem;               /* 12px — DuBois hint/helper text (apple-system/SF Pro) */
+  --text-hint--line-height: 1rem;     /* 16px */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.8125rem;   /* 13px — DuBois base */
+  --text-base: 0.8125rem; /* 13px — DuBois base */
+  --text-md: 0.9375rem;   /* 15px — h4 / section headers */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.375rem;    /* 22px */
+  --text-2xl: 2rem;       /* 32px */
 }
 
-/* ── Layer 1 — DuBois primitives (DARK override) ─────────────────────────── */
-/* Fallback default — authoritative palette lives in brand.config.json colors.neutrals; ThemeProvider injects #apex-neutrals at runtime. */
-.dark {
-  --n0:#0A0A0B; --n1:#121214; --n2:#1A1A1C; --n3:#222224; --n4:#2C2C2E;
-  --n5:#393939; --n6:#4B4B4D; --n7:#69696B; --n8:#8A8A8C; --n9:#ABABAE;
-  --n10:#C7C7CA; --n11:#E0E0E3; --n12:#F1F1F4;
-
-  --danger:#C44040; --warning:#B8892E; --success:#30A050;
-  --danger-fg:#EB6B6B; --warning-fg:#E8B84A; --success-fg:#4CD964;
-
-  --overlay: 228,228,232;
-
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.20);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.30);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.50);
-}
-
-/* ── Tailwind namespace mapping — existing brand-* PLUS new token utilities.
-   `inline` = utilities carry var() so they resolve at the element (per-tenant
-   scoping stays possible). Fallbacks guard color-mix. ─────────────────────── */
+/* ─── Tailwind → CSS Variable Mappings ─────────────────────────────────────
+ * Maps semantic CSS variables to Tailwind color utilities.
+ * ─────────────────────────────────────────────────────────────────────────── */
 @theme inline {
-  /* existing brand-* (unchanged) */
-  --color-brand-primary: var(--brand-primary, #4f46e5);
-  --color-brand-primary-dark: var(--brand-primary-dark, #3730a3);
-  --color-brand-primary-light: var(--brand-primary-light, #e0e7ff);
-  --color-brand-accent: var(--brand-accent, #6366f1);
-  --color-brand-accent-dark: var(--brand-accent-dark, #4f46e5);
-  --color-brand-sidebar-from: var(--brand-sidebar-from, #211d52);
-  --color-brand-sidebar-via: var(--brand-sidebar-via, #2d2a6e);
-  --color-brand-sidebar-to: var(--brand-sidebar-to, #16142e);
-  --color-brand-bg: var(--brand-bg, #f8fafc);
-  --color-brand-border: var(--brand-border, #e2e8f0);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 
-  /* new DuBois surface/fg/border tokens */
-  --color-surface: var(--surface, #F8F7F6);
-  --color-surface-2: var(--surface-2, #F0EFEE);
-  --color-surface-3: var(--surface-3, #E6E5E3);
-  --color-fg: var(--fg, #1F1E22);
-  --color-fg-2: var(--fg-2, #313034);
-  --color-fg-muted: var(--fg-muted, #47464A);
-  --color-fg-subtle: var(--fg-subtle, #5D5C5A);
-  --color-fg-ghost: var(--fg-ghost, #797876);
-  --color-fg-disabled: var(--fg-disabled, #A1A09E);
-  --color-border: var(--border, rgba(14,14,18,0.08));
-  --color-border-hover: var(--border-hover, rgba(14,14,18,0.10));
-  --color-border-emphasis: var(--border-emphasis, rgba(14,14,18,0.12));
-
-  /* accent seam */
-  --color-accent: var(--accent, #4f46e5);
-  --color-accent-fg: var(--accent-fg, #ffffff);
-  --color-accent-hover: var(--accent-hover, #4338ca);
-
-  /* radii + fonts */
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --font-sans: var(--brand-font-sans, "Inter", system-ui, sans-serif);
-  --font-mono: var(--font-mono, "JetBrains Mono", monospace);
+  /* DuBois radius scale */
+  --radius-sm: calc(var(--radius) - 0px);   /* same as base = 4px */
+  --radius-md: calc(var(--radius) + 4px);   /* 8px for cards/modals */
+  --radius-lg: calc(var(--radius) + 8px);   /* 12px */
+  --radius-xl: calc(var(--radius) + 12px);
+  --radius-2xl: calc(var(--radius) + 20px);
+  --radius-full: 9999px;
 }
 
-/* Gradient flourish border (Lakewatch-style). Falls back to a solid accent
-   ring when --accent-gradient resolves to var(--accent). */
-.gradient-border {
-  position: relative;
-  background:
-    linear-gradient(var(--surface), var(--surface)) padding-box,
-    var(--accent-gradient) border-box;
-  border: 1.5px solid transparent;
+/* ─── DuBois Semantic Token Values ──────────────────────────────────────────
+ * Light Mode
+ * ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Border radius — DuBois uses 4px base (tighter than shadcn's 10px default) */
+  --radius: 0.25rem; /* 4px = borderRadiusSm */
+
+  /* Core surfaces */
+  --background: #ffffff;
+  --foreground: #161616;
+  --card: #ffffff;
+  --card-foreground: #161616;
+  --popover: #ffffff;
+  --popover-foreground: #161616;
+
+  /* Primary action — blue600 */
+  --primary: #2272b4;
+  --primary-foreground: #ffffff;
+
+  /* Secondary surface — grey050 */
+  --secondary: #f7f7f7;
+  --secondary-foreground: #161616;
+
+  /* Muted */
+  --muted: #f7f7f7;
+  --muted-foreground: #6f6f6f;
+
+  /* Accent */
+  --accent: #f7f7f7;
+  --accent-foreground: #161616;
+
+  /* Destructive — red600 */
+  --destructive: #c82d4c;
+
+  /* Borders & inputs — grey100 */
+  --border: #ebebeb;
+  --input: #cbcbcb;
+  --ring: #2272b4;
+
+  /* Semantic additions */
+  --warning: #be501e;
+  --success: #277c43;
+
+  /* Alert / validation tinted borders and backgrounds — custom, no DuBois semantic tokens */
+  --border-danger:  #fbd0d8;
+  --border-warning: #f8d4a5;
+  --border-success: #a3d9b6;
+  --border-banner:  #bae1fc;
+  --background-danger:  #fff5f7;
+  --background-warning: #fff9eb;
+  --background-success: #f3fcf6;
+  --background-banner:  #f0f8ff;
+
+  /* Code background — DuBois codeBackground semantic token */
+  --code-bg: rgba(82, 82, 82, 0.08);
+
+  /* Chart colors */
+  --chart-1: #2272b4;
+  --chart-2: #277c43;
+  --chart-3: #be501e;
+  --chart-4: #c82d4c;
+  --chart-5: #9b6ae8; /* custom — no DuBois chart-5 semantic token; uses purple-500 */
+
+  /* Sidebar */
+  --sidebar: #f7f7f7;
+  --sidebar-foreground: #161616;
+  --sidebar-primary: #2272b4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ebebeb;
+  --sidebar-accent-foreground: #161616;
+  --sidebar-border: #ebebeb;
+  --sidebar-ring: #2272b4;
+
+  /* NewButton brand tints — pre-resolved rgba so Figma can bind to a variable */
+  --newbutton-bg:             rgba(255, 54, 33, 0.0800);
+  --newbutton-border:         rgba(255, 54, 33, 0.1200);
+
+  /* Interaction state tints — pre-resolved rgba so Figma can bind to a variable */
+  --action-default-bg-hover:  rgba(34, 114, 180, 0.0800);
+  --action-default-bg-press:  rgba(34, 114, 180, 0.1600);
+  --action-danger-bg-hover:   rgba(200, 45, 76, 0.0800);
+  --action-danger-bg-press:   rgba(200, 45, 76, 0.1600);
+
+  /* Table row states */
+  --table-row-hover:          rgba(82, 82, 82, 0.0400);
+  --table-row-selected:       rgba(82, 82, 82, 0.0800);
+  --table-row-selected-hover: rgba(82, 82, 82, 0.1200);
+
+  /* Overlay + skeleton */
+  --overlay:  rgba(0, 0, 0, 0.2600);
+  --skeleton: rgba(162, 162, 162, 0.1600);
+
+  /* Tag/Badge background tokens — production exact RGBA (light mode) */
+  --tag-bg-default:    rgba(22, 22, 22, 0.0500);
+  --tag-bg-charcoal:   #424242;
+  --tag-bg-lemon:      rgba(255, 191, 1, 0.1800);
+  --tag-bg-lime:       rgba(2, 179, 2, 0.0800);
+  --tag-bg-teal:       rgba(2, 192, 150, 0.0900);
+  --tag-bg-turquoise:  rgba(2, 192, 213, 0.0900);
+  --tag-bg-indigo:     rgba(1, 68, 255, 0.0600);
+  --tag-bg-purple:     rgba(59, 0, 255, 0.0500);
+  --tag-bg-pink:       rgba(240, 1, 150, 0.0600);
+  --tag-bg-coral:      rgba(240, 0, 64, 0.0600);
+  --tag-bg-brown:      rgba(171, 86, 2, 0.0800);
+
+  /* Tag/Badge text tokens (light mode) */
+  --tag-text-default:    #161616;
+  --tag-text-charcoal:   #ebebeb;
+  --tag-text-lemon:      #4f3422;
+  --tag-text-lime:       #203c25;
+  --tag-text-teal:       #0d3d38;
+  --tag-text-turquoise:  #0d3c48;
+  --tag-text-indigo:     #101d46;
+  --tag-text-purple:     #2f265f;
+  --tag-text-pink:       #651249;
+  --tag-text-coral:      #64172b;
+  --tag-text-brown:      #3e332e;
 }
 
+/* ─── Dark Mode ──────────────────────────────────────────────────────────── */
+.dark {
+  --background: #11171c;
+  --foreground: #e8ecf0;
+  --card: #11171c;
+  --card-foreground: #e8ecf0;
+  --popover: #11171c;
+  --popover-foreground: #e8ecf0;
+
+  /* Primary — blue500 (brighter for dark mode) */
+  --primary: #4299e0;
+  --primary-foreground: #11171c;
+
+  /* Secondary — grey700 */
+  --secondary: #1f272d;
+  --secondary-foreground: #e8ecf0;
+
+  --muted: #1f272d;
+  --muted-foreground: #92a4b3;
+
+  --accent: #1f272d;
+  --accent-foreground: #e8ecf0;
+
+  /* Destructive — red500 (brighter for dark bg contrast) */
+  --destructive: #e65b77;
+
+  --border: #1f272d;
+  --input: #37444f;
+  --ring: #8acaff;
+
+  --warning: #de7921;
+  --success: #3ba65e;
+
+  /* Alert / validation tinted borders and backgrounds — dark mode DuBois semantic tokens */
+  --border-danger:  #e65b77;
+  --border-warning: #de7921;
+  --border-success: #3ba65e;
+  --border-banner:  #4299e0;
+  --background-danger:  rgba(200, 45, 76, 0.1600);
+  --background-warning: rgba(190, 80, 30, 0.1600);
+  --background-success: rgba(39, 124, 67, 0.1600);
+  --background-banner:  rgba(34, 114, 180, 0.1600);
+
+  --chart-1: #4299e0;
+  --chart-2: #3ba65e;
+  --chart-3: #de7921;
+  --chart-4: #e65b77;
+  --chart-5: #9b6ae8; /* custom — no DuBois chart-5 semantic token; uses purple-500 */
+
+  --sidebar: #1f272d;
+  --sidebar-foreground: #e8ecf0;
+  --sidebar-primary: #4299e0;
+  --sidebar-primary-foreground: #11171c;
+  --sidebar-accent: #1f272d;
+  --sidebar-accent-foreground: #e8ecf0;
+  --sidebar-border: #1f272d;
+  --sidebar-ring: #8acaff;
+
+  /* NewButton brand tints — same value in dark mode (brand red is mode-agnostic) */
+  --newbutton-bg:             rgba(255, 54, 33, 0.0800);
+  --newbutton-border:         rgba(255, 54, 33, 0.1200);
+
+  /* Interaction state tints */
+  --action-default-bg-hover:  rgba(138, 202, 255, 0.0800);
+  --action-default-bg-press:  rgba(138, 202, 255, 0.1600);
+  --action-danger-bg-hover:   rgba(247, 146, 166, 0.0800);
+  --action-danger-bg-press:   rgba(247, 146, 166, 0.1600);
+
+  /* Table row states */
+  --table-row-hover:          rgba(189, 205, 219, 0.0400);
+  --table-row-selected:       rgba(189, 205, 219, 0.0800);
+  --table-row-selected-hover: rgba(189, 205, 219, 0.1200);
+
+  /* Overlay + skeleton */
+  --overlay:  rgba(0, 0, 0, 0.4500);
+  --skeleton: rgba(144, 164, 181, 0.1600);
+
+  /* DuBois Shadow Scale — dark mode (stronger opacity) */
+  --shadow-db-xs: 0px 1px 0px 0px rgba(0, 0, 0, 0.45);
+  --shadow-db-sm: 0px 2px 3px -1px rgba(0, 0, 0, 0.45),
+    0px 1px 0px 0px rgba(0, 0, 0, 0.26);
+  --shadow-db-md: 0px 3px 6px 0px rgba(0, 0, 0, 0.45);
+  --shadow-db-lg: 0px 2px 16px 0px rgba(0, 0, 0, 0.61);
+  --shadow-db-xl: 0px 8px 40px 0px rgba(0, 0, 0, 0.87);
+
+  /* Tag/Badge background tokens — dark mode */
+  --tag-bg-default:    rgba(232, 236, 240, 0.0800);
+  --tag-bg-charcoal:   #c0cdd8;
+  --tag-bg-lemon:      rgba(255, 191, 1, 0.1800);
+  --tag-bg-lime:       rgba(2, 179, 2, 0.0800);
+  --tag-bg-teal:       rgba(2, 192, 150, 0.1200);
+  --tag-bg-turquoise:  rgba(2, 192, 213, 0.1200);
+  --tag-bg-indigo:     rgba(1, 68, 255, 0.1200);
+  --tag-bg-purple:     rgba(59, 0, 255, 0.1200);
+  --tag-bg-pink:       rgba(240, 1, 150, 0.1200);
+  --tag-bg-coral:      rgba(240, 0, 64, 0.1000);
+  --tag-bg-brown:      rgba(171, 86, 2, 0.1000);
+
+  /* Code background — dark mode: grey650 */
+  --code-bg: #37444f;
+
+  /* Tag/Badge text tokens — dark mode */
+  --tag-text-default:    #e8ecf0;
+  --tag-text-charcoal:   #11171c;
+  --tag-text-lemon:      #ffe7b3;
+  --tag-text-lime:       #c2f0c2;
+  --tag-text-teal:       #adf0dd;
+  --tag-text-turquoise:  #b6ecf7;
+  --tag-text-indigo:     #dddffe;
+  --tag-text-purple:     #e2ddfe;
+  --tag-text-pink:       #fdd1ea;
+  --tag-text-coral:      #fed2e1;
+  --tag-text-brown:      #f2e1ca;
+}
+
+/* ─── Base Styles ─────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* DuBois base font size — set on body only so rem stays 16px for Tailwind sizing */
+    font-size: 13px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* DuBois typography scale */
+  h1 { font-size: 32px; line-height: 40px; font-weight: 600; }
+  h2 { font-size: 22px; line-height: 28px; font-weight: 600; }
+  h3 { font-size: 18px; line-height: 24px; font-weight: 600; }
+  h4 { font-size: 15px; line-height: 20px; font-weight: 600; }
+  h5 { font-size: 13px; line-height: 20px; font-weight: 600; }
+  h6 { font-size: 12px; line-height: 16px; font-weight: 600; }
+
+  /* DuBois bold weight = 600 */
+  b, strong { font-weight: 600; }
+
+  /* DuBois code — fontSizeBase (13px), lineHeightBase (20px), codeBackground token */
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 500;
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: 2px 4px;
+    border: none;
+  }
+}
+
+/* ─── DuBois Spinner Animation ───────────────────────────────────────────── */
+/* Production uses steps(60, end) — stepped rotation, not smooth spin */
+@keyframes dubois-spin {
+  from { transform: rotate(0deg) translate3d(0, 0, 0); }
+  to   { transform: rotate(360deg) translate3d(0, 0, 0); }
+}
+
+/* ─── DuBois Utility Classes ──────────────────────────────────────────────── */
+@layer utilities {
+  /* DuBois hint — 12px/16px. Explicit rule because Tailwind v4 may resolve
+     `text-hint` as a color lookup instead of a font-size utility, causing
+     the element to inherit body's 13px instead of rendering at 12px. */
+  .text-hint {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1rem;  /* 16px */
+  }
+
+  /* AI Gradient */
+  .bg-ai-gradient {
+    background: linear-gradient(135deg, #4299e0 20.5%, #ca42e0 46.91%, #ff5f46 79.5%);
+  }
+
+  .bg-ai-gradient-subtle {
+    background: linear-gradient(135deg, rgba(66,153,224,0.15) 20.5%, rgba(202,66,224,0.15) 46.91%, rgba(255,95,70,0.15) 79.5%);
+  }
+
+  .text-ai-gradient {
+    background: linear-gradient(135deg, #4299e0 20.5%, #ca42e0 46.91%, #ff5f46 79.5%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-ai {
+    border-image: linear-gradient(135deg, #4299e0 20.5%, #ca42e0 46.91%, #ff5f46 79.5%) 1;
+  }
+
+  /* DuBois table row states — consume CSS vars so Figma variables stay in sync */
+  .row-hover:hover     { background-color: var(--table-row-hover); }
+  .row-selected        { background-color: var(--table-row-selected); }
+  .row-selected:hover  { background-color: var(--table-row-selected-hover); }
+}
+
+/* layout — keep from Task A */
 html, body, #root {
   height: 100%;
   margin: 0;
 }
 
-/* DuBois root defaults — 12/18 body on the page surface. Existing components
-   still set their own colors; this only affects unstyled/base text. */
-body {
-  font-family: var(--brand-font-sans);
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--fg);
-  background: var(--surface);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ============================================================================
+   TEMPORARY ALIAS LAYER — legacy Prism token names → canonical DuBois tokens.
+   Exists only so existing components keep working this phase. Phase 3 migrates
+   components onto canonical names; Phase 6 DELETES this whole section.
+   Do NOT add new usages of these aliases.
+   ============================================================================ */
+:root {
+  /* surfaces */
+  --surface: var(--background);          /* was near-white content bg */
+  --surface-2: var(--secondary);         /* #f7f7f7 warm-grey chrome */
+  --surface-3: #ebebeb;                  /* neutral-100 */
+
+  /* foreground ramp */
+  --fg: var(--foreground);               /* #161616 */
+  --fg-2: #262626;                       /* neutral-700 */
+  --fg-muted: var(--muted-foreground);   /* #6f6f6f */
+  --fg-subtle: #6f6f6f;
+  --fg-ghost: #939393;                   /* neutral-400 */
+  --fg-disabled: #a2a2a2;                /* neutral-350 */
+
+  /* borders */
+  --border-hover: #d8d8d8;               /* neutral-200 */
+  --border-emphasis: #cbcbcb;            /* neutral-300 */
+
+  /* neutral fills (map to DuBois neutral table-row tints) */
+  --fill-hover: var(--table-row-hover);
+  --fill-active: var(--table-row-selected);
+  --fill-press: var(--table-row-selected-hover);
+  --fill-emphasis: var(--table-row-selected-hover);
+
+  /* overlay RGB triple — DuBois neutral-500 (82,82,82) so rgba(var(--overlay),x) reads neutral */
+  --overlay: 82, 82, 82;
+
+  /* brand action color: our --accent === DuBois --primary (NOT DuBois --accent!) */
+  --accent: var(--primary);
+  --accent-fg: var(--primary-foreground);
+  --accent-hover: color-mix(in srgb, var(--primary) 88%, black);
+  --accent-gradient: linear-gradient(135deg, #4299e0 20.5%, #ca42e0 46.91%, #ff5f46 79.5%);
+
+  /* state colors */
+  --danger: var(--destructive);
+  --danger-fg: var(--destructive);
+  --warning-fg: var(--warning);
+  --success-fg: var(--success);
+
+  /* data-viz */
+  --viz1: var(--chart-4);                /* red */
+  --viz2: var(--chart-3);                /* orange */
+  --viz3: var(--chart-2);                /* green */
+
+  /* elevation → DuBois shadow scale */
+  --shadow-sm: var(--shadow-db-sm);
+  --shadow-md: var(--shadow-db-md);
+  --shadow-lg: var(--shadow-db-lg);
+
+  /* fonts → canonical DuBois system stacks (Inter retired) */
+  --brand-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* legacy brand-* (used by ~20 not-yet-migrated files) → canonical */
+  --brand-primary: var(--primary);
+  --brand-primary-dark: #0e538b;         /* blue-700 */
+  --brand-primary-light: #d7edfe;        /* blue-200 */
+  --brand-accent: var(--primary);
+  --brand-accent-dark: #0e538b;
+  --brand-sidebar-from: var(--secondary);
+  --brand-sidebar-via: var(--secondary);
+  --brand-sidebar-to: var(--secondary);
+  --brand-bg: var(--secondary);
+  --brand-border: var(--border);
+
+  /* legacy neutral ramp n0..n12 → warm DuBois neutral values (light) */
+  --n0: #ffffff; --n1: #ffffff; --n2: #f7f7f7; --n3: #ebebeb; --n4: #d8d8d8;
+  --n5: #cbcbcb; --n6: #a2a2a2; --n7: #939393; --n8: #6f6f6f; --n9: #525252;
+  --n10: #424242; --n11: #262626; --n12: #161616;
+}
+
+.dark {
+  --surface-3: #262626;
+  --fg-2: #d1d9e1;                        /* grey-200 */
+  --fg-subtle: #92a4b3;                   /* grey-350 */
+  --fg-ghost: #8396a5;                    /* grey-400 */
+  --fg-disabled: #5f7281;                 /* grey-500 */
+  --border-hover: #37444f;                /* grey-650 */
+  --border-emphasis: #445461;             /* grey-600 */
+  --overlay: 189, 205, 219;               /* matches DuBois dark table-row rgba base */
+  --brand-primary-dark: #8acaff;          /* blue-400 */
+  --brand-primary-light: #04355d;         /* blue-800 */
+  --brand-accent-dark: #8acaff;
+
+  /* legacy neutral ramp (dark) → DuBois grey values */
+  --n0: #11171c; --n1: #11171c; --n2: #1f272d; --n3: #262626; --n4: #37444f;
+  --n5: #445461; --n6: #5f7281; --n7: #8396a5; --n8: #92a4b3; --n9: #c0cdd8;
+  --n10: #d1d9e1; --n11: #e8ecf0; --n12: #f6f7f9;
+}
+
+/* Legacy Tailwind utility names (bg-surface, text-fg, bg-brand-*, …) keep resolving. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-fg-ghost: var(--fg-ghost);
+  --color-fg-disabled: var(--fg-disabled);
+  --color-border-hover: var(--border-hover);
+  --color-border-emphasis: var(--border-emphasis);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-hover: var(--accent-hover);
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+  --color-warning-fg: var(--warning-fg);
+  --color-success-fg: var(--success-fg);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-dark: var(--brand-primary-dark);
+  --color-brand-primary-light: var(--brand-primary-light);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-dark: var(--brand-accent-dark);
+  --color-brand-sidebar-from: var(--brand-sidebar-from);
+  --color-brand-sidebar-via: var(--brand-sidebar-via);
+  --color-brand-sidebar-to: var(--brand-sidebar-to);
+  --color-brand-bg: var(--brand-bg);
+  --color-brand-border: var(--brand-border);
+  --font-sans: var(--brand-font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* canonical gradient flourish border (replaces the old --surface-based rule) */
+.gradient-border {
+  position: relative;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    var(--accent-gradient) border-box;
+  border: 1.5px solid transparent;
 }
