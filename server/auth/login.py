@@ -70,46 +70,48 @@ def _render_login_page(error: str | None = None, next_url: str = "/", mode: str 
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in &middot; {app_name}</title>
 <style>
-  :root {{ --brand:{colors['primary']}; --brand-dark:{colors['primaryDark']}; --brand-accent:{colors['accent']}; }}
+  :root {{ --brand:{colors['primary']}; --brand-dark:{colors['primaryDark']}; --brand-accent:{colors['accent']}; --ring:{colors['primaryLight']}; }}
   * {{ box-sizing:border-box; }}
-  body {{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-         min-height:100vh; display:flex; align-items:center; justify-content:center;
-         background:linear-gradient(135deg,{colors['sidebarFrom']} 0%,{colors['primaryDark']} 50%,{colors['primary']} 100%); color:#0f172a; }}
-  .card {{ width:380px; background:#fff; border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,.35);
-          padding:30px 28px 26px; }}
+  body {{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+         font-size:13px; line-height:20px; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         background:linear-gradient(135deg,{colors['sidebarFrom']} 0%,{colors['primaryDark']} 50%,{colors['primary']} 100%); color:#161616;
+         -webkit-font-smoothing:antialiased; }}
+  .card {{ width:380px; background:#ffffff; border-radius:8px; border:1px solid #ebebeb;
+          box-shadow:0px 8px 40px 0px rgba(0,0,0,0.13); padding:28px 26px 24px; }}
   .brand {{ display:flex; align-items:center; gap:9px; margin-bottom:4px; }}
-  .brand .logo {{ width:30px;height:30px;border-radius:8px;
-                 background:linear-gradient(135deg,var(--brand),var(--brand-accent));
-                 display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800; }}
-  .brand h1 {{ font-size:17px; margin:0; letter-spacing:.2px; }}
-  .sub {{ color:#64748b; font-size:12.5px; margin:2px 0 18px 1px; }}
-  label {{ font-size:12px; font-weight:600; color:#334155; display:block; margin:12px 0 6px; }}
-  input {{ width:100%; padding:11px 12px; border:1px solid #e2e8f0; border-radius:10px; font-size:14px; }}
-  input:focus {{ outline:none; border-color:var(--brand); box-shadow:0 0 0 3px {colors['primaryLight']}; }}
-  button.submit {{ width:100%; margin-top:18px; padding:11px; border:0; border-radius:10px; color:#fff;
-                  font-size:14px; font-weight:600; cursor:pointer;
-                  background:linear-gradient(135deg,var(--brand),var(--brand-accent)); }}
-  button.submit:hover {{ filter:brightness(1.06); }}
-  .divider {{ display:flex; align-items:center; gap:10px; color:#94a3b8; font-size:11px;
+  .brand .logo {{ width:30px;height:30px;border-radius:6px;
+                 background:linear-gradient(135deg,#4299e0 20.5%,#ca42e0 46.91%,#ff5f46 79.5%);
+                 display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px; }}
+  .brand h1 {{ font-size:18px; line-height:24px; margin:0; font-weight:600; letter-spacing:-0.01em; color:#161616; }}
+  .sub {{ color:#6f6f6f; font-size:13px; margin:4px 0 18px 1px; }}
+  label {{ font-size:13px; font-weight:600; color:#161616; display:block; margin:12px 0 6px; }}
+  input {{ width:100%; padding:8px 12px; border:1px solid #cbcbcb; border-radius:4px; font-size:13px; line-height:20px;
+          color:#161616; background:#ffffff; }}
+  input::placeholder {{ color:#6f6f6f; }}
+  input:focus {{ outline:none; border-color:var(--brand); box-shadow:0 0 0 2px var(--ring); }}
+  button.submit {{ width:100%; margin-top:18px; padding:9px; border:0; border-radius:4px; color:#ffffff;
+                  font-size:13px; font-weight:600; cursor:pointer; background:var(--brand); transition:background .12s; }}
+  button.submit:hover {{ background:var(--brand-dark); }}
+  .divider {{ display:flex; align-items:center; gap:10px; color:#6f6f6f; font-size:12px;
              text-transform:uppercase; letter-spacing:.08em; margin:20px 0 12px; }}
-  .divider::before, .divider::after {{ content:""; flex:1; height:1px; background:#e2e8f0; }}
+  .divider::before, .divider::after {{ content:""; flex:1; height:1px; background:#ebebeb; }}
   .chips {{ display:flex; flex-direction:column; gap:8px; }}
-  .chip {{ text-align:left; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;
-          padding:9px 11px; cursor:pointer; display:grid; grid-template-columns:1fr auto; row-gap:2px; }}
-  .chip:hover {{ border-color:var(--brand); background:{colors['primaryLight']}; }}
-  .chip-name {{ font-size:13px; font-weight:600; }}
-  .chip-tenant {{ font-size:11px; color:#fff; background:var(--brand); border-radius:999px;
-                 padding:1px 8px; justify-self:end; }}
-  .chip-cred {{ grid-column:1 / -1; font-size:11px; color:#64748b; font-family:ui-monospace,monospace; }}
-  .error {{ background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; border-radius:8px;
-           padding:8px 10px; font-size:12.5px; margin-bottom:12px; }}
-  .foot {{ text-align:center; color:#94a3b8; font-size:10.5px; margin-top:16px; }}
-  .mode-toggle {{ display:flex; gap:4px; background:#f1f5f9; border-radius:10px; padding:4px; margin-bottom:16px; }}
-  .mode-btn {{ flex:1; border:0; background:transparent; padding:7px 10px; border-radius:7px;
-              font-size:12.5px; font-weight:600; color:#64748b; cursor:pointer; }}
-  .mode-btn.active {{ background:#fff; color:var(--brand); box-shadow:0 1px 2px rgba(0,0,0,.08); }}
+  .chip {{ text-align:left; background:#f7f7f7; border:1px solid #ebebeb; border-radius:4px;
+          padding:9px 11px; cursor:pointer; display:grid; grid-template-columns:1fr auto; row-gap:2px; transition:background .12s,border-color .12s; }}
+  .chip:hover {{ border-color:var(--brand); background:#f0f8ff; }}
+  .chip-name {{ font-size:13px; font-weight:600; color:#161616; }}
+  .chip-tenant {{ font-size:12px; color:#fff; background:var(--brand); border-radius:999px;
+                 padding:1px 8px; justify-self:end; font-weight:500; }}
+  .chip-cred {{ grid-column:1 / -1; font-size:12px; color:#6f6f6f; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }}
+  .error {{ background:#fff5f7; color:#9e102c; border:1px solid #fbd0d8; border-radius:4px;
+           padding:8px 10px; font-size:13px; margin-bottom:12px; }}
+  .foot {{ text-align:center; color:#6f6f6f; font-size:12px; margin-top:16px; }}
+  .mode-toggle {{ display:flex; gap:4px; background:#f7f7f7; border:1px solid #ebebeb; border-radius:6px; padding:3px; margin-bottom:16px; }}
+  .mode-btn {{ flex:1; border:0; background:transparent; padding:6px 10px; border-radius:4px;
+              font-size:13px; font-weight:600; color:#6f6f6f; cursor:pointer; transition:background .12s,color .12s; }}
+  .mode-btn.active {{ background:#ffffff; color:var(--brand); box-shadow:0px 1px 0px 0px rgba(0,0,0,0.05); }}
   body[data-active-mode="operator"] .brand h1::after {{
-     content:" · Operator"; color:var(--brand); font-weight:600; font-size:12px; }}
+     content:" · Operator"; color:var(--brand); font-weight:600; font-size:13px; }}
   body[data-active-mode="user"] .chip[data-role="operator"] {{ display:none; }}
   body[data-active-mode="operator"] .chip[data-role="user"] {{ display:none; }}
 </style></head>
