@@ -40,8 +40,8 @@ export default function Sidebar({ collapsed }: SidebarProps) {
           "group relative w-full flex items-center rounded-md transition-all duration-150",
           collapsed ? "justify-center px-2 py-2" : "gap-2.5 px-2.5 py-2",
           isActive
-            ? "bg-white/10 text-white"
-            : "text-white/55 hover:bg-white/5 hover:text-white"
+            ? "bg-[var(--fill-active)] text-fg"
+            : "text-fg-muted hover:bg-[var(--fill-hover)] hover:text-fg"
         )}
       >
         {isActive && !collapsed && (
@@ -51,7 +51,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
           <Icon
             size={17}
             strokeWidth={isActive ? 2.2 : 1.75}
-            className={cn("shrink-0 transition-colors", isActive ? "text-accent" : "text-white/55 group-hover:text-white")}
+            className={cn("shrink-0 transition-colors", isActive ? "text-accent" : "text-fg-muted group-hover:text-fg")}
           />
         )}
         {!collapsed && (
@@ -60,7 +60,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
               {label}
             </span>
             {placeholder && (
-              <span className="text-[9px] font-semibold tracking-wider uppercase bg-white/10 text-white/50 px-1.5 py-0.5 rounded">
+              <span className="text-[9px] font-semibold tracking-wider uppercase bg-[var(--fill-active)] text-fg-subtle px-1.5 py-0.5 rounded">
                 soon
               </span>
             )}
@@ -89,13 +89,13 @@ export default function Sidebar({ collapsed }: SidebarProps) {
               className={cn(
                 "group w-full flex items-center rounded-md transition-all duration-150 mb-3",
                 collapsed ? "justify-center px-2 py-2" : "gap-2 px-2.5 py-2",
-                "text-white/55 hover:bg-white/5 hover:text-white"
+                "text-fg-muted hover:bg-[var(--fill-hover)] hover:text-fg"
               )}
             >
               <ArrowLeft
                 size={16}
                 strokeWidth={1.75}
-                className="shrink-0 text-white/55 group-hover:text-white transition-colors"
+                className="shrink-0 text-fg-muted group-hover:text-fg transition-colors"
               />
               {!collapsed && (
                 <span className="text-[13px] font-medium">Back to APEX</span>
@@ -104,7 +104,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
 
             {/* Administration section heading */}
             {!collapsed && (
-              <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
+              <div className="text-[9px] text-fg-subtle font-semibold tracking-[0.2em] uppercase px-2 mb-2">
                 Administration
               </div>
             )}
@@ -127,7 +127,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
             {/* Insights & Analytics */}
             <div className="mb-4">
               {!collapsed && (
-                <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
+                <div className="text-[9px] text-fg-subtle font-semibold tracking-[0.2em] uppercase px-2 mb-2">
                   Insights & Analytics
                 </div>
               )}
@@ -147,7 +147,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
             {/* Exploration */}
             <div>
               {!collapsed && (
-                <div className="text-[9px] text-white/30 font-semibold tracking-[0.2em] uppercase px-2 mb-2">
+                <div className="text-[9px] text-fg-subtle font-semibold tracking-[0.2em] uppercase px-2 mb-2">
                   Exploration
                 </div>
               )}
@@ -169,20 +169,20 @@ export default function Sidebar({ collapsed }: SidebarProps) {
 
       {/* Admin footer (operator-only, analytics view only) */}
       {isOperator && !inAdmin && (
-        <div className="px-3 py-3 border-t border-white/10 shrink-0">
+        <div className="px-3 py-3 border-t border-border shrink-0">
           <button
             onClick={() => navigate(ADMIN_ASSETS_PATH)}
             title={collapsed ? "Admin" : undefined}
             className={cn(
               "group w-full flex items-center rounded-md transition-all duration-150",
               collapsed ? "justify-center px-2 py-2" : "gap-2 px-2.5 py-2",
-              "text-white/55 hover:bg-white/5 hover:text-white"
+              "text-fg-muted hover:bg-[var(--fill-hover)] hover:text-fg"
             )}
           >
             <Settings
               size={16}
               strokeWidth={1.75}
-              className="shrink-0 text-white/55 group-hover:text-white transition-colors"
+              className="shrink-0 text-fg-muted group-hover:text-fg transition-colors"
             />
             {!collapsed && <span className="text-[13px] font-medium">Admin</span>}
           </button>
