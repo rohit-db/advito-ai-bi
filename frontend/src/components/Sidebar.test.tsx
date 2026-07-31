@@ -1,107 +1,46 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import { RegistryContext } from "@/registry/useRegistry";
-import type { Registry } from "@/registry/types";
-import { ADMIN_ASSETS_PATH } from "@/components/admin/adminContext";
+import Sidebar, { type SidebarNavSection } from "./Sidebar";
 
-function renderSidebar(registry: Registry) {
+const sections: SidebarNavSection[] = [
+  { label: "Insights & Analytics", items: [{ path: "/", label: "Home", icon: "LayoutDashboard" }] },
+  { label: "Exploration", items: [{ path: "/genie-mcp", label: "Ask APEX", icon: "Sparkles" }] },
+];
+
+function renderAt(path: string, props?: Partial<React.ComponentProps<typeof Sidebar>>) {
   return render(
-    <RegistryContext.Provider value={registry}>
-      <MemoryRouter>
-        <Sidebar collapsed={false} />
-      </MemoryRouter>
-    </RegistryContext.Provider>
+    <MemoryRouter initialEntries={[path]}>
+      <Sidebar collapsed={false} sections={sections} {...props} />
+    </MemoryRouter>
   );
 }
-
-function renderSidebarAt(registry: Registry, path: string, role: "operator" | "user" = "operator") {
-  vi.stubGlobal("fetch", vi.fn(async () => ({
-    ok: true, status: 200,
-    json: async () => ({ email: "dana@advito.com", role, tenant: "*", authenticated: true }),
-  })));
-  return render(
-    <RegistryContext.Provider value={registry}>
-      <MemoryRouter initialEntries={[path]}>
-        <Sidebar collapsed={false} />
-      </MemoryRouter>
-    </RegistryContext.Provider>
-  );
-}
-
-const asset = (label: string, path: string, order: number) => ({
-  label,
-  dashboardId: "d",
-  globalFilterPage: "g",
-  filters: {},
-  pages: [],
-  nav: { path, icon: "DollarSign", section: "insights" as const, order },
-});
 
 describe("Sidebar", () => {
-  beforeEach(() => {
-    // useUser fetches identity on mount; stub it to a benign non-operator.
-    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) })));
-  });
-  afterEach(() => vi.restoreAllMocks());
-
-  it("renders a nav item for a registry asset carrying nav metadata", () => {
-    renderSidebar({ assets: { spend: asset("Spend", "/spend-custom", 1) } });
-    expect(screen.getByText("Spend")).toBeInTheDocument();
-    // fixed react routes still render
+  it("renders section labels and nav items from props", () => {
+    renderAt("/");
+    expect(screen.getByText("Insights & Analytics")).toBeInTheDocument();
     expect(screen.getByText("Home")).toBeInTheDocument();
     expect(screen.getByText("Ask APEX")).toBeInTheDocument();
   });
 
-  it("does NOT render a nav item for an asset the tenant is not entitled to (absent from registry)", () => {
-    // The server filters ungranted assets out of /api/assets, so an ungranted
-    // asset simply is not in the registry the Sidebar receives.
-    renderSidebar({ assets: { spend: asset("Spend", "/spend-custom", 1) } });
-    expect(screen.queryByText("Sustainability")).not.toBeInTheDocument();
+  it("marks the active route with the canonical active classes (bg-primary/10 text-primary)", () => {
+    renderAt("/");
+    const active = screen.getByText("Home").closest("button")!;
+    expect(active.className).toMatch(/bg-primary\/10/);
+    expect(active.className).toMatch(/text-primary/);
+    expect(active.className).toMatch(/font-semibold/);
   });
 
-  it("shows admin sections and Back to APEX when under /admin (operator)", async () => {
-    renderSidebarAt({ assets: {} }, ADMIN_ASSETS_PATH, "operator");
-    expect(await screen.findByText(/back to apex/i)).toBeInTheDocument();
-    expect(screen.getByText("Assets")).toBeInTheDocument();
-    expect(screen.getByText("Tenant access")).toBeInTheDocument();
-    expect(screen.getByText("Users & SPs")).toBeInTheDocument();
+  it("renders a footer when provided", () => {
+    renderAt("/", { footer: <button>Admin</button> });
+    expect(screen.getByRole("button", { name: "Admin" })).toBeInTheDocument();
   });
 
-  it("does NOT show an Administration block on the analytics view", () => {
-    renderSidebarAt({ assets: { spend: asset("Spend", "/spend-custom", 1) } }, "/", "operator");
-    expect(screen.queryByText(/administration/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/back to apex/i)).not.toBeInTheDocument();
-  });
-
-  it("shows an Admin entry for an operator on the analytics view", async () => {
-    renderSidebarAt({ assets: { spend: asset("Spend", "/spend-custom", 1) } }, "/", "operator");
-    await screen.findByText("Spend"); // wait for analytics context to settle
-    expect(screen.getByText("Admin")).toBeInTheDocument();
-  });
-
-  it("does NOT show the Admin entry for a non-operator", async () => {
-    renderSidebarAt({ assets: { spend: asset("Spend", "/spend-custom", 1) } }, "/", "user");
-    await screen.findByText("Spend"); // wait for analytics context to settle
-    expect(screen.queryByText("Admin")).not.toBeInTheDocument();
-  });
-
-  it("does NOT show the Admin entry when already under /admin", async () => {
-    renderSidebarAt({ assets: {} }, ADMIN_ASSETS_PATH, "operator");
-    await screen.findByText("Back to APEX"); // wait for admin context to settle
-    // Use getByRole to specifically target button roles in the admin context
-    const adminButtons = screen.getAllByRole("button");
-    const adminFooterButton = adminButtons.find(btn => btn.textContent?.includes("Admin"));
-    expect(adminFooterButton).toBeUndefined();
-  });
-
-  it("marks the active nav row with the DuBois accent (bg-accent), not the legacy brand-accent", () => {
-    renderSidebar({ assets: { spend: asset("Spend", "/", 1) } });
-    // The "/" (Home) route is active in MemoryRouter's default location.
-    const home = screen.getByText("Home").closest("button")!;
-    // active left marker span uses bg-accent
-    expect(home.innerHTML).toMatch(/bg-accent\b/);
-    expect(home.innerHTML).not.toMatch(/bg-brand-accent\b/);
+  it("collapses to icon-only width", () => {
+    const { container } = render(
+      <MemoryRouter><Sidebar collapsed sections={sections} /></MemoryRouter>
+    );
+    expect((container.firstChild as HTMLElement).className).toMatch(/w-\[60px\]/);
   });
 });

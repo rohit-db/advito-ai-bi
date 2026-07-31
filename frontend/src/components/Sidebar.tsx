@@ -1,193 +1,94 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ICON_MAP } from "@/config";
-import { useRoutes } from "@/registry/useRegistry";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Settings } from "lucide-react";
-import { useUser } from "@/hooks/useUser";
-import { ADMIN_BASE, ADMIN_SECTIONS, ADMIN_ASSETS_PATH } from "@/components/admin/adminContext";
 
-interface SidebarProps {
+export interface SidebarNavItem {
+  path: string;
+  label: string;
+  icon: string;
+  placeholder?: boolean;
+}
+export interface SidebarNavSection {
+  label?: string;
+  items: SidebarNavItem[];
+}
+export interface SidebarProps {
   collapsed: boolean;
+  sections: SidebarNavSection[];
+  footer?: React.ReactNode;
 }
 
-export default function Sidebar({ collapsed }: SidebarProps) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user } = useUser();
-  const isOperator = user?.role === "operator";
-
-  const inAdmin = location.pathname.startsWith(ADMIN_BASE);
-
-  const routes = useRoutes();
-  const insightsRoutes = routes.filter((r) => r.section === "insights");
-  const explorationRoutes = routes.filter((r) => r.section === "exploration");
-
-  function NavItem({ path, label, icon, placeholder }: {
-    path: string;
-    label: string;
-    icon: string;
-    placeholder?: boolean;
-  }) {
-    const Icon = ICON_MAP[icon];
-    const isActive = location.pathname === path;
-
-    return (
-      <button
-        onClick={() => navigate(path)}
-        title={collapsed ? label : undefined}
-        className={cn(
-          "group relative w-full flex items-center rounded-md transition-all duration-150",
-          collapsed ? "justify-center px-2 py-2" : "gap-2.5 px-2.5 py-2",
-          isActive
-            ? "bg-[var(--fill-active)] text-fg"
-            : "text-fg-muted hover:bg-[var(--fill-hover)] hover:text-fg"
-        )}
-      >
-        {isActive && !collapsed && (
-          <span className="absolute left-0 inset-y-1.5 w-[3px] rounded-r-full bg-accent" />
-        )}
-        {Icon && (
-          <Icon
-            size={17}
-            strokeWidth={isActive ? 2.2 : 1.75}
-            className={cn("shrink-0 transition-colors", isActive ? "text-accent" : "text-fg-muted group-hover:text-fg")}
-          />
-        )}
-        {!collapsed && (
-          <>
-            <span className={cn("flex-1 text-left text-[13px]", isActive ? "font-semibold" : "font-medium")}>
-              {label}
-            </span>
-            {placeholder && (
-              <span className="text-[9px] font-semibold tracking-wider uppercase bg-[var(--fill-active)] text-fg-subtle px-1.5 py-0.5 rounded">
-                soon
-              </span>
-            )}
-          </>
-        )}
-      </button>
-    );
-  }
-
+export default function Sidebar({ collapsed, sections, footer }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col shrink-0 h-full bg-linear-to-b from-brand-sidebar-from via-brand-sidebar-via to-brand-sidebar-to transition-all duration-200",
+        "flex h-full shrink-0 flex-col bg-secondary transition-all duration-200 overflow-hidden",
         collapsed ? "w-[60px]" : "w-[224px]"
       )}
     >
-      {/* Nav sections */}
-      <ScrollArea className={cn("flex-1 py-4", collapsed ? "px-1.5" : "px-3")}>
-        {inAdmin && isOperator ? (
-          /* ── Admin context: Back link + admin sections ── */
-          <div>
-            {/* Back to APEX */}
-            <button
-              onClick={() => navigate("/")}
-              title={collapsed ? "Back to APEX" : undefined}
-              className={cn(
-                "group w-full flex items-center rounded-md transition-all duration-150 mb-3",
-                collapsed ? "justify-center px-2 py-2" : "gap-2 px-2.5 py-2",
-                "text-fg-muted hover:bg-[var(--fill-hover)] hover:text-fg"
-              )}
-            >
-              <ArrowLeft
-                size={16}
-                strokeWidth={1.75}
-                className="shrink-0 text-fg-muted group-hover:text-fg transition-colors"
-              />
-              {!collapsed && (
-                <span className="text-[13px] font-medium">Back to APEX</span>
-              )}
-            </button>
-
-            {/* Administration section heading */}
-            {!collapsed && (
-              <div className="text-[9px] text-fg-subtle font-semibold tracking-[0.2em] uppercase px-2 mb-2">
-                Administration
-              </div>
-            )}
-
-            {/* Admin nav items */}
-            <div className="flex flex-col gap-0.5">
-              {ADMIN_SECTIONS.map((section) => (
-                <NavItem
-                  key={section.path}
-                  path={section.path}
-                  label={section.label}
-                  icon={section.icon}
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          /* ── Analytics context: Insights + Exploration ── */
-          <>
-            {/* Insights & Analytics */}
-            <div className="mb-4">
-              {!collapsed && (
-                <div className="text-[9px] text-fg-subtle font-semibold tracking-[0.2em] uppercase px-2 mb-2">
-                  Insights & Analytics
-                </div>
-              )}
-              <div className="flex flex-col gap-0.5">
-                {insightsRoutes.map((route) => (
-                  <NavItem
-                    key={route.path}
-                    path={route.path}
-                    label={route.label}
-                    icon={route.icon}
-                    placeholder={route.mode === "placeholder"}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Exploration */}
-            <div>
-              {!collapsed && (
-                <div className="text-[9px] text-fg-subtle font-semibold tracking-[0.2em] uppercase px-2 mb-2">
-                  Exploration
-                </div>
-              )}
-              <div className="flex flex-col gap-0.5">
-                {explorationRoutes.map((route) => (
-                  <NavItem
-                    key={route.path}
-                    path={route.path}
-                    label={route.label}
-                    icon={route.icon}
-                    placeholder={route.mode === "placeholder"}
-                  />
-                ))}
-              </div>
-            </div>
-          </>
+      <nav
+        className={cn(
+          "flex flex-1 flex-col gap-4 overflow-y-auto py-4",
+          collapsed ? "px-1.5" : "px-3",
+          "[&::-webkit-scrollbar]:w-[5px] [&::-webkit-scrollbar-track]:bg-transparent",
+          "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border"
         )}
-      </ScrollArea>
-
-      {/* Admin footer (operator-only, analytics view only) */}
-      {isOperator && !inAdmin && (
-        <div className="px-3 py-3 border-t border-border shrink-0">
-          <button
-            onClick={() => navigate(ADMIN_ASSETS_PATH)}
-            title={collapsed ? "Admin" : undefined}
-            className={cn(
-              "group w-full flex items-center rounded-md transition-all duration-150",
-              collapsed ? "justify-center px-2 py-2" : "gap-2 px-2.5 py-2",
-              "text-fg-muted hover:bg-[var(--fill-hover)] hover:text-fg"
+      >
+        {sections.map((section, i) => (
+          <div key={i} className="flex flex-col gap-0.5">
+            {section.label && !collapsed && (
+              <div className="px-2 mb-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                {section.label}
+              </div>
             )}
-          >
-            <Settings
-              size={16}
-              strokeWidth={1.75}
-              className="shrink-0 text-fg-muted group-hover:text-fg transition-colors"
-            />
-            {!collapsed && <span className="text-[13px] font-medium">Admin</span>}
-          </button>
-        </div>
-      )}
+            {section.items.map((item) => (
+              <NavItem key={item.path} item={item} collapsed={collapsed} />
+            ))}
+          </div>
+        ))}
+      </nav>
+      {footer && <div className="shrink-0 border-t border-border px-3 py-3">{footer}</div>}
     </aside>
+  );
+}
+
+function NavItem({ item, collapsed }: { item: SidebarNavItem; collapsed: boolean }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const Icon = ICON_MAP[item.icon];
+  const active = location.pathname === item.path;
+
+  return (
+    <button
+      onClick={() => navigate(item.path)}
+      title={collapsed ? item.label : undefined}
+      className={cn(
+        "group flex h-7 w-full items-center gap-2 rounded px-3 text-left text-[13px] transition-colors",
+        collapsed && "justify-center px-0",
+        active
+          ? "bg-primary/10 text-primary font-semibold"
+          : "text-foreground font-medium hover:bg-[var(--action-default-bg-hover)]"
+      )}
+    >
+      {Icon && (
+        <Icon
+          size={16}
+          className={cn(
+            "shrink-0 transition-colors",
+            active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          )}
+        />
+      )}
+      {!collapsed && (
+        <>
+          <span className="flex-1 truncate">{item.label}</span>
+          {item.placeholder && (
+            <span className="rounded bg-[var(--action-default-bg-hover)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+              soon
+            </span>
+          )}
+        </>
+      )}
+    </button>
   );
 }

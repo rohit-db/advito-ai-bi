@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Sparkles, MessageCircle } from "lucide-react";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Sparkles, MessageCircle, Settings } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import type { SidebarNavSection } from "@/components/Sidebar";
 import TopBar from "@/components/shell/TopBar";
 import FilterBar from "@/components/FilterBar";
 import DashboardWorkspace from "@/components/DashboardWorkspace";
@@ -15,7 +16,8 @@ import AdminLayout from "@/pages/admin/AdminLayout";
 import AssetsPage from "@/pages/admin/AssetsPage";
 import TenantsPage from "@/pages/admin/TenantsPage";
 import AccessPage from "@/pages/admin/AccessPage";
-import { ADMIN_BASE, ADMIN_ASSETS_PATH } from "@/components/admin/adminContext";
+import { ADMIN_BASE, ADMIN_ASSETS_PATH, ADMIN_SECTIONS } from "@/components/admin/adminContext";
+import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -119,10 +121,48 @@ export default function App() {
   const [railOpen, setRailOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const registry = useRegistry();
   const routes = useRoutes();
   const currentRoute = routes.find((r) => r.path === location.pathname);
+
+  const { user } = useUser();
+  const isOperator = user?.role === "operator";
+  const inAdmin = location.pathname.startsWith(ADMIN_BASE);
+
+  const sidebarSections: SidebarNavSection[] = inAdmin && isOperator
+    ? [
+        { items: [{ path: "/", label: "Back to APEX", icon: "ArrowLeftNav" }] },
+        {
+          label: "Administration",
+          items: ADMIN_SECTIONS.map((s) => ({ path: s.path, label: s.label, icon: s.icon })),
+        },
+      ]
+    : [
+        {
+          label: "Insights & Analytics",
+          items: routes
+            .filter((r) => r.section === "insights")
+            .map((r) => ({ path: r.path, label: r.label, icon: r.icon, placeholder: r.mode === "placeholder" })),
+        },
+        {
+          label: "Exploration",
+          items: routes
+            .filter((r) => r.section === "exploration")
+            .map((r) => ({ path: r.path, label: r.label, icon: r.icon, placeholder: r.mode === "placeholder" })),
+        },
+      ];
+
+  const sidebarFooter = isOperator && !inAdmin ? (
+    <button
+      onClick={() => navigate(ADMIN_ASSETS_PATH)}
+      className="group flex h-7 w-full items-center gap-2 rounded px-3 text-left text-[13px] font-medium text-foreground transition-colors hover:bg-[var(--action-default-bg-hover)]"
+    >
+      <Settings size={16} className="shrink-0 text-muted-foreground group-hover:text-foreground" />
+      {!sidebarCollapsed && <span>Admin</span>}
+    </button>
+  ) : undefined;
   const isCustom = currentRoute?.mode === "custom";
   const currentAsset: AssetSpec | undefined = currentRoute?.dashboard ? registry.assets[currentRoute.dashboard] : undefined;
   const pages: AssetPage[] = currentAsset?.pages ?? [];
@@ -186,7 +226,7 @@ export default function App() {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       <div className="flex-1 flex min-h-0">
-        <Sidebar collapsed={sidebarCollapsed} />
+        <Sidebar collapsed={sidebarCollapsed} sections={sidebarSections} footer={sidebarFooter} />
         <div className="flex-1 flex flex-col min-w-0">
 
           {/* Unified dashboard toolbar: page tabs (left) + page actions (right) */}

@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   LayoutDashboard,
   BarChart3,
+  ArrowLeft,
   type LucideIcon,
 } from "lucide-react";
 
@@ -64,6 +65,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   SlidersHorizontal,
   LayoutDashboard,
   BarChart3,
+  ArrowLeftNav: ArrowLeft,
 };
 
 // ─── Filter state ───────────────────────────────────────────────────────────
