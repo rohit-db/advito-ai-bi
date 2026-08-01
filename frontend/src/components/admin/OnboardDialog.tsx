@@ -96,11 +96,11 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
     }
   };
 
-  const labelCls = "block text-xs font-semibold text-slate-700 mb-1.5";
+  const labelCls = "block text-xs font-semibold text-foreground mb-1.5";
   const inputCls =
-    "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 " +
-    "placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-accent " +
-    "focus:border-brand-accent transition-colors";
+    "w-full rounded border border-input bg-background px-3 py-2 text-sm text-foreground " +
+    "placeholder:text-muted-foreground shadow-[var(--shadow-db-xs)] focus:outline-none focus:ring-2 focus:ring-ring " +
+    "focus:border-ring transition-colors";
 
   const showManualFields = !clientsConfigured || manualEntry || (!pickedFromCatalog && available.length === 0);
 
@@ -132,10 +132,10 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
         {clientsConfigured && (
           <div>
             <label className={labelCls}>
-              Client <span className="text-rose-500">*</span>
+              Client <span className="text-destructive">*</span>
             </label>
             {clientsLoading ? (
-              <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-500">
+              <div className="flex items-center gap-2 rounded border border-border bg-secondary px-3 py-2.5 text-xs text-muted-foreground">
                 <Spinner size={14} />
                 Loading clients from governed data…
               </div>
@@ -161,12 +161,12 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
                 </select>
                 <ChevronDown
                   size={14}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 />
               </div>
             )}
             {!clientsLoading && (
-              <p className="mt-1.5 text-[11px] text-slate-500">
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
                 Picking a client fills <strong>tenant ID</strong> automatically — it is the{" "}
                 <code className="font-mono">client_id</code> from your data (the number after
                 the name).
@@ -178,34 +178,34 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
         )}
 
         {pickedFromCatalog && selectedClient && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-sm">
-            <div className="mb-2 flex items-center gap-1.5 font-medium text-emerald-800">
+          <div className="rounded border border-[var(--border-success)] bg-[var(--background-success)] px-3.5 py-3 text-sm">
+            <div className="mb-2 flex items-center gap-1.5 font-medium text-[var(--success)]">
               <CheckCircle2 size={15} />
               Ready to onboard
             </div>
             <dl className="grid gap-2 text-xs sm:grid-cols-2">
               <div>
-                <dt className="font-semibold uppercase tracking-wide text-emerald-700/80">
+                <dt className="font-semibold uppercase tracking-wide text-[var(--success)]">
                   Tenant ID (client_id)
                 </dt>
-                <dd className="mt-0.5 font-mono text-base font-semibold text-emerald-950">
+                <dd className="mt-0.5 font-mono text-base font-semibold text-foreground">
                   {selectedClient.tenant_id}
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold uppercase tracking-wide text-emerald-700/80">
+                <dt className="font-semibold uppercase tracking-wide text-[var(--success)]">
                   Display name
                 </dt>
-                <dd className="mt-0.5 text-emerald-950">{selectedClient.display_name}</dd>
+                <dd className="mt-0.5 text-foreground">{selectedClient.display_name}</dd>
               </div>
             </dl>
-            <p className="mt-2 text-[11px] text-emerald-800">
+            <p className="mt-2 text-[11px] text-[var(--success)]">
               Use this same tenant ID when you create the white-label login user for this client.
             </p>
             <button
               type="button"
               onClick={clearPick}
-              className="mt-2 text-[11px] font-medium text-emerald-700 underline hover:text-emerald-900"
+              className="mt-2 text-[11px] font-medium text-[var(--success)] underline hover:text-green-700"
             >
               Choose a different client
             </button>
@@ -213,7 +213,7 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
         )}
 
         {!clientsConfigured && !clientsLoading && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+          <div className="rounded border border-[var(--border-warning)] bg-[var(--background-warning)] px-3 py-2 text-[11px] text-[var(--warning)]">
             Set <code className="font-mono">VERIFY_TABLE</code> and{" "}
             <code className="font-mono">TENANT_COLUMN</code> in the server env to load clients
             from your data.
@@ -224,7 +224,7 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
           <button
             type="button"
             onClick={() => setManualEntry(true)}
-            className="text-[11px] font-medium text-brand-primary hover:text-brand-primary-dark"
+            className="text-[11px] font-medium text-primary hover:text-blue-700"
           >
             Enter tenant ID manually instead
           </button>
@@ -234,7 +234,7 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
           <>
             <div>
               <label className={labelCls}>
-                Tenant ID <span className="text-rose-500">*</span>
+                Tenant ID <span className="text-destructive">*</span>
               </label>
               <input
                 autoFocus={!clientsConfigured}
@@ -248,15 +248,15 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
                 spellCheck={false}
                 autoCapitalize="none"
               />
-              <div className="mt-1.5 flex items-start gap-1.5 text-[11px] text-slate-500">
-                <Info size={13} className="mt-px shrink-0 text-brand-accent" />
+              <div className="mt-1.5 flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                <Info size={13} className="mt-px shrink-0 text-primary" />
                 <span>
                   The <code className="font-mono">client_id</code> in your governed data — must
                   match the login user's <code className="font-mono">tenant_id</code> exactly.
                 </span>
               </div>
               {!idValid && (
-                <p className="mt-1 text-[11px] font-medium text-rose-600">
+                <p className="mt-1 text-[11px] font-medium text-destructive">
                   Use letters, numbers, and hyphens only (must start alphanumeric).
                 </p>
               )}
@@ -264,7 +264,7 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
 
             <div>
               <label className={labelCls}>
-                Display name <span className="text-rose-500">*</span>
+                Display name <span className="text-destructive">*</span>
               </label>
               <input
                 value={displayName}
@@ -285,13 +285,13 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
             className={`${inputCls} font-mono text-xs`}
             spellCheck={false}
           />
-          <p className="mt-1.5 text-[11px] text-slate-500">
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
             Overrides the default Genie space for this tenant's Ask APEX experience.
           </p>
         </div>
 
         {error && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+          <div className="rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-3 py-2 text-xs text-destructive">
             {error}
           </div>
         )}

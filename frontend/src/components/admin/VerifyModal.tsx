@@ -56,7 +56,7 @@ export default function VerifyModal({ run, onClose }: VerifyModalProps) {
             <span
               className={cn(
                 "mr-auto text-xs font-medium",
-                allPass ? "text-emerald-600" : "text-rose-600"
+                allPass ? "text-[var(--success)]" : "text-destructive"
               )}
             >
               {passCount}/{rows.length} tenants isolated
@@ -73,41 +73,41 @@ export default function VerifyModal({ run, onClose }: VerifyModalProps) {
       }
     >
       {loading && rows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-400">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground">
           <Spinner size={26} />
           <span className="text-xs font-medium">Running isolation checks across all tenants…</span>
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : rows.length === 0 ? (
-        <div className="py-10 text-center text-sm text-slate-400">No tenants to verify.</div>
+        <div className="py-10 text-center text-sm text-muted-foreground">No tenants to verify.</div>
       ) : (
         <div className="space-y-3">
           {rows.map((r) => (
             <div
               key={r.tenant_id}
               className={cn(
-                "rounded-xl border p-4",
-                r.passed ? "border-emerald-200 bg-emerald-50/50" : "border-rose-200 bg-rose-50/50"
+                "rounded-md border p-4",
+                r.passed ? "border-[var(--border-success)] bg-[var(--background-success)]" : "border-[var(--border-danger)] bg-[var(--background-danger)]"
               )}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-900 truncate">
+                    <span className="text-sm font-semibold text-foreground truncate">
                       {r.display_name || r.tenant_id}
                     </span>
-                    <code className="font-mono text-[11px] text-slate-500">{r.tenant_id}</code>
+                    <code className="font-mono text-[11px] text-muted-foreground">{r.tenant_id}</code>
                   </div>
                 </div>
                 <span
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold shrink-0",
                     r.passed
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-rose-100 text-rose-700"
+                      ? "bg-[var(--background-success)] text-[var(--success)]"
+                      : "bg-[var(--background-danger)] text-destructive"
                   )}
                 >
                   {r.passed ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
@@ -117,27 +117,27 @@ export default function VerifyModal({ run, onClose }: VerifyModalProps) {
 
               <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 text-xs sm:grid-cols-2">
                 <div className="flex gap-2">
-                  <dt className="text-slate-400">Distinct tenant_ids</dt>
-                  <dd className="font-mono text-slate-700 break-all">
+                  <dt className="text-muted-foreground">Distinct tenant_ids</dt>
+                  <dd className="font-mono text-foreground break-all">
                     {r.distinct_tenant_ids?.length ? r.distinct_tenant_ids.join(", ") : "—"}
                   </dd>
                 </div>
                 {r.session_user !== undefined && (
                   <div className="flex gap-2">
-                    <dt className="text-slate-400">Session user</dt>
-                    <dd className="font-mono text-slate-700 break-all">{r.session_user || "—"}</dd>
+                    <dt className="text-muted-foreground">Session user</dt>
+                    <dd className="font-mono text-foreground break-all">{r.session_user || "—"}</dd>
                   </div>
                 )}
                 {r.visible_row_count !== undefined && (
                   <div className="flex gap-2">
-                    <dt className="text-slate-400">Visible rows</dt>
-                    <dd className="text-slate-700">{r.visible_row_count.toLocaleString()}</dd>
+                    <dt className="text-muted-foreground">Visible rows</dt>
+                    <dd className="text-foreground">{r.visible_row_count.toLocaleString()}</dd>
                   </div>
                 )}
               </dl>
 
               {r.error && (
-                <div className="mt-2 rounded-md bg-rose-100/70 px-2.5 py-1.5 font-mono text-[11px] text-rose-700 break-all">
+                <div className="mt-2 rounded-md bg-[var(--background-danger)] px-2.5 py-1.5 font-mono text-[11px] text-destructive break-all">
                   {r.error}
                 </div>
               )}

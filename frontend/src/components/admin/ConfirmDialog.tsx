@@ -29,7 +29,7 @@ export default function ConfirmDialog({
   return (
     <Modal
       title={title}
-      icon={<AlertTriangle size={18} className={danger ? "text-rose-600" : "text-brand-primary"} />}
+      icon={<AlertTriangle size={18} className={danger ? "text-destructive" : "text-primary"} />}
       onClose={onClose}
       maxWidthClass="max-w-md"
       footer={
@@ -41,7 +41,7 @@ export default function ConfirmDialog({
             size="sm"
             onClick={onConfirm}
             disabled={busy}
-            className={cn(danger && "bg-rose-600 hover:bg-rose-700")}
+            className={cn(danger && "bg-destructive hover:bg-red-700")}
           >
             {busy && <Spinner size={14} className="text-white" />}
             {confirmLabel}
@@ -49,9 +49,9 @@ export default function ConfirmDialog({
         </>
       }
     >
-      <div className="text-sm text-slate-600 leading-relaxed">{message}</div>
+      <div className="text-sm text-muted-foreground leading-relaxed">{message}</div>
       {error && (
-        <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+        <div className="mt-3 rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-3 py-2 text-xs text-destructive">
           {error}
         </div>
       )}

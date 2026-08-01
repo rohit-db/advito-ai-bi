@@ -149,10 +149,10 @@ export default function AssetEditor({
     }
   }
 
-  const input = "w-full rounded-md border border-brand-border bg-white px-2.5 py-1.5 text-sm";
-  const lbl = "text-[11px] font-semibold uppercase tracking-wide text-slate-500";
+  const input = "w-full rounded border border-input bg-background px-2.5 py-1.5 text-sm";
+  const lbl = "text-[11px] font-semibold uppercase tracking-wide text-muted-foreground";
 
-  const sectionHeading = "text-sm font-semibold text-slate-700 mb-3";
+  const sectionHeading = "text-sm font-semibold text-foreground mb-3";
   const SECTIONS = [
     { id: "sec-basics", label: "Basics" },
     { id: "sec-data", label: "Data" },
@@ -170,13 +170,13 @@ export default function AssetEditor({
       maxWidthClass="max-w-3xl"
       footer={
         <div className="flex items-center justify-end gap-2">
-          <button onClick={onClose} className="rounded-md px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">
+          <button onClick={onClose} className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-[var(--action-default-bg-hover)]">
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={busy}
-            className="rounded-md bg-brand-primary px-4 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-brand-primary-dark disabled:opacity-60"
+            className="rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-white shadow-[var(--shadow-db-sm)] hover:bg-blue-700 disabled:opacity-60"
           >
             {creating ? "Create" : "Save"}
           </button>
@@ -192,7 +192,7 @@ export default function AssetEditor({
                 <button
                   type="button"
                   onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  className="w-full rounded px-2 py-1 text-left text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                  className="w-full rounded px-2 py-1 text-left text-xs font-medium text-muted-foreground hover:bg-[var(--action-default-bg-hover)] hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {label}
                 </button>
@@ -204,7 +204,7 @@ export default function AssetEditor({
         {/* Sectioned form body */}
         <div className="flex-1 min-w-0 space-y-6">
           {error && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>
+            <div className="rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-3 py-2 text-sm text-destructive">{error}</div>
           )}
 
           {/* Basics */}
@@ -286,7 +286,7 @@ export default function AssetEditor({
           {/* Navigation (PR3c): sidebar entry + route derived from this asset */}
           <section id="sec-navigation" aria-labelledby="heading-navigation">
             <h3 id="heading-navigation" className={sectionHeading}>Navigation</h3>
-            <div className="space-y-2 rounded-lg border border-brand-border p-3">
+            <div className="space-y-2 rounded-md border border-border p-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" aria-label="Show in navigation" checked={navEnabled}
                   onChange={(e) => setNavEnabled(e.target.checked)} />
@@ -334,11 +334,11 @@ export default function AssetEditor({
               <div className="flex items-center justify-between">
                 <span className={lbl}>Filter wiring</span>
                 <button onClick={() => setFilterRows((r) => [...r, { uid: nextUid(), key: FILTER_KEYS[0], widget: "" }])}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark">
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-blue-700">
                   <Plus size={13} /> Add filter
                 </button>
               </div>
-              {filterRows.length === 0 && <p className="text-xs text-slate-400">No filters wired.</p>}
+              {filterRows.length === 0 && <p className="text-xs text-muted-foreground">No filters wired.</p>}
               {filterRows.map((row, i) => (
                 <div key={row.uid} className="flex items-center gap-2">
                   <select aria-label="Filter key" className={input + " flex-1"} value={row.key}
@@ -347,11 +347,11 @@ export default function AssetEditor({
                       <option key={k} value={k}>{FILTERS[k].label} ({k})</option>
                     ))}
                   </select>
-                  <span className="text-slate-400">→</span>
+                  <span className="text-muted-foreground">→</span>
                   <input aria-label="Widget id" className={input + " flex-1"} value={row.widget} placeholder="widget id"
                     onChange={(e) => setFilterRows((r) => r.map((x, j) => (j === i ? { ...x, widget: e.target.value } : x)))} />
                   <button aria-label="Remove filter" onClick={() => setFilterRows((r) => r.filter((_, j) => j !== i))}
-                    className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500">
+                    className="rounded p-1.5 text-muted-foreground hover:bg-[var(--action-default-bg-hover)] hover:text-destructive">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -366,12 +366,12 @@ export default function AssetEditor({
               <div className="flex items-center justify-between">
                 <span className={lbl}>Page editors</span>
                 <button onClick={() => setPages((p) => [...p, blankPage()])}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:text-brand-primary-dark">
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-blue-700">
                   <Plus size={13} /> Add page
                 </button>
               </div>
               {pages.map((page, i) => (
-                <div key={page.uid} className="rounded-lg border border-brand-border p-3 space-y-2">
+                <div key={page.uid} className="rounded-md border border-border p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <input aria-label="Page id" className={input + " flex-1"} value={page.pageId} placeholder="pageId"
                       onChange={(e) => setPage(i, { pageId: e.target.value })} />
@@ -379,26 +379,26 @@ export default function AssetEditor({
                       onChange={(e) => setPage(i, { label: e.target.value })} />
                     <button aria-label="Remove page" disabled={pages.length === 1}
                       onClick={() => setPages((p) => p.filter((_, j) => j !== i))}
-                      className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500 disabled:opacity-40">
+                      className="rounded p-1.5 text-muted-foreground hover:bg-[var(--action-default-bg-hover)] hover:text-destructive disabled:opacity-40">
                       <Trash2 size={14} />
                     </button>
                   </div>
                   <textarea aria-label="Summary prompt" className={input + " min-h-[60px]"} value={page.summaryPrompt}
                     placeholder="Executive summary prompt…" onChange={(e) => setPage(i, { summaryPrompt: e.target.value })} />
                   <div className="space-y-1">
-                    <span className="text-[10px] uppercase tracking-wide text-slate-400">Suggestions</span>
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Suggestions</span>
                     {page.suggestions.map((s, si) => (
                       <div key={`${page.uid}:${si}`} className="flex items-center gap-2">
                         <input aria-label="Suggestion" className={input + " flex-1"} value={s}
                           onChange={(e) => setSuggestion(i, si, e.target.value)} />
                         <button aria-label="Remove suggestion" onClick={() => removeSuggestion(i, si)}
-                          className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500">
+                          className="rounded p-1.5 text-muted-foreground hover:bg-[var(--action-default-bg-hover)] hover:text-destructive">
                           <Trash2 size={13} />
                         </button>
                       </div>
                     ))}
                     <button onClick={() => addSuggestion(i)}
-                      className="inline-flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark">
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:text-blue-700">
                       <Plus size={12} /> Add suggestion
                     </button>
                   </div>
