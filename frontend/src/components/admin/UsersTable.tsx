@@ -34,13 +34,13 @@ export default function UsersTable({
   }, [tenants]);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
+    <div className="rounded-md border border-border bg-background shadow-[var(--shadow-db-sm)]">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
         <div className="flex items-center gap-2">
-          <UserCircle2 size={16} className="text-brand-accent" />
-          <h2 className="text-sm font-semibold text-slate-900">Login users</h2>
+          <UserCircle2 size={16} className="text-primary" />
+          <h2 className="text-sm font-semibold text-foreground">Login users</h2>
           {!loading && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
               {users.length}
             </span>
           )}
@@ -51,14 +51,14 @@ export default function UsersTable({
         </Button>
       </div>
 
-      <p className="border-b border-slate-100 px-5 py-2.5 text-[11px] leading-relaxed text-slate-500">
+      <p className="border-b border-border px-5 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
         Each user&apos;s <code className="font-mono">tenant_id</code> selects which onboarded
         tenant they run as at login — the app resolves that to the tenant&apos;s Service Principal.
         There is no separate user→SP mapping.
       </p>
 
       {!writable && !loading && !error && (
-        <div className="mx-5 mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+        <div className="mx-5 mt-4 rounded border border-[var(--border-warning)] bg-[var(--background-warning)] px-3 py-2 text-[11px] text-[var(--warning)]">
           User edits require Lakebase (<code className="font-mono">LAKEBASE_ENABLED</code>,{" "}
           <code className="font-mono">PGHOST</code>, <code className="font-mono">PGUSER</code>).
           Listing is read-only from the JSON fallback.
@@ -66,21 +66,21 @@ export default function UsersTable({
       )}
 
       {loading && users.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-400">
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
           <Spinner size={26} />
           <span className="text-xs font-medium">Loading users…</span>
         </div>
       ) : error && users.length === 0 ? (
-        <div className="m-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="m-5 rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : users.length === 0 ? (
-        <div className="px-6 py-14 text-center text-sm text-slate-500">No login users yet.</div>
+        <div className="px-6 py-14 text-center text-sm text-muted-foreground">No login users yet.</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              <tr className="border-b border-border text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <th className="px-5 py-2.5">User</th>
                 <th className="px-4 py-2.5">Tenant ID</th>
                 <th className="px-4 py-2.5">Maps to SP</th>
@@ -88,35 +88,35 @@ export default function UsersTable({
                 <th className="px-5 py-2.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-border">
               {users.map((u) => {
                 const mapped = u.tenant_id === "*" ? null : tenantById.get(u.tenant_id);
                 const busy = busyEmail === u.email;
                 return (
-                  <tr key={u.email} className="hover:bg-slate-50/60">
+                  <tr key={u.email} className="hover:bg-[var(--action-default-bg-hover)]">
                     <td className="px-5 py-3 align-top">
-                      <div className="font-medium text-slate-900">{u.display_name}</div>
-                      <code className="font-mono text-[11px] text-slate-400">{u.email}</code>
+                      <div className="font-medium text-foreground">{u.display_name}</div>
+                      <code className="font-mono text-[11px] text-muted-foreground">{u.email}</code>
                     </td>
                     <td className="px-4 py-3 align-top">
-                      <code className="font-mono text-xs text-slate-700">{u.tenant_id}</code>
-                      <div className="text-[11px] text-slate-400">{u.tenant}</div>
+                      <code className="font-mono text-xs text-foreground">{u.tenant_id}</code>
+                      <div className="text-[11px] text-muted-foreground">{u.tenant}</div>
                     </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-600">
+                    <td className="px-4 py-3 align-top text-xs text-muted-foreground">
                       {u.tenant_id === "*" ? (
-                        <span className="text-slate-400">App SP (operator)</span>
+                        <span className="text-muted-foreground">App SP (operator)</span>
                       ) : mapped ? (
                         <span title={mapped.sp_app_id}>{mapped.sp_display_name || mapped.sp_app_id}</span>
                       ) : (
-                        <span className="font-medium text-amber-700">No tenant onboarded</span>
+                        <span className="font-medium text-[var(--warning)]">No tenant onboarded</span>
                       )}
                     </td>
                     <td className="px-4 py-3 align-top">
                       <span
                         className={
                           u.role === "operator"
-                            ? "rounded-full bg-brand-primary-light px-2 py-0.5 text-[11px] font-medium text-brand-accent"
-                            : "rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
+                            ? "rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"
+                            : "rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
                         }
                       >
                         {u.role}
@@ -142,7 +142,7 @@ export default function UsersTable({
                           variant="default"
                           disabled={!writable || busy}
                           onClick={() => onDelete(u)}
-                          className="h-8 gap-1 text-rose-700 border-rose-200 hover:bg-rose-50"
+                          className="h-8 gap-1 text-destructive border-[var(--border-danger)] hover:bg-[var(--background-danger)]"
                         >
                           <Trash2 size={12} />
                         </Button>

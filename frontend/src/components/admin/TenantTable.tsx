@@ -33,13 +33,13 @@ export default function TenantTable(props: TenantTableProps) {
   const { tenants, loading, error, busyTenantId } = props;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
+    <div className="rounded-md border border-border bg-background shadow-[var(--shadow-db-sm)]">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
         <div className="flex items-center gap-2">
-          <ServerCog size={16} className="text-brand-accent" />
-          <h2 className="text-sm font-semibold text-slate-900">Tenant Service Principals</h2>
+          <ServerCog size={16} className="text-primary" />
+          <h2 className="text-sm font-semibold text-foreground">Tenant Service Principals</h2>
           {!loading && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
               {tenants.length}
             </span>
           )}
@@ -49,7 +49,7 @@ export default function TenantTable(props: TenantTableProps) {
             size="sm"
             variant="default"
             onClick={props.onVerify}
-            className="gap-1.5 text-brand-primary border-brand-primary-light hover:bg-brand-primary-light hover:text-brand-primary-dark"
+            className="gap-1.5 text-primary border-primary/30 hover:bg-primary/10 hover:text-blue-700"
           >
             <RefreshCw size={13} />
             Verify isolation
@@ -62,12 +62,12 @@ export default function TenantTable(props: TenantTableProps) {
       </div>
 
       {loading && tenants.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-400">
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
           <Spinner size={26} />
           <span className="text-xs font-medium">Loading tenants…</span>
         </div>
       ) : error && tenants.length === 0 ? (
-        <div className="m-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="m-5 rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : tenants.length === 0 ? (
@@ -76,7 +76,7 @@ export default function TenantTable(props: TenantTableProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              <tr className="border-b border-border text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <th className="px-5 py-2.5 font-semibold">Tenant</th>
                 <th className="px-4 py-2.5 font-semibold">Status</th>
                 <th className="px-4 py-2.5 font-semibold">Service Principal</th>
@@ -85,7 +85,7 @@ export default function TenantTable(props: TenantTableProps) {
                 <th className="px-5 py-2.5 font-semibold text-right">More</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-border">
               {tenants.map((t) => (
                 <TenantRow key={t.tenant_id} tenant={t} busy={busyTenantId === t.tenant_id} {...props} />
               ))}
@@ -112,19 +112,19 @@ function TenantRow({
 >) {
   const active = tenant.status === "active";
   return (
-    <tr className="group hover:bg-slate-50/60">
+    <tr className="group hover:bg-[var(--action-default-bg-hover)]">
       <td className="px-5 py-3 align-top">
-        <div className="font-medium text-slate-900">{tenant.display_name || tenant.tenant_id}</div>
-        <code className="font-mono text-[11px] text-slate-400">{tenant.tenant_id}</code>
+        <div className="font-medium text-foreground">{tenant.display_name || tenant.tenant_id}</div>
+        <code className="font-mono text-[11px] text-muted-foreground">{tenant.tenant_id}</code>
       </td>
       <td className="px-4 py-3 align-top">
         <TenantStatusBadge status={tenant.status} />
       </td>
       <td className="px-4 py-3 align-top">
-        <div className="text-slate-700">{tenant.sp_display_name || "—"}</div>
+        <div className="text-foreground">{tenant.sp_display_name || "—"}</div>
         <div className="flex items-center gap-1">
           <code
-            className="font-mono text-[11px] text-slate-400 truncate max-w-[150px]"
+            className="font-mono text-[11px] text-muted-foreground truncate max-w-[150px]"
             title={tenant.sp_app_id}
           >
             {tenant.sp_app_id}
@@ -133,7 +133,7 @@ function TenantRow({
         </div>
       </td>
       <td className="px-4 py-3 align-top">
-        <span className="text-slate-500 text-xs" title={formatAbsolute(tenant.updated_at)}>
+        <span className="text-muted-foreground text-xs" title={formatAbsolute(tenant.updated_at)}>
           {relativeTime(tenant.updated_at)}
         </span>
       </td>
@@ -145,14 +145,14 @@ function TenantRow({
             variant="default"
             disabled={busy}
             onClick={() => onManageAccess(tenant)}
-            className="h-8 gap-1.5 border-brand-primary-light bg-brand-primary-light/50 text-brand-primary-dark hover:bg-brand-primary-light hover:text-brand-primary-dark"
+            className="h-8 gap-1.5 border-primary/30 bg-primary/5 text-blue-700 hover:bg-primary/10 hover:text-blue-700"
             aria-label={`Manage dashboard and Genie access for ${tenant.display_name || tenant.tenant_id}`}
           >
             <KeyRound size={13} />
             Manage access
           </Button>
         ) : (
-          <span className="text-xs text-slate-400">Reactivate to edit</span>
+          <span className="text-xs text-muted-foreground">Reactivate to edit</span>
         )}
       </td>
       <td className="px-5 py-3 align-top text-right">
@@ -225,49 +225,49 @@ function RowActions({
         onClick={() => setOpen((o) => !o)}
         title="Actions"
         className={cn(
-          "inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500",
-          "hover:bg-slate-100 hover:text-slate-700 transition-colors disabled:opacity-40",
-          open && "bg-slate-100 text-slate-700"
+          "inline-flex h-8 w-8 items-center justify-center rounded text-muted-foreground",
+          "hover:bg-[var(--action-default-bg-hover)] hover:text-foreground transition-colors disabled:opacity-40",
+          open && "bg-[var(--action-default-bg-hover)] text-foreground"
         )}
       >
         <MoreHorizontal size={16} />
       </button>
 
       {open && (
-        <div className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
-          <button className={cn(item, "text-slate-700 hover:bg-slate-50")} onClick={pick(onHistory)}>
-            <History size={15} className="text-slate-400" />
+        <div className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-md border border-border bg-background py-1 shadow-[var(--shadow-db-lg)]">
+          <button className={cn(item, "text-foreground hover:bg-[var(--action-default-bg-hover)]")} onClick={pick(onHistory)}>
+            <History size={15} className="text-muted-foreground" />
             View history
           </button>
           {active && (
             <button
-              className={cn(item, "text-slate-700 hover:bg-slate-50")}
+              className={cn(item, "text-foreground hover:bg-[var(--action-default-bg-hover)]")}
               onClick={pick(onRotate)}
             >
-              <RefreshCw size={15} className="text-slate-400" />
+              <RefreshCw size={15} className="text-muted-foreground" />
               Rotate secret
             </button>
           )}
           {active ? (
             <button
-              className={cn(item, "text-amber-700 hover:bg-amber-50")}
+              className={cn(item, "text-[var(--warning)] hover:bg-[var(--background-warning)]")}
               onClick={pick(onDeactivate)}
             >
-              <Ban size={15} className="text-amber-500" />
+              <Ban size={15} className="text-[var(--warning)]" />
               Deactivate
             </button>
           ) : (
             <button
-              className={cn(item, "text-emerald-700 hover:bg-emerald-50")}
+              className={cn(item, "text-[var(--success)] hover:bg-[var(--background-success)]")}
               onClick={pick(onReactivate)}
             >
-              <Play size={15} className="text-emerald-500" />
+              <Play size={15} className="text-[var(--success)]" />
               Reactivate
             </button>
           )}
-          <div className="my-1 h-px bg-slate-100" />
-          <button className={cn(item, "text-rose-700 hover:bg-rose-50")} onClick={pick(onDelete)}>
-            <Trash2 size={15} className="text-rose-500" />
+          <div className="my-1 h-px bg-border" />
+          <button className={cn(item, "text-destructive hover:bg-[var(--background-danger)]")} onClick={pick(onDelete)}>
+            <Trash2 size={15} className="text-destructive" />
             Delete tenant
           </button>
         </div>
@@ -279,12 +279,12 @@ function RowActions({
 function EmptyState({ onOnboard }: { onOnboard: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-primary-light">
-        <ServerCog size={26} className="text-brand-accent" />
+      <div className="flex h-14 w-14 items-center justify-center rounded-md bg-primary/10">
+        <ServerCog size={26} className="text-primary" />
       </div>
       <div>
-        <h3 className="text-base font-semibold text-slate-800">No tenants onboarded yet</h3>
-        <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
+        <h3 className="text-base font-semibold text-foreground">No tenants onboarded yet</h3>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
           Onboard a tenant to provision a dedicated Service Principal that backs its per-tenant data
           isolation.
         </p>

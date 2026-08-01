@@ -63,7 +63,7 @@ export default function AccessGrid({ onAccessError }: { onAccessError?: (err: un
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center gap-2 py-10 text-slate-400">
+      <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground">
         <Spinner size={20} /> <span className="text-xs">Loading access…</span>
       </div>
     );
@@ -71,7 +71,7 @@ export default function AccessGrid({ onAccessError }: { onAccessError?: (err: un
 
   if (error && !catalog) {
     return (
-      <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+      <div className="rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-3 py-2 text-sm text-destructive">
         {error}
       </div>
     );
@@ -84,7 +84,7 @@ export default function AccessGrid({ onAccessError }: { onAccessError?: (err: un
 
   if (cols.length === 0 || tenants.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-brand-border px-3 py-4 text-xs text-slate-400">
+      <p className="rounded border border-dashed border-border px-3 py-4 text-xs text-muted-foreground">
         {cols.length === 0 ? "No grantable resources configured." : "No tenants onboarded yet."}
       </p>
     );
@@ -92,25 +92,25 @@ export default function AccessGrid({ onAccessError }: { onAccessError?: (err: un
 
   return (
     <div className="space-y-2">
-      {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>}
-      <div className="overflow-x-auto rounded-xl border border-brand-border">
+      {error && <div className="rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-3 py-2 text-sm text-destructive">{error}</div>}
+      <div className="overflow-x-auto rounded-md border border-border">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="border-b border-brand-border bg-slate-50">
-              <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">Tenant</th>
+            <tr className="border-b border-border bg-secondary">
+              <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Tenant</th>
               {cols.map((c) => (
-                <th key={`${c.type}:${c.id}`} className="px-3 py-2 text-center text-[11px] font-medium text-slate-600" title={c.id}>
+                <th key={`${c.type}:${c.id}`} className="px-3 py-2 text-center text-[11px] font-medium text-muted-foreground" title={c.id}>
                   {c.name}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {tenants.map((t) => {
               const deactivated = t.status !== "active";
               return (
                 <tr key={t.tenant_id} className={deactivated ? "opacity-50" : ""}>
-                  <td className="px-3 py-2 font-medium text-slate-800">{t.display_name || t.tenant_id}</td>
+                  <td className="px-3 py-2 font-medium text-foreground">{t.display_name || t.tenant_id}</td>
                   {cols.map((c) => {
                     const bucket = c.type === "dashboard" ? "dashboards" : "genie_spaces";
                     const on = !!access[t.tenant_id]?.[bucket]?.[c.id];
@@ -126,7 +126,7 @@ export default function AccessGrid({ onAccessError }: { onAccessError?: (err: un
                           onClick={() => toggle(t.tenant_id, c.type, c.id, !on)}
                           className={[
                             "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                            on ? "bg-brand-primary" : "bg-slate-300",
+                            on ? "bg-primary" : "bg-input",
                             busyCell === cellKey ? "opacity-60" : "hover:opacity-90",
                           ].join(" ")}
                         >
@@ -141,7 +141,7 @@ export default function AccessGrid({ onAccessError }: { onAccessError?: (err: un
           </tbody>
         </table>
       </div>
-      <p className="text-xs leading-relaxed text-slate-400">
+      <p className="text-xs leading-relaxed text-muted-foreground">
         <KeyRound size={11} className="mr-1 inline" />
         Each toggle grants the tenant's Service Principal CAN_RUN on that resource. A Unity Catalog row filter still scopes the data.
       </p>
