@@ -175,7 +175,7 @@ export default function CustomDashboard({
 
   if (pages.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-sm text-fg-muted">
+      <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
         No pages configured for this dashboard.
       </div>
     );
@@ -184,12 +184,12 @@ export default function CustomDashboard({
   if (phase === "error") {
     return (
       <div className="h-full flex items-center justify-center p-6">
-        <div className="max-w-md rounded-xl border border-[color:var(--danger)] bg-[rgba(208,64,64,0.06)] p-5 text-sm text-[var(--danger-fg)]">
+        <div className="max-w-md rounded-md border border-[color:var(--border-danger)] bg-[var(--background-danger)] p-5 text-sm text-[var(--destructive)]">
           <div className="mb-1 flex items-center gap-2 font-semibold">
             <AlertCircle size={16} />
             Could not load the dashboard
           </div>
-          <p className="text-[var(--danger-fg)]">{error}</p>
+          <p className="text-[var(--destructive)]">{error}</p>
         </div>
       </div>
     );
@@ -197,11 +197,11 @@ export default function CustomDashboard({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 relative overflow-hidden bg-surface">
+      <div className="flex-1 relative overflow-hidden bg-background">
         {phase === "loading" && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface">
-            <div className="flex flex-col items-center gap-3 text-fg-muted">
-              <Loader2 size={28} className="animate-spin text-accent" />
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
+            <div className="flex flex-col items-center gap-3 text-muted-foreground">
+              <Loader2 size={28} className="animate-spin text-primary" />
               <span className="text-xs font-medium">Preparing secure dashboard…</span>
             </div>
           </div>
