@@ -17,16 +17,16 @@ export default function GenieResultTable({
   const text = sm ? "text-[11px]" : "text-xs";
   const cell = sm ? "px-2.5 py-1.5" : "px-3 py-2";
   const wrapper = sm
-    ? "mt-3 overflow-auto max-h-60 border border-border rounded-lg"
-    : "mt-3 overflow-x-auto border border-border rounded-lg";
+    ? "mt-3 overflow-auto max-h-60 border border-border rounded-md"
+    : "mt-3 overflow-x-auto border border-border rounded-md";
 
   return (
     <div className={wrapper}>
       <table className={`min-w-full divide-y divide-border ${text}`}>
-        <thead className={`bg-surface-2 ${sm ? "sticky top-0" : ""}`}>
+        <thead className={`bg-secondary ${sm ? "sticky top-0" : ""}`}>
           <tr>
             {columns.map((c, i) => (
-              <th key={i} className={`${cell} text-left font-semibold text-fg-subtle whitespace-nowrap`}>
+              <th key={i} className={`${cell} text-left font-semibold text-muted-foreground whitespace-nowrap`}>
                 {c}
               </th>
             ))}
@@ -36,7 +36,7 @@ export default function GenieResultTable({
           {rows.map((row, r) => (
             <tr key={r}>
               {row.map((value, c) => (
-                <td key={c} className={`${cell} text-fg-2 whitespace-nowrap border-t border-border`}>
+                <td key={c} className={`${cell} text-muted-foreground whitespace-nowrap border-t border-border`}>
                   {value == null ? "" : String(value)}
                 </td>
               ))}

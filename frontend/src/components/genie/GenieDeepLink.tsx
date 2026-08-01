@@ -11,13 +11,13 @@ export default function GenieDeepLink({
   if (!deepLink) return null;
   const compact = variant === "compact";
   const size = compact ? "px-2.5 py-1.5 text-[11px]" : "px-3 py-2 text-xs";
-  const color = compact ? "bg-brand-primary hover:bg-brand-primary-dark" : "bg-brand-accent hover:bg-brand-accent-dark";
+  const color = "bg-primary hover:bg-blue-700";
   return (
     <a
       href={deepLink.url}
       target="_blank"
       rel="noreferrer"
-      className={`mt-3 inline-flex items-center gap-1.5 rounded-lg text-white font-medium transition-colors ${color} ${size}`}
+      className={`mt-3 inline-flex items-center gap-1.5 rounded text-primary-foreground font-medium transition-colors ${color} ${size}`}
     >
       <ExternalLink className="w-3.5 h-3.5" />
       <span>{deepLink.label || "Open in Genie"}</span>

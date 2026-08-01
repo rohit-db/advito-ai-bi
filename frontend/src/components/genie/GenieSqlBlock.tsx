@@ -17,13 +17,13 @@ export default function GenieSqlBlock({
 }) {
   if (!blocks || blocks.length === 0) return null;
   const compact = variant === "compact";
-  const accent = compact ? "text-brand-primary" : "text-brand-accent";
+  const accent = "text-primary";
   const label = compact ? "SQL" : "Generated SQL";
   const icon = compact ? "w-3.5 h-3.5" : "w-4 h-4";
   const labelText = compact ? "text-[11px]" : "text-xs";
   const pre = compact
-    ? "mt-2 bg-surface-2 text-fg-2 p-2.5 rounded-lg text-[10px] font-mono overflow-x-auto"
-    : "mt-2 bg-surface-2 text-fg-2 p-3 rounded-lg text-[11px] font-mono overflow-x-auto";
+    ? "mt-2 bg-secondary text-muted-foreground p-2.5 rounded-md text-[10px] font-mono overflow-x-auto"
+    : "mt-2 bg-secondary text-muted-foreground p-3 rounded-md text-[11px] font-mono overflow-x-auto";
 
   return (
     <div className={`border-t border-border ${compact ? "mt-2 pt-2" : "mt-3 pt-3"}`}>

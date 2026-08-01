@@ -10,7 +10,7 @@ describe("MarkdownContent (DuBois tokens)", () => {
     expect(container.innerHTML).not.toMatch(/slate-\d|text-brand-primary|bg-white/);
     // links use the accent token
     const link = container.querySelector("a");
-    if (link) expect(link.className).toMatch(/text-accent/);
+    if (link) expect(link.className).toMatch(/text-primary/);
     expect(container.textContent).toMatch(/Title/);
   });
 });
