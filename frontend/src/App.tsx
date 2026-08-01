@@ -246,7 +246,7 @@ export default function App() {
               size="sm"
               variant="default"
               onClick={() => setSummaryOpen(true)}
-              className="gap-1.5 text-brand-primary border-brand-primary-light hover:bg-brand-primary-light hover:text-brand-primary-dark"
+              className="gap-1.5 text-primary border-primary/30 hover:bg-primary/10 hover:text-blue-700"
             >
               <Sparkles size={14} />
               <span>Executive Summary</span>
