@@ -33,20 +33,20 @@ export default function SecretAlert({
   return (
     <div
       className={cn(
-        "relative rounded-xl border p-4 shadow-sm",
+        "relative rounded-md border p-4 shadow-[var(--shadow-db-sm)]",
         isOnboard
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-brand-primary-light bg-brand-primary-light"
+          ? "border-[var(--border-success)] bg-[var(--background-success)]"
+          : "border-primary/30 bg-primary/10"
       )}
     >
       <button
         onClick={onDismiss}
         title="Dismiss"
         className={cn(
-          "absolute top-3 right-3 p-1 rounded-md transition-colors",
+          "absolute top-3 right-3 p-1 rounded transition-colors",
           isOnboard
-            ? "text-emerald-500 hover:bg-emerald-100"
-            : "text-brand-accent hover:bg-brand-primary-light"
+            ? "text-[var(--success)] hover:bg-[var(--background-success)]"
+            : "text-primary hover:bg-primary/10"
         )}
       >
         <X size={15} />
@@ -55,13 +55,13 @@ export default function SecretAlert({
       <div className="flex items-center gap-2">
         <div
           className={cn(
-            "w-7 h-7 rounded-lg flex items-center justify-center",
-            isOnboard ? "bg-emerald-100 text-emerald-600" : "bg-brand-primary-light text-brand-primary"
+            "w-7 h-7 rounded flex items-center justify-center",
+            isOnboard ? "bg-[var(--background-success)] text-[var(--success)]" : "bg-primary/10 text-primary"
           )}
         >
           {isOnboard ? <ShieldCheck size={15} /> : <KeyRound size={15} />}
         </div>
-        <div className={cn("text-sm font-semibold", isOnboard ? "text-emerald-800" : "text-brand-primary-dark")}>
+        <div className={cn("text-sm font-semibold", isOnboard ? "text-[var(--success)]" : "text-blue-700")}>
           {isOnboard
             ? `Service Principal created for ${data.tenantId}`
             : `New secret issued for ${data.tenantId}`}
@@ -70,17 +70,17 @@ export default function SecretAlert({
 
       <div className="mt-3 space-y-2">
         {data.items.map((item) => (
-          <div key={item.label} className="rounded-lg bg-white/70 border border-white px-3 py-2">
+          <div key={item.label} className="rounded bg-background/70 border border-border px-3 py-2">
             <div
               className={cn(
                 "text-[10px] font-semibold uppercase tracking-wide mb-1",
-                isOnboard ? "text-emerald-600" : "text-brand-primary"
+                isOnboard ? "text-[var(--success)]" : "text-primary"
               )}
             >
               {item.label}
             </div>
             <div className="flex items-center justify-between gap-2">
-              <code className="font-mono text-xs text-slate-800 break-all">{item.value}</code>
+              <code className="font-mono text-xs text-foreground break-all">{item.value}</code>
               <CopyButton value={item.value} label="Copy" className="shrink-0" />
             </div>
           </div>
@@ -90,22 +90,22 @@ export default function SecretAlert({
       <p
         className={cn(
           "mt-3 text-[11px] font-medium",
-          isOnboard ? "text-emerald-700" : "text-brand-primary"
+          isOnboard ? "text-[var(--success)]" : "text-primary"
         )}
       >
         Shown once — stored encrypted in Lakebase, not retrievable again.
       </p>
 
       {isOnboard && data.onManageAccess && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-emerald-200/80 pt-4">
-          <p className="text-xs text-emerald-800">
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--border-success)] pt-4">
+          <p className="text-xs text-[var(--success)]">
             Next: grant this tenant access to dashboards and Genie so embeds and Ask APEX work.
           </p>
           <Button
             type="button"
             size="sm"
             onClick={data.onManageAccess}
-            className="gap-1.5 bg-emerald-700 text-white hover:bg-emerald-800"
+            className="gap-1.5 bg-[var(--success)] text-white hover:bg-green-700"
           >
             <KeyRound size={13} />
             Manage access

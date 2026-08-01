@@ -282,21 +282,21 @@ export default function TenantsPage() {
     tenants.map((t) => t.updated_at).sort().slice(-1)[0] ??
     null;
 
-  // AdminLayout provides the scroll container; no outer bg-slate-50 wrapper here.
+  // AdminLayout provides the scroll container; no outer wrapper needed here.
   return (
     <>
       <div className="mx-auto max-w-6xl px-6 py-6">
         {/* Header */}
         <div className="mb-5 flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent text-white shadow-sm">
+            <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[var(--shadow-db-sm)]">
               <ShieldCheck size={22} />
             </div>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-slate-900">
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">
                 Service Principals
               </h1>
-              <p className="mt-0.5 max-w-2xl text-sm text-slate-500">
+              <p className="mt-0.5 max-w-2xl text-sm text-muted-foreground">
                 Each tenant is backed by a dedicated Service Principal. Genie and dashboards run{" "}
                 <em>as</em> the tenant SP, and a Unity Catalog row filter enforces isolation so a
                 tenant only ever sees its own data.
@@ -306,7 +306,7 @@ export default function TenantsPage() {
           <button
             onClick={refresh}
             title="Refresh"
-            className="mt-1 hidden items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 sm:inline-flex"
+            className="mt-1 hidden items-center gap-1.5 rounded border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-[var(--shadow-db-sm)] hover:bg-[var(--action-default-bg-hover)] sm:inline-flex"
           >
             <RefreshCw size={13} className={auditRefreshing ? "animate-spin" : ""} />
             Refresh

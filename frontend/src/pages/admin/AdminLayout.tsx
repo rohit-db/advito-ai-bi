@@ -54,7 +54,7 @@ export default function AdminLayout() {
   const ctx: AdminOutletContext = { audit, auditLoading, auditError, auditRefreshing, reportAccessError, refreshAll };
 
   return (
-    <div className="h-full overflow-y-auto bg-slate-50">
+    <div className="h-full overflow-y-auto bg-secondary">
       {/* The bare /admin path is handled by the router `index` route (App.tsx),
           which renders AssetsPage — no redirect needed here. */}
       <Outlet context={ctx} />
@@ -65,20 +65,20 @@ export default function AdminLayout() {
 function AccessGate({ status, detail }: { status: number; detail: string }) {
   const notLoggedIn = status === 401;
   return (
-    <div className="flex h-full items-center justify-center bg-slate-50 p-6">
-      <div className="flex max-w-md flex-col items-center gap-4 rounded-2xl border border-brand-border bg-white p-8 text-center shadow-sm">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-primary-light">
-          {notLoggedIn ? <LockKeyhole size={28} className="text-brand-accent" /> : <ShieldX size={28} className="text-rose-500" />}
+    <div className="flex h-full items-center justify-center bg-secondary p-6">
+      <div className="flex max-w-md flex-col items-center gap-4 rounded-md border border-border bg-background p-8 text-center shadow-[var(--shadow-db-sm)]">
+        <div className="flex h-14 w-14 items-center justify-center rounded-md bg-primary/10">
+          {notLoggedIn ? <LockKeyhole size={28} className="text-primary" /> : <ShieldX size={28} className="text-destructive" />}
         </div>
         <div>
-          <h2 className="mb-1 text-base font-semibold text-slate-800">{notLoggedIn ? "Sign in required" : "Operator access required"}</h2>
-          <p className="text-sm leading-relaxed text-slate-500">
+          <h2 className="mb-1 text-base font-semibold text-foreground">{notLoggedIn ? "Sign in required" : "Operator access required"}</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
             {notLoggedIn ? "You need to be signed in to manage this workspace." : "This area is limited to operators."}
           </p>
-          {detail && <p className="mt-2 text-xs text-slate-400">{detail}</p>}
+          {detail && <p className="mt-2 text-xs text-muted-foreground">{detail}</p>}
         </div>
         {notLoggedIn && (
-          <a href="/login" className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white shadow-sm hover:bg-brand-primary-dark">Sign in</a>
+          <a href="/login" className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-[var(--shadow-db-sm)] hover:bg-blue-700">Sign in</a>
         )}
       </div>
     </div>

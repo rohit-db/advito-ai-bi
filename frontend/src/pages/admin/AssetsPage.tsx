@@ -81,53 +81,53 @@ export default function AssetsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent text-white shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[var(--shadow-db-sm)]">
             <LayoutDashboard size={22} />
           </div>
           <div>
-            <h1 className="text-lg font-semibold tracking-tight text-slate-900">Manage Assets</h1>
-            <p className="mt-0.5 max-w-2xl text-sm text-slate-500">
+            <h1 className="text-lg font-semibold tracking-tight text-foreground">Manage Assets</h1>
+            <p className="mt-0.5 max-w-2xl text-sm text-muted-foreground">
               Dashboards, Genie prompts, and per-tenant access. Assets resolve from the registry; changes apply on next load.
             </p>
           </div>
         </div>
         <button onClick={load} title="Refresh"
-          className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-brand-border bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50">
+          className="mt-1 inline-flex items-center gap-1.5 rounded border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-[var(--shadow-db-sm)] hover:bg-[var(--action-default-bg-hover)]">
           <RefreshCw size={13} /> Refresh
         </button>
       </div>
 
-      {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>}
+      {error && <div className="rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-3 py-2 text-sm text-destructive">{error}</div>}
 
       {/* Asset grid */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dashboard assets</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dashboard assets</h2>
           <button onClick={() => setEditing("create")} disabled={!writable}
-            className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-brand-primary-dark disabled:opacity-50">
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-[var(--shadow-db-sm)] hover:bg-blue-700 disabled:opacity-50">
             <Plus size={13} /> Add asset
           </button>
         </div>
 
         {!writable && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <div className="rounded border border-[var(--border-warning)] bg-[var(--background-warning)] px-3 py-2 text-xs text-[var(--warning)]">
             Editing assets requires Lakebase. Edit <code className="font-mono">server/assets/dashboards.seed.json</code> (or enable Lakebase) — changes appear on reload.
           </div>
         )}
 
         {loading ? (
-          <div className="flex items-center gap-2 py-8 text-slate-400"><Spinner size={20} /><span className="text-xs">Loading assets…</span></div>
+          <div className="flex items-center gap-2 py-8 text-muted-foreground"><Spinner size={20} /><span className="text-xs">Loading assets…</span></div>
         ) : assets.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-brand-border px-3 py-4 text-xs text-slate-400">No assets configured.</p>
+          <p className="rounded border border-dashed border-border px-3 py-4 text-xs text-muted-foreground">No assets configured.</p>
         ) : (
           <>
             {/* Stat strip */}
-            <div className="flex items-center gap-4 rounded-lg border border-brand-border bg-slate-50 px-4 py-2">
-              <span className="text-xs text-slate-500"><span className="font-semibold text-slate-800">{activeCount}</span> active</span>
-              <span className="text-xs text-slate-300">·</span>
-              <span className="text-xs text-slate-500"><span className="font-semibold text-slate-800">{assets.length}</span> total</span>
-              <span className="text-xs text-slate-300">·</span>
-              <span className="text-xs text-slate-500"><span className="font-semibold text-slate-800">{pageCount}</span> pages</span>
+            <div className="flex items-center gap-4 rounded border border-border bg-secondary px-4 py-2">
+              <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{activeCount}</span> active</span>
+              <span className="text-xs text-muted-foreground">·</span>
+              <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{assets.length}</span> total</span>
+              <span className="text-xs text-muted-foreground">·</span>
+              <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{pageCount}</span> pages</span>
             </div>
 
             {/* Card grid */}
@@ -149,7 +149,7 @@ export default function AssetsPage() {
                 aria-label="Create a new asset"
                 onClick={() => setEditing("create")}
                 disabled={!writable}
-                className="flex min-h-[120px] items-center justify-center gap-2 rounded-xl border border-dashed border-brand-border bg-white text-xs font-medium text-slate-400 hover:border-brand-primary hover:text-brand-primary disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex min-h-[120px] items-center justify-center gap-2 rounded-md border border-dashed border-border bg-background text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus size={15} /> Add asset
               </button>

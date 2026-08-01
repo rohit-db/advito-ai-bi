@@ -38,27 +38,27 @@ export default function HistoryDrawer({ tenant, run, onClose }: HistoryDrawerPro
       onClose={onClose}
     >
       {loading ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-400">
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
           <Spinner size={24} />
           <span className="text-xs font-medium">Loading history…</span>
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="rounded border border-[var(--border-danger)] bg-[var(--background-danger)] px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : rows.length === 0 ? (
-        <div className="py-16 text-center text-sm text-slate-400">No audit entries yet.</div>
+        <div className="py-16 text-center text-sm text-muted-foreground">No audit entries yet.</div>
       ) : (
-        <ol className="relative space-y-4 border-l border-slate-200 pl-5">
+        <ol className="relative space-y-4 border-l border-border pl-5">
           {rows.map((row) => (
             <li key={row.id} className="relative">
-              <span className="absolute -left-[23px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-brand-accent" />
+              <span className="absolute -left-[23px] top-1 h-2.5 w-2.5 rounded-full border-2 border-background bg-primary" />
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-slate-800">{row.action}</span>
+                <span className="text-sm font-semibold text-foreground">{row.action}</span>
                 <AuditStatusBadge status={row.status} />
               </div>
               <div
-                className="mt-0.5 text-[11px] text-slate-400"
+                className="mt-0.5 text-[11px] text-muted-foreground"
                 title={formatAbsolute(row.created_at)}
               >
                 {relativeTime(row.created_at)}
@@ -66,7 +66,7 @@ export default function HistoryDrawer({ tenant, run, onClose }: HistoryDrawerPro
                 {typeof row.latency_ms === "number" ? ` · ${row.latency_ms}ms` : ""}
               </div>
               {row.detail && (
-                <p className="mt-1 rounded-md bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600 break-words">
+                <p className="mt-1 rounded bg-secondary px-2.5 py-1.5 text-xs text-muted-foreground break-words">
                   {row.detail}
                 </p>
               )}
