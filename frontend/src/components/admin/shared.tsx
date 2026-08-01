@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 //
 // The app ships no dialog/table/card primitive, so these are the plain-Tailwind
 // building blocks the Service Principals admin page composes from. They match the
-// app's visual language: white surfaces, slate borders, rounded-2xl panels,
-// shadow-2xl overlays, indigo accents.
+// app's visual language: canonical DuBois tokens (bg-background, border-border,
+// shadow-[var(--shadow-db-xl)] overlays, primary/success/danger semantics).
 // =============================================================================
 
 // ─── Time formatting ─────────────────────────────────────────────────────────
@@ -87,12 +87,12 @@ export function CopyButton({
       onClick={copy}
       title={copied ? "Copied" : `Copy${label ? ` ${label}` : ""}`}
       className={cn(
-        "inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-slate-400",
-        "hover:bg-slate-100 hover:text-slate-600 transition-colors",
+        "inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-muted-foreground",
+        "hover:bg-[var(--action-default-bg-hover)] hover:text-foreground transition-colors",
         className
       )}
     >
-      {copied ? <Check size={size} className="text-emerald-500" /> : <Copy size={size} />}
+      {copied ? <Check size={size} className="text-[var(--success)]" /> : <Copy size={size} />}
       {label && <span className="text-xs font-medium">{copied ? "Copied" : label}</span>}
     </button>
   );
@@ -114,7 +114,7 @@ export function MonoValue({
       <code
         title={value}
         className={cn(
-          "font-mono text-[11px] text-slate-500",
+          "font-mono text-[11px] text-muted-foreground",
           truncate && "truncate max-w-[160px]",
           className
         )}
@@ -135,14 +135,14 @@ export function TenantStatusBadge({ status }: { status: string }) {
       className={cn(
         "gap-1.5",
         active
-          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-          : "bg-slate-100 text-slate-600 border border-slate-200"
+          ? "bg-[var(--background-success)] text-[var(--success)] border border-[var(--border-success)]"
+          : "bg-muted text-muted-foreground border border-border"
       )}
     >
       <span
         className={cn(
           "h-1.5 w-1.5 rounded-full",
-          active ? "bg-emerald-500" : "bg-slate-400"
+          active ? "bg-[var(--success)]" : "bg-muted-foreground"
         )}
       />
       {active ? "Active" : status === "deactivated" ? "Deactivated" : status}
@@ -159,10 +159,10 @@ export function AuditStatusBadge({ status }: { status: string }) {
       className={cn(
         "text-[10px] px-2 py-0.5",
         ok
-          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+          ? "bg-[var(--background-success)] text-[var(--success)] border border-[var(--border-success)]"
           : failed
-          ? "bg-rose-50 text-rose-700 border border-rose-200"
-          : "bg-slate-100 text-slate-600 border border-slate-200"
+          ? "bg-[var(--background-danger)] text-destructive border border-[var(--border-danger)]"
+          : "bg-muted text-muted-foreground border border-border"
       )}
     >
       {status || "—"}
@@ -199,34 +199,34 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
         className={cn(
-          "w-full max-h-[85vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden",
+          "w-full max-h-[85vh] flex flex-col bg-background rounded-md shadow-[var(--shadow-db-xl)] overflow-hidden",
           maxWidthClass
         )}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="shrink-0 flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="shrink-0 flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="flex items-center gap-3 min-w-0">
             {icon && (
-              <div className="w-9 h-9 rounded-xl bg-brand-primary-light flex items-center justify-center text-brand-primary shrink-0">
+              <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 {icon}
               </div>
             )}
             <div className="min-w-0">
-              <h2 className="text-base font-semibold text-slate-900 truncate">{title}</h2>
-              {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+              <h2 className="text-base font-semibold text-foreground truncate">{title}</h2>
+              {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
             </div>
           </div>
           <button
             onClick={onClose}
             title="Close"
-            className="p-2 -mr-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors shrink-0"
+            className="p-2 -mr-1 text-muted-foreground hover:text-foreground hover:bg-[var(--action-default-bg-hover)] rounded transition-colors shrink-0"
           >
             <X size={16} />
           </button>
@@ -235,7 +235,7 @@ export function Modal({
         <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
 
         {footer && (
-          <div className="shrink-0 border-t border-slate-100 bg-slate-50 px-5 py-3 flex items-center justify-end gap-2">
+          <div className="shrink-0 border-t border-border bg-secondary px-5 py-3 flex items-center justify-end gap-2">
             {footer}
           </div>
         )}
@@ -269,29 +269,29 @@ export function Drawer({
   }, [onClose]);
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/50" onClick={onClose}>
       <div
-        className="h-full w-full max-w-md flex flex-col bg-white shadow-2xl"
+        className="h-full w-full max-w-md flex flex-col bg-background shadow-[var(--shadow-db-xl)]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="shrink-0 flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="shrink-0 flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="flex items-center gap-3 min-w-0">
             {icon && (
-              <div className="w-9 h-9 rounded-xl bg-brand-primary-light flex items-center justify-center text-brand-primary shrink-0">
+              <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 {icon}
               </div>
             )}
             <div className="min-w-0">
-              <h2 className="text-base font-semibold text-slate-900 truncate">{title}</h2>
-              {subtitle && <p className="text-xs text-slate-500 mt-0.5 truncate">{subtitle}</p>}
+              <h2 className="text-base font-semibold text-foreground truncate">{title}</h2>
+              {subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
             </div>
           </div>
           <button
             onClick={onClose}
             title="Close"
-            className="p-2 -mr-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors shrink-0"
+            className="p-2 -mr-1 text-muted-foreground hover:text-foreground hover:bg-[var(--action-default-bg-hover)] rounded transition-colors shrink-0"
           >
             <X size={16} />
           </button>
@@ -308,7 +308,7 @@ export function Drawer({
 export function Spinner({ size = 16, className }: { size?: number; className?: string }) {
   return (
     <svg
-      className={cn("animate-spin text-brand-accent", className)}
+      className={cn("animate-spin text-primary", className)}
       width={size}
       height={size}
       viewBox="0 0 24 24"
