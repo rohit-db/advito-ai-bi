@@ -35,8 +35,8 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
 
   if (!steps || steps.length === 0) {
     return isStreaming ? (
-      <div className="flex items-center gap-2 text-xs text-fg-muted mb-1">
-        <ThinkingDots accent="bg-brand-accent" />
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+        <ThinkingDots accent="bg-primary" />
         <span>Genie is thinking…</span>
       </div>
     ) : null;
@@ -46,22 +46,22 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
   const stepLabel = `${steps.length} step${steps.length > 1 ? "s" : ""}`;
 
   return (
-    <div className="mb-3 rounded-lg border border-brand-primary-light bg-brand-primary-light/60 p-3">
+    <div className="mb-3 rounded-md border border-primary/20 bg-primary/5 p-3">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         disabled={isStreaming}
         className="w-full flex items-center justify-between gap-2 text-left disabled:cursor-default"
       >
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-accent flex items-center gap-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-primary flex items-center gap-1.5">
           <Zap className="w-3.5 h-3.5" /> Genie reasoning
-          <span className="text-brand-accent normal-case font-medium">· {stepLabel}</span>
+          <span className="text-primary normal-case font-medium">· {stepLabel}</span>
         </span>
         {!isStreaming &&
           (open ? (
-            <ChevronUp className="w-3.5 h-3.5 text-brand-accent shrink-0" />
+            <ChevronUp className="w-3.5 h-3.5 text-primary shrink-0" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5 text-brand-accent shrink-0" />
+            <ChevronDown className="w-3.5 h-3.5 text-primary shrink-0" />
           ))}
       </button>
 
@@ -70,11 +70,11 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
           {steps.map((step, idx) => {
             const pending = isStreaming && idx === steps.length - 1;
             return (
-              <li key={idx} className="flex items-start gap-2 text-xs text-fg-2">
+              <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
                 {pending ? (
-                  <span className="w-3.5 h-3.5 mt-0.5 border-2 border-brand-accent border-t-transparent rounded-full animate-spin shrink-0" />
+                  <span className="w-3.5 h-3.5 mt-0.5 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
                 ) : (
-                  <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "var(--success-fg)" }} />
+                  <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "var(--success)" }} />
                 )}
                 <span className="break-words">{step}</span>
               </li>
@@ -82,7 +82,7 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
           })}
         </ol>
       ) : (
-        <p className="mt-1.5 text-xs text-fg-muted truncate">{steps[steps.length - 1]}</p>
+        <p className="mt-1.5 text-xs text-muted-foreground truncate">{steps[steps.length - 1]}</p>
       )}
     </div>
   );
@@ -91,8 +91,8 @@ function FullReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: b
 function CompactReasoning({ steps, isStreaming }: { steps: string[]; isStreaming: boolean }) {
   if (!steps || steps.length === 0) {
     return isStreaming ? (
-      <div className="flex items-center gap-2 text-[11px] text-fg-muted mb-1.5">
-        <ThinkingDots accent="bg-brand-primary" />
+      <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-1.5">
+        <ThinkingDots accent="bg-primary" />
         <span>Thinking…</span>
       </div>
     ) : null;
@@ -100,16 +100,16 @@ function CompactReasoning({ steps, isStreaming }: { steps: string[]; isStreaming
 
   if (isStreaming) {
     return (
-      <div className="mb-2 flex items-start gap-1.5 text-[11px] text-fg-2">
-        <span className="w-3 h-3 mt-0.5 border-2 border-brand-primary border-t-transparent rounded-full animate-spin shrink-0" />
+      <div className="mb-2 flex items-start gap-1.5 text-[11px] text-muted-foreground">
+        <span className="w-3 h-3 mt-0.5 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
         <span className="break-words">{steps[steps.length - 1]}</span>
       </div>
     );
   }
 
   return (
-    <div className="mb-2 flex items-start gap-1.5 text-[11px] text-fg-muted">
-      <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0" style={{ color: "var(--success-fg)" }} />
+    <div className="mb-2 flex items-start gap-1.5 text-[11px] text-muted-foreground">
+      <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0" style={{ color: "var(--success)" }} />
       <span className="break-words">
         {steps.length} reasoning step{steps.length > 1 ? "s" : ""} · {steps[steps.length - 1]}
       </span>

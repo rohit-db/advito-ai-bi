@@ -37,49 +37,49 @@ export default function GenieToolCalls({
   return (
     <div className="mt-3 border-t border-border pt-3">
       <button onClick={onToggle} className="flex items-center justify-between w-full text-left">
-        <span className="flex items-center gap-2 text-xs font-semibold text-fg-2 uppercase tracking-wide">
+        <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           <Wrench className="w-4 h-4" />
           <span>
             Under the hood · {toolCalls.length} MCP call{toolCalls.length > 1 ? "s" : ""}
           </span>
         </span>
         {open ? (
-          <ChevronUp className="w-4 h-4 text-fg-muted" />
+          <ChevronUp className="w-4 h-4 text-muted-foreground" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-fg-muted" />
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
         )}
       </button>
 
       {open && (
         <div className="mt-2 space-y-2">
           {asks.map((t, i) => (
-            <div key={`ask-${i}`} className="rounded-lg border border-border bg-surface-2 p-2.5">
-              <div className="flex items-center gap-2 text-[11px] font-mono text-brand-accent">
-                <span className="px-1.5 py-0.5 bg-brand-primary-light rounded uppercase">ask</span>
+            <div key={`ask-${i}`} className="rounded-md border border-border bg-secondary p-2.5">
+              <div className="flex items-center gap-2 text-[11px] font-mono text-primary">
+                <span className="px-1.5 py-0.5 bg-primary/10 rounded uppercase">ask</span>
                 <span className="truncate">{t.tool}</span>
               </div>
-              <pre className="mt-1.5 text-[10px] text-fg-2 font-mono overflow-x-auto whitespace-pre-wrap break-all">
+              <pre className="mt-1.5 text-[10px] text-muted-foreground font-mono overflow-x-auto whitespace-pre-wrap break-all">
                 {JSON.stringify(t.args ?? {}, null, 2)}
               </pre>
               {summarizeToolResult(t.result) && (
-                <div className="mt-1 text-[10px] text-fg-muted">→ {summarizeToolResult(t.result)}</div>
+                <div className="mt-1 text-[10px] text-muted-foreground">→ {summarizeToolResult(t.result)}</div>
               )}
             </div>
           ))}
 
           {polls.length > 0 && (
-            <div className="rounded-lg border border-border bg-surface-2 p-2.5">
-              <div className="flex items-center gap-2 text-[11px] font-mono text-brand-primary">
-                <span className="px-1.5 py-0.5 bg-brand-primary-light rounded uppercase">poll</span>
+            <div className="rounded-md border border-border bg-secondary p-2.5">
+              <div className="flex items-center gap-2 text-[11px] font-mono text-primary">
+                <span className="px-1.5 py-0.5 bg-primary/10 rounded uppercase">poll</span>
                 <span className="truncate">{polls[0].tool}</span>
-                <span className="text-fg-muted">· {polls.length}×</span>
+                <span className="text-muted-foreground">· {polls.length}×</span>
               </div>
               {pollStatuses.length > 0 && (
                 <div className="mt-1.5 flex flex-wrap items-center gap-1">
                   {pollStatuses.map((s, i) => (
                     <span key={i} className="flex items-center gap-1">
-                      {i > 0 && <span className="text-fg-subtle text-[10px]">→</span>}
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-surface border border-border rounded text-fg-2">
+                      {i > 0 && <span className="text-muted-foreground text-[10px]">→</span>}
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-background border border-border rounded text-muted-foreground">
                         {s}
                       </span>
                     </span>

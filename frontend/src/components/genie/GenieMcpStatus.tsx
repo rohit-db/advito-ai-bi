@@ -6,7 +6,7 @@ export function McpStatusPill({ status, onRetry }: { status: McpStatus; onRetry:
   if (status.state === "connecting") {
     return (
       <span
-        className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium text-fg-muted bg-surface-2"
+        className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium text-muted-foreground bg-secondary"
         style={{ borderColor: "var(--border)" }}
       >
         <Radio className="h-3 w-3 animate-pulse" />
@@ -21,12 +21,12 @@ export function McpStatusPill({ status, onRetry }: { status: McpStatus; onRetry:
         title={status.message}
         className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors"
         style={{
-          background: "rgba(196,64,64,0.12)",
-          borderColor: "rgba(196,64,64,0.30)",
-          color: "var(--danger-fg)",
+          background: "var(--background-danger)",
+          borderColor: "var(--border-danger)",
+          color: "var(--destructive)",
         }}
       >
-        <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--danger)" }} />
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--destructive)" }} />
         MCP offline — retry
       </button>
     );
@@ -37,14 +37,14 @@ export function McpStatusPill({ status, onRetry }: { status: McpStatus; onRetry:
       title={toolNames ? `Tools: ${toolNames}` : undefined}
       className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium"
       style={{
-        background: "rgba(48,160,80,0.12)",
-        borderColor: "rgba(48,160,80,0.30)",
-        color: "var(--success-fg)",
+        background: "var(--background-success)",
+        borderColor: "var(--border-success)",
+        color: "var(--success)",
       }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--success)" }} />
       Live MCP
-      <span style={{ color: "var(--success-fg)", opacity: 0.7 }}>
+      <span style={{ color: "var(--success)", opacity: 0.7 }}>
         · {status.auth === "obo" ? "on-behalf-of user" : "service principal"}
       </span>
     </span>
@@ -58,7 +58,7 @@ export function McpStatusDot({ state }: { state: McpStatus["state"] }) {
       ? { background: "var(--success)" }
       : state === "connecting"
         ? { background: "var(--warning)" }
-        : { background: "var(--danger)" };
+        : { background: "var(--destructive)" };
   const animateClass = state === "connecting" ? "animate-pulse" : "";
   const title =
     state === "connected"
