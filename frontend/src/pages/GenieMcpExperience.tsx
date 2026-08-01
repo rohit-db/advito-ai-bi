@@ -71,19 +71,19 @@ export default function GenieMcpExperience() {
         disabled={isLoading}
       />
 
-      <div className="relative flex-1 flex flex-col h-full min-w-0 bg-surface">
+      <div className="relative flex-1 flex flex-col h-full min-w-0 bg-background">
         {/* Header */}
-        <header className="z-10 shrink-0 border-b border-border bg-surface-2 px-6 py-3">
+        <header className="z-10 shrink-0 border-b border-border bg-secondary px-6 py-3">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-3">
-                <Sparkles className="h-[18px] w-[18px] text-fg-muted" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
+                <Sparkles className="h-[18px] w-[18px] text-muted-foreground" />
               </div>
               <div>
-                <h1 className="text-[15px] font-medium leading-tight tracking-tight text-fg">
+                <h1 className="text-[15px] font-medium leading-tight tracking-tight text-foreground">
                   Ask APEX
                 </h1>
-                <p className="text-[11px] text-fg-muted">Conversational analytics, governed</p>
+                <p className="text-[11px] text-muted-foreground">Conversational analytics, governed</p>
               </div>
             </div>
             <McpStatusPill status={mcpStatus} onRetry={checkHealth} />
@@ -95,10 +95,10 @@ export default function GenieMcpExperience() {
           <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
             <div className="relative z-10 w-full max-w-2xl text-center">
               <GradientMark size={56} className="mx-auto mb-5" />
-              <h2 className="text-3xl font-medium tracking-tight text-fg">
+              <h2 className="text-3xl font-medium tracking-tight text-foreground">
                 Ask APEX anything
               </h2>
-              <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-fg-muted">
+              <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-muted-foreground">
                 Grounded answers on your travel spend, sustainability, and bookings — with live SQL
                 and results.
               </p>
@@ -117,7 +117,7 @@ export default function GenieMcpExperience() {
                   <button
                     key={q}
                     onClick={() => !isLoading && sendMessage(q)}
-                    className="rounded-sm border border-border bg-surface px-3.5 py-1.5 text-[13px] text-fg-2 transition-colors hover:bg-[var(--fill-hover)] hover:text-fg"
+                    className="rounded border border-border bg-background px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-[var(--action-default-bg-hover)] hover:text-foreground"
                   >
                     {q}
                   </button>
@@ -151,13 +151,13 @@ export default function GenieMcpExperience() {
             </div>
 
             {/* Footer composer */}
-            <div className="shrink-0 bg-surface px-6 pb-5 pt-3">
+            <div className="shrink-0 bg-background px-6 pb-5 pt-3">
               <div className="mx-auto flex max-w-3xl items-center gap-2.5">
                 <button
                   type="button"
                   onClick={clearChat}
                   title="New conversation"
-                  className="flex h-11 shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface px-3.5 text-sm font-medium text-fg-2 transition-colors hover:bg-[var(--fill-hover)] hover:text-fg"
+                  className="flex h-11 shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--action-default-bg-hover)] hover:text-foreground"
                 >
                   <Plus size={16} />
                   <span className="hidden sm:inline">New</span>
@@ -196,9 +196,9 @@ function HeroComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="gradient-border group relative flex items-center rounded-md bg-[var(--fill-hover)] px-4 py-2.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
+      className="gradient-border group relative flex items-center rounded-md bg-background px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-ring"
     >
-      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-fg-muted" />
+      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-muted-foreground" />
       {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
       <input
         autoFocus
@@ -207,7 +207,7 @@ function HeroComposer({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ask about spend, emissions, bookings…"
         disabled={disabled}
-        className="flex-1 bg-transparent py-1.5 text-[15px] text-fg placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed"
+        className="flex-1 bg-transparent py-1.5 text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed"
       />
       <SendButton disabled={disabled || !value.trim()} />
     </form>
@@ -231,7 +231,7 @@ function FooterComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="flex flex-1 items-center rounded-md border border-border bg-[var(--fill-hover)] px-4 py-1.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
+      className="flex flex-1 items-center rounded-md border border-input bg-background px-4 py-1.5 transition-all focus-within:ring-2 focus-within:ring-ring"
     >
       <input
         type="text"
@@ -239,7 +239,7 @@ function FooterComposer({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ask a follow-up…"
         disabled={disabled}
-        className="h-8 flex-1 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed"
+        className="h-8 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed"
       />
       <SendButton disabled={disabled || !value.trim()} />
     </form>
@@ -251,7 +251,7 @@ function SendButton({ disabled }: { disabled?: boolean }) {
     <button
       type="submit"
       disabled={disabled}
-      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-accent text-accent-fg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-30"
+      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
     >
       <ArrowUp size={16} strokeWidth={2.5} />
     </button>
@@ -261,11 +261,11 @@ function SendButton({ disabled }: { disabled?: boolean }) {
 function UserBubble({ message, initials }: { message: GenieMcpMessage; initials: string }) {
   return (
     <div className="flex items-start justify-end gap-2.5">
-      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-[var(--fill-active)] px-4 py-2.5 text-fg">
+      <div className="max-w-[80%] rounded-md rounded-br-md bg-primary/10 px-4 py-2.5 text-foreground">
         <p className="text-sm leading-relaxed">{message.content}</p>
       </div>
-      <Avatar className="h-7 w-7 shrink-0 ring-2 ring-[var(--surface)]">
-        <AvatarFallback className="bg-surface-3 text-[10px] font-semibold text-fg-muted">
+      <Avatar className="h-7 w-7 shrink-0 ring-2 ring-[var(--background)]">
+        <AvatarFallback className="bg-muted text-[10px] font-semibold text-muted-foreground">
           {initials}
         </AvatarFallback>
       </Avatar>

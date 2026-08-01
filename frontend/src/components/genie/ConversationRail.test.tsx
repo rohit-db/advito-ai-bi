@@ -16,6 +16,6 @@ describe("ConversationRail (DuBois)", () => {
     expect(html).not.toMatch(/fuchsia|from-brand-|bg-linear-to/);
     // active row carries an accent marker
     const activeRow = screen.getByText("Spend Q1").closest("div")!;
-    expect(activeRow.parentElement!.innerHTML).toMatch(/bg-accent/);
+    expect(activeRow.parentElement!.innerHTML).toMatch(/bg-primary/);
   });
 });
