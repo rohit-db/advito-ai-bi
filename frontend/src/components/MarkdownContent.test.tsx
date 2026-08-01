@@ -8,7 +8,7 @@ describe("MarkdownContent (DuBois tokens)", () => {
       <MarkdownContent content={"# Title\n\nBody **bold** and `code` and [a link](https://x.com)."} />
     );
     expect(container.innerHTML).not.toMatch(/slate-\d|text-brand-primary|bg-white/);
-    // links use the accent token
+    // links use the primary token
     const link = container.querySelector("a");
     if (link) expect(link.className).toMatch(/text-primary/);
     expect(container.textContent).toMatch(/Title/);
