@@ -174,6 +174,10 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  /* DuBois system font stacks */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
   /* DuBois radius scale */
   --radius-sm: calc(var(--radius) - 0px);   /* same as base = 4px */
   --radius-md: calc(var(--radius) + 4px);   /* 8px for cards/modals */
@@ -255,6 +259,9 @@
   --sidebar-accent-foreground: #161616;
   --sidebar-border: #ebebeb;
   --sidebar-ring: #2272b4;
+
+  /* AI-cue gradient (consumed by .gradient-border + login monogram) */
+  --accent-gradient: linear-gradient(135deg, #4299e0 20.5%, #ca42e0 46.91%, #ff5f46 79.5%);
 
   /* NewButton brand tints — pre-resolved rgba so Figma can bind to a variable */
   --newbutton-bg:             rgba(255, 54, 33, 0.0800);
@@ -504,139 +511,6 @@
 html, body, #root {
   height: 100%;
   margin: 0;
-}
-
-/* ============================================================================
-   TEMPORARY ALIAS LAYER — legacy Prism token names → canonical DuBois tokens.
-   Exists only so existing components keep working this phase. Phase 3 migrates
-   components onto canonical names; Phase 6 DELETES this whole section.
-   Do NOT add new usages of these aliases.
-   ============================================================================ */
-:root {
-  /* surfaces */
-  --surface: var(--background);          /* was near-white content bg */
-  --surface-2: var(--secondary);         /* #f7f7f7 warm-grey chrome */
-  --surface-3: #ebebeb;                  /* neutral-100 */
-
-  /* foreground ramp */
-  --fg: var(--foreground);               /* #161616 */
-  --fg-2: #262626;                       /* neutral-700 */
-  --fg-muted: var(--muted-foreground);   /* #6f6f6f */
-  --fg-subtle: #6f6f6f;
-  --fg-ghost: #939393;                   /* neutral-400 */
-  --fg-disabled: #a2a2a2;                /* neutral-350 */
-
-  /* borders */
-  --border-hover: #d8d8d8;               /* neutral-200 */
-  --border-emphasis: #cbcbcb;            /* neutral-300 */
-
-  /* neutral fills (map to DuBois neutral table-row tints) */
-  --fill-hover: var(--table-row-hover);
-  --fill-active: var(--table-row-selected);
-  --fill-press: var(--table-row-selected-hover);
-  --fill-emphasis: var(--table-row-selected-hover);
-
-  /* --overlay is an RGB triple for rgba(var(--overlay),x) consumers (focus rings, scrollbars,
-     dividers). VERIFIED Phase 3: canonical DuBois ui/* modals (dialog/sheet/drawer) use bg-black/50,
-     NOT var(--overlay) — so no bare-color consumer exists and this override is safe & kit-aligned.
-     (Canonical globals.css defines --overlay as a scrim rgba(0,0,0,0.26) that no component consumes.) */
-  --overlay: 82, 82, 82;
-
-  /* brand action color: our --accent === DuBois --primary (NOT DuBois --accent!) */
-  --accent: var(--primary);
-  --accent-fg: var(--primary-foreground);
-  --accent-hover: color-mix(in srgb, var(--primary) 88%, black);
-  --accent-gradient: linear-gradient(135deg, #4299e0 20.5%, #ca42e0 46.91%, #ff5f46 79.5%);
-
-  /* state colors */
-  --danger: var(--destructive);
-  --danger-fg: var(--destructive);
-  --warning-fg: var(--warning);
-  --success-fg: var(--success);
-
-  /* data-viz */
-  --viz1: var(--chart-4);                /* red */
-  --viz2: var(--chart-3);                /* orange */
-  --viz3: var(--chart-2);                /* green */
-
-  /* elevation → DuBois shadow scale */
-  --shadow-sm: var(--shadow-db-sm);
-  --shadow-md: var(--shadow-db-md);
-  --shadow-lg: var(--shadow-db-lg);
-
-  /* fonts → canonical DuBois system stacks (Inter retired) */
-  --brand-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-  /* legacy brand-* (used by ~20 not-yet-migrated files) → canonical */
-  --brand-primary: var(--primary);
-  --brand-primary-dark: #0e538b;         /* blue-700 */
-  --brand-primary-light: #d7edfe;        /* blue-200 */
-  --brand-accent: var(--primary);
-  --brand-accent-dark: #0e538b;
-  --brand-sidebar-from: var(--secondary);
-  --brand-sidebar-via: var(--secondary);
-  --brand-sidebar-to: var(--secondary);
-  --brand-bg: var(--secondary);
-  --brand-border: var(--border);
-
-  /* legacy neutral ramp n0..n12 → warm DuBois neutral values (light) */
-  --n0: #ffffff; --n1: #ffffff; --n2: #f7f7f7; --n3: #ebebeb; --n4: #d8d8d8;
-  --n5: #cbcbcb; --n6: #a2a2a2; --n7: #939393; --n8: #6f6f6f; --n9: #525252;
-  --n10: #424242; --n11: #262626; --n12: #161616;
-}
-
-.dark {
-  --surface-3: #262626;
-  --fg-2: #d1d9e1;                        /* grey-200 */
-  --fg-subtle: #92a4b3;                   /* grey-350 */
-  --fg-ghost: #8396a5;                    /* grey-400 */
-  --fg-disabled: #5f7281;                 /* grey-500 */
-  --border-hover: #37444f;                /* grey-650 */
-  --border-emphasis: #445461;             /* grey-600 */
-  --overlay: 189, 205, 219;               /* matches DuBois dark table-row rgba base */
-  --brand-primary-dark: #8acaff;          /* blue-400 */
-  --brand-primary-light: #04355d;         /* blue-800 */
-  --brand-accent-dark: #8acaff;
-
-  /* legacy neutral ramp (dark) → DuBois grey values */
-  --n0: #11171c; --n1: #11171c; --n2: #1f272d; --n3: #262626; --n4: #37444f;
-  --n5: #445461; --n6: #5f7281; --n7: #8396a5; --n8: #92a4b3; --n9: #c0cdd8;
-  --n10: #d1d9e1; --n11: #e8ecf0; --n12: #f6f7f9;
-}
-
-/* Legacy Tailwind utility names (bg-surface, text-fg, bg-brand-*, …) keep resolving. */
-@theme inline {
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-surface-3: var(--surface-3);
-  --color-fg: var(--fg);
-  --color-fg-2: var(--fg-2);
-  --color-fg-muted: var(--fg-muted);
-  --color-fg-subtle: var(--fg-subtle);
-  --color-fg-ghost: var(--fg-ghost);
-  --color-fg-disabled: var(--fg-disabled);
-  --color-border-hover: var(--border-hover);
-  --color-border-emphasis: var(--border-emphasis);
-  --color-accent: var(--accent);
-  --color-accent-fg: var(--accent-fg);
-  --color-accent-hover: var(--accent-hover);
-  --color-danger: var(--danger);
-  --color-danger-fg: var(--danger-fg);
-  --color-warning-fg: var(--warning-fg);
-  --color-success-fg: var(--success-fg);
-  --color-brand-primary: var(--brand-primary);
-  --color-brand-primary-dark: var(--brand-primary-dark);
-  --color-brand-primary-light: var(--brand-primary-light);
-  --color-brand-accent: var(--brand-accent);
-  --color-brand-accent-dark: var(--brand-accent-dark);
-  --color-brand-sidebar-from: var(--brand-sidebar-from);
-  --color-brand-sidebar-via: var(--brand-sidebar-via);
-  --color-brand-sidebar-to: var(--brand-sidebar-to);
-  --color-brand-bg: var(--brand-bg);
-  --color-brand-border: var(--brand-border);
-  --font-sans: var(--brand-font-sans);
-  --font-mono: var(--font-mono);
 }
 
 /* canonical gradient flourish border (replaces the old --surface-based rule) */
