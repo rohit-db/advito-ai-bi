@@ -441,7 +441,7 @@ function AreaChart({
 
   const line = data.map((d, i) => `${x(i)},${y(d.value)}`).join(" ");
   const area = `0,${CHART_H} ${line} ${CHART_W},${CHART_H}`;
-  const gid = `grad-${accent.replace("#", "")}`;
+  const gid = "apex-spend-grad";
 
   return (
     <svg

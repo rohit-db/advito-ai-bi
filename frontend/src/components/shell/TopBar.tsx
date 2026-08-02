@@ -22,7 +22,7 @@ export default function TopBar({ collapsed, onToggle }: { collapsed: boolean; on
   const currentRoute = routes.find((r) => r.path === location.pathname);
   const pageTitle = currentRoute?.label ?? brand.identity.appName;
   const sectionLabel = currentRoute ? SECTION_LABELS[currentRoute.section] : undefined;
-  const clientName = user?.tenant ?? "All clients";
+  const clientName = user?.tenant || "All clients";
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 bg-secondary px-3">

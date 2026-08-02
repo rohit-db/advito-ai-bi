@@ -13,7 +13,6 @@
   "dependencies": {
     "@databricks/aibi-client": "^1.0.3-alpha.0",
     "@mcp-ui/client": "^7.1.1",
-    "@radix-ui/react-use-controllable-state": "^1.2.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
