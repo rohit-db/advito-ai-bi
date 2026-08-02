@@ -39,8 +39,8 @@ export function RegistryProvider({ children }: { children: ReactNode }) {
 
   if (!registry) {
     return (
-      <div className="h-full flex items-center justify-center bg-brand-bg">
-        <Loader2 size={28} className="animate-spin text-brand-accent" />
+      <div className="h-full flex items-center justify-center bg-secondary">
+        <Loader2 size={28} className="animate-spin text-primary" />
       </div>
     );
   }

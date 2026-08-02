@@ -24,35 +24,35 @@ export default function UserMenu({ user }: { user: UserLike | null }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="group flex items-center gap-2.5 rounded-full pl-1 pr-2.5 py-1 hover:bg-[var(--fill-hover)] transition-colors">
-          <Avatar size="sm" className="ring-2 ring-[var(--surface-2)] shadow-sm">
-            <AvatarFallback className="bg-linear-to-br from-brand-primary to-brand-accent text-white text-[11px] font-semibold">
+        <button className="group flex items-center gap-2.5 rounded-full pl-1 pr-2.5 py-1 hover:bg-[var(--action-default-bg-hover)] transition-colors">
+          <Avatar size="sm" className="ring-2 ring-[var(--secondary)] shadow-db-xs">
+            <AvatarFallback className="bg-primary text-primary-foreground text-[11px] font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <span className="text-[13px] font-medium text-fg-2 max-w-[140px] truncate hidden sm:inline">
+          <span className="text-[13px] font-medium text-muted-foreground max-w-[140px] truncate hidden sm:inline">
             {displayName}
           </span>
-          <ChevronRight size={14} className="text-fg-muted rotate-90 hidden sm:inline" />
+          <ChevronRight size={14} className="text-muted-foreground rotate-90 hidden sm:inline" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-0 overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-3.5 bg-surface-2 border-b border-border">
-          <Avatar size="sm" className="ring-2 ring-[var(--surface-2)] shadow-sm">
-            <AvatarFallback className="bg-linear-to-br from-brand-primary to-brand-accent text-white text-[11px] font-semibold">
+        <div className="flex items-center gap-3 px-4 py-3.5 bg-secondary border-b border-border">
+          <Avatar size="sm" className="ring-2 ring-[var(--secondary)] shadow-db-xs">
+            <AvatarFallback className="bg-primary text-primary-foreground text-[11px] font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <div className="text-sm font-medium text-fg truncate">{displayName}</div>
-            {email && <div className="text-xs text-fg-muted truncate">{email}</div>}
+            <div className="text-sm font-medium text-foreground truncate">{displayName}</div>
+            {email && <div className="text-xs text-muted-foreground truncate">{email}</div>}
           </div>
         </div>
         <a
           href="/logout"
-          className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-fg-2 hover:bg-[var(--fill-hover)] transition-colors"
+          className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-[var(--action-default-bg-hover)] transition-colors"
         >
-          <LogOut size={15} className="text-fg-muted" />
+          <LogOut size={15} className="text-muted-foreground" />
           Sign out
         </a>
       </PopoverContent>

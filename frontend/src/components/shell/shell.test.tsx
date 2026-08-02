@@ -13,7 +13,7 @@ describe("shell — Breadcrumb", () => {
   it("renders the page title with fg token, no slate", () => {
     const { container } = render(<Breadcrumb page="Spend" />);
     const title = screen.getByText("Spend");
-    expect(title.className).toMatch(/text-fg\b/);
+    expect(title.className).toMatch(/text-foreground\b/);
     expect(container.innerHTML).not.toMatch(/slate-\d/);
   });
   it("renders the section label when provided", () => {
@@ -38,8 +38,8 @@ describe("shell — UserMenu", () => {
       <UserMenu user={{ displayName: "Dana Lee", email: "dana@x.com", initials: "DL" }} />
     );
     expect(screen.getAllByText("DL").length).toBeGreaterThan(0);
-    // gradient avatar (deliberate departure) preserved
-    expect(container.innerHTML).toMatch(/from-brand-primary/);
+    // bg-primary avatar fallback (canonical token)
+    expect(container.innerHTML).toMatch(/bg-primary/);
     // no legacy slate chrome
     expect(container.innerHTML).not.toMatch(/slate-\d/);
   });

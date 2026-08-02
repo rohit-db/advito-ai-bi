@@ -17,7 +17,7 @@ export function BrandLogo({
     return (
       <span
         className={cn(
-          "grid place-items-center rounded-xl bg-linear-to-br from-brand-primary to-brand-accent text-white font-bold shadow-lg",
+          "grid place-items-center rounded-md bg-primary text-primary-foreground font-semibold shadow-db-lg",
           className
         )}
       >

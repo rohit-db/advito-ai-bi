@@ -11,7 +11,7 @@ export default function ThemeToggle() {
       onClick={() => setTheme(toDark ? "dark" : "light")}
       aria-label={label}
       title={label}
-      className="grid place-items-center h-6 w-6 rounded-sm text-fg-ghost hover:bg-[var(--fill-hover)] hover:text-fg-muted transition-colors"
+      className="grid place-items-center h-6 w-6 rounded text-muted-foreground hover:bg-[var(--action-default-bg-hover)] hover:text-foreground transition-colors"
     >
       {toDark ? <Moon size={15} /> : <Sun size={15} />}
     </button>
