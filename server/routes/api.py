@@ -38,7 +38,7 @@ def get_me():
     except Exception:
         return {
             "displayName": "Demo User",
-            "email": "demo@advito.com",
+            "email": "demo@prism.example",
             "initials": "DU",
         }
 

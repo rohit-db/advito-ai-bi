@@ -286,7 +286,7 @@ export default function OnboardDialog({ onSubmit, onClose }: OnboardDialogProps)
             spellCheck={false}
           />
           <p className="mt-1.5 text-[11px] text-muted-foreground">
-            Overrides the default Genie space for this tenant's Ask APEX experience.
+            Overrides the default Genie space for this tenant's Ask Prism experience.
           </p>
         </div>
 

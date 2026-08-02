@@ -4,7 +4,7 @@ from server import brand
 
 def test_load_brand_returns_config_values():
     b = brand.load_brand()
-    assert b["identity"]["appName"] == "APEX"
+    assert b["identity"]["appName"] == "Prism"
     assert b["colors"]["primary"].startswith("#")
 
 

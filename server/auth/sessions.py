@@ -26,7 +26,7 @@ import secrets
 import time
 
 # --- env contract -----------------------------------------------------------
-SESSION_COOKIE = os.environ.get("AUTH_SESSION_COOKIE", "apex_session").strip() or "apex_session"
+SESSION_COOKIE = os.environ.get("AUTH_SESSION_COOKIE", "prism_session").strip() or "prism_session"
 try:
     SESSION_TTL_SECONDS = int(os.environ.get("AUTH_SESSION_TTL_SECONDS", "28800"))
 except ValueError:
@@ -38,7 +38,7 @@ _PBKDF2_ITERATIONS = 200_000
 def _session_secret() -> str:
     """The HMAC signing secret. Read at call time so tests/processes can set it
     after import. Falls back to a clearly-marked dev default."""
-    return os.environ.get("AUTH_SESSION_SECRET", "").strip() or "apex-dev-session-secret-change-me"
+    return os.environ.get("AUTH_SESSION_SECRET", "").strip() or "prism-dev-session-secret-change-me"
 
 
 # ------------------------------------------------------------------ passwords

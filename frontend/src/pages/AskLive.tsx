@@ -14,10 +14,10 @@ const SUGGESTIONS = [
   "Monthly booking volume trend",
 ];
 
-// The interactive counterpart to the text-only "Ask APEX" page: this renders
+// The interactive counterpart to the text-only "Ask Prism" page: this renders
 // Genie One MCP's `view_ask` **App View** (charts + progress inline) inside a
 // sandboxed iframe via @mcp-ui/client. See docs/handoff/ask-apex-genie-mcp.md.
-export default function AskApexLive() {
+export default function AskLive() {
   const {
     messages,
     isLoading,
@@ -78,7 +78,7 @@ export default function AskApexLive() {
             </div>
             <div>
               <h1 className="text-[15px] font-medium leading-tight tracking-tight text-foreground">
-                Ask APEX MCP View
+                Ask Prism MCP View
               </h1>
               <p className="text-[11px] text-muted-foreground">
                 Interactive Genie answers with charts, rendered inline
@@ -105,7 +105,7 @@ export default function AskApexLive() {
         <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
           <div className="relative z-10 w-full max-w-2xl text-center">
             <GradientMark size={56} className="mx-auto mb-5" />
-            <h2 className="text-3xl font-medium tracking-tight text-foreground">Ask APEX, see the chart</h2>
+            <h2 className="text-3xl font-medium tracking-tight text-foreground">Ask Prism, see the chart</h2>
             <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-muted-foreground">
               Genie writes the SQL and renders the answer as a live, interactive visualization —
               right here in the conversation.

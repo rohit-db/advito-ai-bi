@@ -1,4 +1,4 @@
-"""APEX persistence API — conversation history + user filter preferences.
+"""Prism persistence API — conversation history + user filter preferences.
 
 All routes are scoped to the white-label session identity
 (``current_identity`` → email/tenant), so each viewer only ever sees and
@@ -6,7 +6,7 @@ mutates their own threads and saved filters. When Lakebase is disabled the
 endpoints degrade gracefully (empty lists / ``persisted: false``) so the demo
 still runs against the JSON-only path.
 
-Mounted at ``/api/apex`` (see ``app.py``).
+Mounted at ``/api/prism`` (see ``app.py``).
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from .. import persistence
 from ..auth import current_identity
 
-logger = logging.getLogger("server.routes.apex")
+logger = logging.getLogger("server.routes.prism")
 
 router = APIRouter()
 
@@ -34,7 +34,7 @@ def _user(request: Request) -> tuple[str, str]:
     identity = current_identity(request)
     if identity and identity.get("email"):
         return identity["email"], identity.get("tenant", "") or ""
-    return "operator@apex.example", "All Clients"
+    return "operator@prism.example", "All Clients"
 
 
 # ============================================================ conversations

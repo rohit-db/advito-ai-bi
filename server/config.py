@@ -59,7 +59,7 @@ WAREHOUSE_NAME = os.environ.get("WAREHOUSE_NAME", "Serverless Starter Warehouse"
 # Account group whose members bypass the tenant row filter (admins/back-office).
 TENANT_ADMIN_GROUP = os.environ.get("TENANT_ADMIN_GROUP", "admins").strip()
 # Display-name prefix for onboarded per-tenant Service Principals.
-TENANT_SP_PREFIX = os.environ.get("TENANT_SP_PREFIX", "apex-tenant").strip()
+TENANT_SP_PREFIX = os.environ.get("TENANT_SP_PREFIX", "prism-tenant").strip()
 # Optional CLI profile used ONLY for SP lifecycle (create/rotate/delete), which
 # requires workspace-admin. Lets you onboard locally as an admin without making
 # the app SP an admin. Falls back to the app SP client when unset.

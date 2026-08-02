@@ -5,13 +5,13 @@ import { ThemeProvider } from "./ThemeProvider";
 beforeEach(() => {
   localStorage.clear();
   document.documentElement.classList.remove("dark", "light");
-  document.getElementById("apex-accent")?.remove();
+  document.getElementById("prism-accent")?.remove();
 });
 
 describe("ThemeProvider", () => {
-  it("injects #apex-accent with :root and .dark --primary rules", () => {
+  it("injects #prism-accent with :root and .dark --primary rules", () => {
     render(<ThemeProvider>x</ThemeProvider>);
-    const el = document.getElementById("apex-accent");
+    const el = document.getElementById("prism-accent");
     expect(el).toBeTruthy();
     expect(el!.textContent).toMatch(/:root\{[^}]*--primary:/);
     expect(el!.textContent).toMatch(/\.dark\{[^}]*--primary:/);
@@ -26,7 +26,7 @@ describe("ThemeProvider", () => {
   });
 
   it("applies the stored dark theme (adds .dark class)", async () => {
-    localStorage.setItem("apex-theme", "dark");
+    localStorage.setItem("prism-theme", "dark");
     render(<ThemeProvider>x</ThemeProvider>);
     await waitFor(() =>
       expect(document.documentElement.classList.contains("dark")).toBe(true)

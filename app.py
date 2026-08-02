@@ -37,8 +37,8 @@ from server.routes.assets_admin import router as assets_admin_router
 app.include_router(assets_admin_router, prefix="/api")
 
 # Conversation history + user filter preferences, persisted in Lakebase.
-from server.routes.apex import router as apex_router
-app.include_router(apex_router, prefix="/api/apex")
+from server.routes.prism import router as prism_router
+app.include_router(prism_router, prefix="/api/prism")
 
 
 @app.on_event("startup")

@@ -10,9 +10,9 @@ def test_list_logins_includes_role(monkeypatch):
     assert logins, "expected at least one demo login in JSON fallback"
     for row in logins:
         assert set(["name", "tenant", "email", "role"]).issubset(row.keys())
-    # The seeded operator (dana@apex.example) must be present with role operator.
+    # The seeded operator (dana@prism.example) must be present with role operator.
     operators = [r for r in logins if r["role"] == "operator"]
-    assert any(r["email"] == "dana@apex.example" for r in operators)
+    assert any(r["email"] == "dana@prism.example" for r in operators)
 
 
 def test_render_has_mode_toggle(monkeypatch):

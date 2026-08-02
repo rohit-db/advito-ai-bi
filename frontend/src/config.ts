@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 // =============================================================================
-// APEX app configuration
+// Prism app configuration
 //
 // This file owns:
 //   1. FILTERS  — the logical filter vocabulary the UI knows about
@@ -43,7 +43,7 @@ export const WORKSPACE =
   import.meta.env.VITE_WORKSPACE_URL ?? "https://dbc-1e27e56a-90cd.cloud.databricks.com";
 export const ORG = import.meta.env.VITE_WORKSPACE_ORG ?? "1048934788948873";
 
-// Genie space backing the global "Ask APEX" experience.
+// Genie space backing the global "Ask Prism" experience.
 export const GENIE_SPACE_ID = "01f127092d2219f3be10180d79b2ee5d";
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
@@ -337,7 +337,7 @@ export async function fetchKpiTrend(filters?: FilterState): Promise<TrendRespons
   }
 }
 
-// ─── APEX persistence API (Lakebase-backed) ──────────────────────────────────
+// ─── Prism persistence API (Lakebase-backed) ──────────────────────────────────
 // Conversation history + per-user dashboard filter preferences. Every helper
 // fails soft (returns empty/null) so the UI still works when Lakebase is off.
 
@@ -352,7 +352,7 @@ export interface ConversationMeta {
 
 export async function listConversations(): Promise<ConversationMeta[]> {
   try {
-    const res = await fetch("/api/apex/conversations");
+    const res = await fetch("/api/prism/conversations");
     if (!res.ok) return [];
     const data = await res.json();
     return (data.conversations ?? []) as ConversationMeta[];
@@ -363,7 +363,7 @@ export async function listConversations(): Promise<ConversationMeta[]> {
 
 export async function createConversation(mode: string): Promise<string | null> {
   try {
-    const res = await fetch("/api/apex/conversations", {
+    const res = await fetch("/api/prism/conversations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mode }),
@@ -380,7 +380,7 @@ export async function getConversation(
   id: string
 ): Promise<{ id: string; title: string; mode: string; messages: any[] } | null> {
   try {
-    const res = await fetch(`/api/apex/conversations/${encodeURIComponent(id)}`);
+    const res = await fetch(`/api/prism/conversations/${encodeURIComponent(id)}`);
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -394,7 +394,7 @@ export async function saveConversationTurn(
   assistant: unknown
 ): Promise<{ title?: string } | null> {
   try {
-    const res = await fetch(`/api/apex/conversations/${encodeURIComponent(id)}/turn`, {
+    const res = await fetch(`/api/prism/conversations/${encodeURIComponent(id)}/turn`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user, assistant }),
@@ -408,7 +408,7 @@ export async function saveConversationTurn(
 
 export async function deleteConversation(id: string): Promise<boolean> {
   try {
-    const res = await fetch(`/api/apex/conversations/${encodeURIComponent(id)}`, {
+    const res = await fetch(`/api/prism/conversations/${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
     return res.ok;
@@ -424,7 +424,7 @@ export const DEFAULT_PREFS_KEY = "__default__";
 
 export async function fetchFilterPrefs(dashboardId: string): Promise<Partial<FilterState> | null> {
   try {
-    const res = await fetch(`/api/apex/filters/${encodeURIComponent(dashboardId)}`);
+    const res = await fetch(`/api/prism/filters/${encodeURIComponent(dashboardId)}`);
     if (!res.ok) return null;
     const data = await res.json();
     return (data.filters ?? null) as Partial<FilterState> | null;
@@ -435,7 +435,7 @@ export async function fetchFilterPrefs(dashboardId: string): Promise<Partial<Fil
 
 export async function saveFilterPrefs(dashboardId: string, filters: FilterState): Promise<void> {
   try {
-    await fetch(`/api/apex/filters/${encodeURIComponent(dashboardId)}`, {
+    await fetch(`/api/prism/filters/${encodeURIComponent(dashboardId)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ filters }),
@@ -528,15 +528,15 @@ export const FIXED_REACT_ROUTES: RouteConfig[] = [
   },
   {
     path: "/genie-mcp",
-    label: "Ask APEX",
+    label: "Ask Prism",
     icon: "Sparkles",
     section: "exploration",
     mode: "react",
     order: 0,
   },
   {
-    path: "/ask-apex-live",
-    label: "Ask APEX MCP View",
+    path: "/ask-live",
+    label: "Ask Prism MCP View",
     icon: "BarChart3",
     section: "exploration",
     mode: "react",

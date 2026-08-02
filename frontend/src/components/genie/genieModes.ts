@@ -12,7 +12,7 @@ export const MODE_META: Record<GenieMode, { label: string; path: string; blurb: 
   space: {
     label: "Genie Space",
     path: "/api/2.0/mcp/genie/{space_id}",
-    blurb: "A single Genie space — the APEX Travel Intelligence space.",
+    blurb: "A single Genie space — the Prism Travel Intelligence space.",
   },
 };
 

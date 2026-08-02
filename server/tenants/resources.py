@@ -11,7 +11,7 @@ or Genie spaces can be added without code changes:
   RESOURCE_GENIE_SPACES=<id>:<Label>,<id>:<Label>
 
 Both fall back to the app defaults when unset — ``DASHBOARD_IDS`` for dashboards
-and ``GENIE_SPACE_ID`` for the single Ask APEX space — so existing single-resource
+and ``GENIE_SPACE_ID`` for the single Ask Prism space — so existing single-resource
 deployments keep working.
 
 Grants run as the admin client (``runtime.admin_client`` → ``TENANTS_ADMIN_PROFILE``
@@ -71,7 +71,7 @@ def catalog() -> dict:
 
     spaces = _parse(os.environ.get("RESOURCE_GENIE_SPACES", ""))
     if not spaces and GENIE_SPACE_ID:
-        spaces = [{"id": GENIE_SPACE_ID, "name": "Ask APEX (default)"}]
+        spaces = [{"id": GENIE_SPACE_ID, "name": "Ask Prism (default)"}]
 
     return {"dashboards": dashboards, "genie_spaces": spaces}
 
