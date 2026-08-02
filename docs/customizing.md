@@ -1,4 +1,4 @@
-# Customizing / rebranding APEX
+# Customizing / rebranding Prism
 
 This app is a white-label reference. Rebrand it in **3 steps**:
 
@@ -15,8 +15,8 @@ This app is a white-label reference. Rebrand it in **3 steps**:
 ```json
 {
   "identity": {
-    "appName": "APEX",        // full display name, sets document.title
-    "shortName": "APEX",      // used for the monogram fallback in BrandLogo
+    "appName": "Prism",       // full display name, sets document.title
+    "shortName": "Prism",     // used for the monogram fallback in BrandLogo
     "tagline": "Travel Intelligence",
     "logo": "/brand/logo.svg",
     "logoMark": "/brand/mark.svg",
