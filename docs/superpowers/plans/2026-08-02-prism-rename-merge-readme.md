@@ -53,7 +53,7 @@ Expected: `FF OK`. If `NOT FF`, STOP and report — `main` diverged since planni
 
 ```bash
 git merge --ff-only feature/apex-theming
-git rev-parse --short HEAD   # expect c5047fb
+git rev-parse --short HEAD   # expect main == feature/apex-theming tip (a530539 or later — the spec+plan doc commits are included)
 ```
 
 - [ ] **Step 3: Verify tests + build on the merged main**
