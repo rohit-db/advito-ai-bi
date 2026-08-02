@@ -68,19 +68,19 @@ export default function AskApexLive() {
         disabled={isLoading}
       />
 
-      <div className="relative flex h-full min-w-0 flex-1 flex-col bg-surface">
+      <div className="relative flex h-full min-w-0 flex-1 flex-col bg-background">
       {/* Header */}
-      <header className="z-10 shrink-0 border-b border-border bg-surface-2 px-6 py-3">
+      <header className="z-10 shrink-0 border-b border-border bg-secondary px-6 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-3">
-              <BarChart3 className="h-[18px] w-[18px] text-fg-muted" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
+              <BarChart3 className="h-[18px] w-[18px] text-muted-foreground" />
             </div>
             <div>
-              <h1 className="text-[15px] font-medium leading-tight tracking-tight text-fg">
+              <h1 className="text-[15px] font-medium leading-tight tracking-tight text-foreground">
                 Ask APEX MCP View
               </h1>
-              <p className="text-[11px] text-fg-muted">
+              <p className="text-[11px] text-muted-foreground">
                 Interactive Genie answers with charts, rendered inline
               </p>
             </div>
@@ -90,7 +90,7 @@ export default function AskApexLive() {
       </header>
 
       {viewUnavailable && (
-        <div className="shrink-0 border-b border-[color:var(--warning)] bg-[rgba(184,137,46,0.12)] px-6 py-2.5 text-[13px] text-[var(--warning-fg)]">
+        <div className="shrink-0 border-b border-[color:var(--border-warning)] bg-[var(--background-warning)] px-6 py-2.5 text-[13px] text-[var(--warning)]">
           <div className="mx-auto flex max-w-3xl items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>
@@ -105,8 +105,8 @@ export default function AskApexLive() {
         <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
           <div className="relative z-10 w-full max-w-2xl text-center">
             <GradientMark size={56} className="mx-auto mb-5" />
-            <h2 className="text-3xl font-medium tracking-tight text-fg">Ask APEX, see the chart</h2>
-            <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-fg-muted">
+            <h2 className="text-3xl font-medium tracking-tight text-foreground">Ask APEX, see the chart</h2>
+            <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-muted-foreground">
               Genie writes the SQL and renders the answer as a live, interactive visualization —
               right here in the conversation.
             </p>
@@ -118,7 +118,7 @@ export default function AskApexLive() {
                 <button
                   key={q}
                   onClick={() => !isLoading && sendMessage(q)}
-                  className="rounded-sm border border-border bg-surface px-3.5 py-1.5 text-[13px] text-fg-2 transition-colors hover:bg-[var(--fill-hover)] hover:text-fg"
+                  className="rounded border border-border bg-background px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-[var(--action-default-bg-hover)] hover:text-foreground"
                 >
                   {q}
                 </button>
@@ -145,13 +145,13 @@ export default function AskApexLive() {
               )}
             </div>
           </div>
-          <div className="shrink-0 bg-surface px-6 pb-5 pt-3">
+          <div className="shrink-0 bg-background px-6 pb-5 pt-3">
             <div className="mx-auto flex max-w-3xl items-center gap-2.5">
               <button
                 type="button"
                 onClick={clearChat}
                 title="New conversation"
-                className="flex h-11 shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface px-3.5 text-sm font-medium text-fg-2 transition-colors hover:bg-[var(--fill-hover)] hover:text-fg"
+                className="flex h-11 shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--action-default-bg-hover)] hover:text-foreground"
               >
                 <Plus size={16} />
                 <span className="hidden sm:inline">New</span>
@@ -185,25 +185,25 @@ function AssistantView({
   return (
     <div className="flex items-start gap-2">
       <Avatar className="h-8 w-8 shrink-0">
-        <AvatarFallback className="bg-surface-3 text-fg-muted text-xs">
+        <AvatarFallback className="bg-muted text-muted-foreground text-xs">
           <Sparkles size={15} />
         </AvatarFallback>
       </Avatar>
-      <div className="min-w-0 flex-1 text-fg">
+      <div className="min-w-0 flex-1 text-foreground">
         {message.isLoading && (
-          <div className="flex items-center gap-2 text-sm text-fg-muted">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 size={14} className="animate-spin" /> Asking Genie…
           </div>
         )}
 
         {message.error && (
-          <div className="rounded-lg border border-[color:var(--danger)] bg-[rgba(196,64,64,0.12)] px-3 py-2 text-sm text-[var(--danger-fg)]">
+          <div className="rounded-md border border-[color:var(--border-danger)] bg-[var(--background-danger)] px-3 py-2 text-sm text-[var(--destructive)]">
             {message.error}
           </div>
         )}
 
         {canRender && (
-          <div className="overflow-hidden rounded-lg">
+          <div className="overflow-hidden rounded-md">
             <AppRenderer
               toolName={ask!.toolName}
               toolResourceUri={ask!.resourceUri ?? undefined}
@@ -230,14 +230,14 @@ function AssistantView({
         )}
 
         {ask && !canRender && !message.error && (
-          <div className="text-sm text-fg-2">
+          <div className="text-sm text-muted-foreground">
             Genie answered, but no interactive View was returned.
             {ask.deepLink && (
               <a
                 href={ask.deepLink}
                 target="_blank"
                 rel="noreferrer"
-                className="ml-1 inline-flex items-center gap-1 font-medium text-accent hover:text-accent-hover"
+                className="ml-1 inline-flex items-center gap-1 font-medium text-primary hover:text-blue-700"
               >
                 Open in Genie <ExternalLink size={13} />
               </a>
@@ -261,7 +261,7 @@ function HealthPill({
 }) {
   if (health.state === "connecting") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-fg-muted">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
         <Loader2 size={11} className="animate-spin" /> Connecting…
       </span>
     );
@@ -270,14 +270,14 @@ function HealthPill({
     return (
       <button
         onClick={onRetry}
-        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(196,64,64,0.12)] px-2.5 py-1 text-[11px] font-medium text-[var(--danger-fg)]"
+        className="inline-flex items-center gap-1.5 rounded-full bg-[var(--background-danger)] px-2.5 py-1 text-[11px] font-medium text-[var(--destructive)]"
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" /> MCP offline — retry
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--destructive)]" /> MCP offline — retry
       </button>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(48,160,80,0.12)] px-2.5 py-1 text-[11px] font-medium text-[var(--success-fg)]">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--background-success)] px-2.5 py-1 text-[11px] font-medium text-[var(--success)]">
       <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
       {health.hasViewAsk ? "Genie One MCP · View ready" : "Genie One MCP"}
     </span>
@@ -301,9 +301,9 @@ function HeroComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="gradient-border group relative flex items-center rounded-md bg-[var(--fill-hover)] px-4 py-2.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
+      className="gradient-border group relative flex items-center rounded-md bg-background px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-ring"
     >
-      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-fg-muted" />
+      <Sparkles className="mr-2.5 h-4 w-4 shrink-0 text-muted-foreground" />
       {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
       <input
         autoFocus
@@ -312,7 +312,7 @@ function HeroComposer({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ask about spend, emissions, bookings…"
         disabled={disabled}
-        className="flex-1 bg-transparent py-1.5 text-[15px] text-fg placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed"
+        className="flex-1 bg-transparent py-1.5 text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed"
       />
       <SendButton disabled={disabled || !value.trim()} />
     </form>
@@ -336,7 +336,7 @@ function FooterComposer({
         e.preventDefault();
         onSubmit();
       }}
-      className="flex flex-1 items-center rounded-md border border-border bg-[var(--fill-hover)] px-4 py-1.5 transition-all focus-within:border-border-emphasis focus-within:ring-2 focus-within:ring-[rgba(var(--overlay),0.06)]"
+      className="flex flex-1 items-center rounded-md border border-input bg-background px-4 py-1.5 transition-all focus-within:ring-2 focus-within:ring-ring"
     >
       <input
         type="text"
@@ -344,7 +344,7 @@ function FooterComposer({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ask about spend, emissions, bookings…"
         disabled={disabled}
-        className="h-8 flex-1 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none disabled:cursor-not-allowed"
+        className="h-8 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed"
       />
       <SendButton disabled={disabled || !value.trim()} />
     </form>
@@ -356,7 +356,7 @@ function SendButton({ disabled }: { disabled?: boolean }) {
     <button
       type="submit"
       disabled={disabled}
-      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-accent text-accent-fg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-30"
+      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
     >
       <ArrowUp size={16} strokeWidth={2.5} />
     </button>
@@ -366,11 +366,11 @@ function SendButton({ disabled }: { disabled?: boolean }) {
 function UserBubble({ message, initials }: { message: AppViewMessage; initials: string }) {
   return (
     <div className="flex items-start justify-end gap-2.5">
-      <div className="max-w-[80%] rounded-2xl rounded-br-md bg-[var(--fill-active)] px-4 py-2.5 text-fg">
+      <div className="max-w-[80%] rounded-md rounded-br-md bg-primary/10 px-4 py-2.5 text-foreground">
         <p className="text-sm leading-relaxed">{message.content}</p>
       </div>
-      <Avatar className="h-7 w-7 shrink-0 ring-2 ring-[var(--surface)]">
-        <AvatarFallback className="bg-surface-3 text-[10px] font-semibold text-fg-muted">
+      <Avatar className="h-7 w-7 shrink-0 ring-2 ring-[var(--background)]">
+        <AvatarFallback className="bg-muted text-[10px] font-semibold text-muted-foreground">
           {initials}
         </AvatarFallback>
       </Avatar>
