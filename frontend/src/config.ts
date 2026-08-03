@@ -180,7 +180,7 @@ export interface DashboardSpec {
 }
 
 export function getSupportedFilterKeys(spec?: DashboardSpec): FilterKey[] {
-  if (!spec) return [];
+  if (!spec?.filters) return [];
   return (Object.keys(spec.filters) as FilterKey[]).filter((k) => !!spec.filters[k]);
 }
 
