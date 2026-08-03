@@ -1,0 +1,8 @@
+FEVM Travel demo resource IDs (2026-08-03):
+- workspace: https://fevm-serverless-stable-71zsua.cloud.databricks.com
+- warehouse_id: 28bc4299a384d531
+- catalog.schema: serverless_stable_71zsua_catalog.prism_travel
+- fact table: summarydataset (250k rows)
+- metric view: travel_metrics
+- dashboard_id: 01f18f35b8561fb79677c244188f4c16 (published, embed_credentials=true)
+- dashboard embed URL base: https://fevm-serverless-stable-71zsua.cloud.databricks.com/embed/dashboardsv3/01f18f35b8561fb79677c244188f4c16
