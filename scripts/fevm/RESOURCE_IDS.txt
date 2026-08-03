@@ -6,3 +6,4 @@ FEVM Travel demo resource IDs (2026-08-03):
 - metric view: travel_metrics
 - dashboard_id: 01f18f35b8561fb79677c244188f4c16 (published, embed_credentials=true)
 - dashboard embed URL base: https://fevm-serverless-stable-71zsua.cloud.databricks.com/embed/dashboardsv3/01f18f35b8561fb79677c244188f4c16
+- genie_space_id: 01f18f363d9e193495d201f4b836151d (Prism Travel Intelligence, verified answering)
