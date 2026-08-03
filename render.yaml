@@ -13,11 +13,14 @@ services:
     branch: deploy/render-public
     region: virginia
     plan: free
-    # Build-time (baked into the SPA by Vite). NON-SECRET workspace identifiers.
-    dockerBuildArgs:
-      VITE_WORKSPACE_URL: https://fevm-serverless-stable-71zsua.cloud.databricks.com
-      VITE_WORKSPACE_ORG: "7474654199269365"
     envVars:
+      # ---- Build-time: Render auto-injects service env vars as Docker build
+      #      args, so these reach the Dockerfile's ARG VITE_* and Vite bakes the
+      #      FEVM workspace into the SPA. NON-SECRET (they end up in client JS). ----
+      - key: VITE_WORKSPACE_URL
+        value: https://fevm-serverless-stable-71zsua.cloud.databricks.com
+      - key: VITE_WORKSPACE_ORG
+        value: "7474654199269365"
       # ---- Databricks (FEVM prism-app SP) — SECRETS set in dashboard ----
       - key: DATABRICKS_HOST
         value: https://fevm-serverless-stable-71zsua.cloud.databricks.com
