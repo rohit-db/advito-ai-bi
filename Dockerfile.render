@@ -21,8 +21,10 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Application code
+# Application code + brand config (server/brand.py reads /app/brand.config.json;
+# without it the app fell back to DEFAULT_BRAND and logged a missing-file error).
 COPY app.py ./
+COPY brand.config.json ./
 COPY server/ ./server/
 
 # Prebuilt frontend (committed on deploy/render-public; FEVM workspace baked in).
