@@ -9,18 +9,15 @@ services:
   - type: web
     name: prism-analytics
     runtime: docker
-    dockerfilePath: ./Dockerfile
+    # Render-specific Dockerfile: copies the PRE-BUILT frontend/dist (committed on
+    # this branch, FEVM baked in) — the free-tier builder can't run npm ci.
+    dockerfilePath: ./Dockerfile.render
     branch: deploy/render-public
     region: virginia
     plan: free
     envVars:
-      # ---- Build-time: Render auto-injects service env vars as Docker build
-      #      args, so these reach the Dockerfile's ARG VITE_* and Vite bakes the
-      #      FEVM workspace into the SPA. NON-SECRET (they end up in client JS). ----
-      - key: VITE_WORKSPACE_URL
-        value: https://fevm-serverless-stable-71zsua.cloud.databricks.com
-      - key: VITE_WORKSPACE_ORG
-        value: "7474654199269365"
+      # (VITE_WORKSPACE_* build args no longer needed — the SPA is prebuilt with
+      #  frontend/.env's FEVM values already baked into the committed dist.)
       # ---- Databricks (FEVM prism-app SP) — SECRETS set in dashboard ----
       - key: DATABRICKS_HOST
         value: https://fevm-serverless-stable-71zsua.cloud.databricks.com

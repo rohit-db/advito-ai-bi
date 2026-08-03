@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>APEX MCP App Sandbox</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Sandbox proxy for @mcp-ui/client (AppRenderer / AppFrame).
+
+      AppFrame loads this page as the sandboxed iframe, waits for our
+      `sandbox-proxy-ready`, then posts `sandbox-resource-ready` with the View's
+      HTML. We write that HTML into this document so the guest View runs here,
+      isolated by the iframe `sandbox` attribute AppFrame sets, and talks to the
+      host (AppBridge) over postMessage.
+
+      NOTE (production hardening): for stronger isolation, serve this file from a
+      SEPARATE origin (e.g. a sandbox subdomain) and add a strict
+      Content-Security-Policy. The View imports the MCP Apps runtime, so any CSP
+      must allow its script origins. See docs/handoff/ask-apex-genie-mcp.md.
+    -->
+    <script>
+      (function () {
+        "use strict";
+
+        function renderHtml(html) {
+          if (typeof html !== "string" || !html) return;
+          document.open();
+          document.write(html);
+          document.close();
+        }
+
+        window.addEventListener("message", function (event) {
+          var data = event.data;
+          if (!data || typeof data !== "object") return;
+          // The host (AppFrame) signals the resource HTML is ready to render.
+          if (data.method === "ui/notifications/sandbox-resource-ready") {
+            var params = data.params || {};
+            renderHtml(params.html);
+          }
+        });
+
+        // Tell the host we're ready to receive the resource HTML.
+        window.parent.postMessage(
+          { method: "ui/notifications/sandbox-proxy-ready", params: {} },
+          "*"
+        );
+      })();
+    </script>
+  </body>
+</html>

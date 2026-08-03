@@ -6,28 +6,9 @@
 FROM node:20-slim AS frontend-build
 WORKDIR /build/frontend
 
-# Constrain npm/node for low-RAM builders (Render free tier = 512 MB). Without
-# this, `npm ci` on the ~224 MB dep tree OOM-crashes ("Exit handler never
-# called!"), leaving node_modules incomplete so `tsc`/`vite` go missing.
-ENV NODE_OPTIONS=--max-old-space-size=448 \
-    npm_config_maxsockets=3 \
-    npm_config_fund=false \
-    npm_config_audit=false
-
-# Install deps first (cached layer keyed on lockfiles only). --include=dev
-# guarantees the build tooling (typescript/vite are devDependencies) installs
-# regardless of any NODE_ENV=production the platform may inject.
+# Install deps first (cached layer keyed on lockfiles only)
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --include=dev --no-audit --no-fund
-
-# Build the SPA. VITE_* are baked into the bundle at build time (Vite substitutes
-# import.meta.env.* during `npm run build`), so the target workspace must be
-# supplied as build args — frontend/.env is .dockerignore'd and never in the
-# build context. NON-SECRET only (these end up in the client JS regardless).
-ARG VITE_WORKSPACE_URL
-ARG VITE_WORKSPACE_ORG
-ENV VITE_WORKSPACE_URL=$VITE_WORKSPACE_URL \
-    VITE_WORKSPACE_ORG=$VITE_WORKSPACE_ORG
+RUN npm ci
 
 # Build the SPA
 COPY frontend/ ./

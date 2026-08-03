@@ -3,9 +3,11 @@
 .gitignore
 .github
 
-# Node / frontend build artifacts (frontend is built inside the image)
+# Node deps never needed in the build context
 **/node_modules
-frontend/dist
+# NOTE: on deploy/render-public we PRE-BUILD frontend/dist locally and COPY it
+# in Dockerfile.render (the free-tier builder can't run npm ci), so dist must
+# stay in the build context here. The canonical Dockerfile builds it in-image.
 
 # Python caches & virtualenvs
 **/__pycache__

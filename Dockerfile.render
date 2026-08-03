@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+#
+# Render-specific image (deploy/render-public). The canonical multi-stage
+# Dockerfile builds the SPA inside the image via `npm ci`, but Render's free-tier
+# builder (512 MB) deterministically SIGKILLs `npm ci` on this ~224 MB dep tree
+# ("Exit handler never called!" at ~475s, every run). So for Render we PRE-BUILD
+# `frontend/dist` locally (with frontend/.env → FEVM VITE_* baked in) and COMMIT
+# it on this branch, then just copy it here. No Node, no npm, no frontend build
+# in the container — a single Python stage. Keep frontend/dist current on this
+# branch: `cd frontend && npm run build` before deploying if the SPA changed.
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    APP_PORT=8000
+
+WORKDIR /app
+
+# Python dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Application code
+COPY app.py ./
+COPY server/ ./server/
+
+# Prebuilt frontend (committed on deploy/render-public; FEVM workspace baked in).
+COPY frontend/dist ./frontend/dist
+
+# Run as a non-root user
+RUN useradd --create-home --uid 10001 appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+
+# Shell-form CMD so ${APP_PORT:-8000} is expanded at runtime.
+CMD ["sh", "-c", "exec python -m uvicorn app:app --host 0.0.0.0 --port ${APP_PORT:-8000}"]
