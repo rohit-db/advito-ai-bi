@@ -10,6 +10,15 @@ WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
+# Build the SPA. VITE_* are baked into the bundle at build time (Vite substitutes
+# import.meta.env.* during `npm run build`), so the target workspace must be
+# supplied as build args — frontend/.env is .dockerignore'd and never in the
+# build context. NON-SECRET only (these end up in the client JS regardless).
+ARG VITE_WORKSPACE_URL
+ARG VITE_WORKSPACE_ORG
+ENV VITE_WORKSPACE_URL=$VITE_WORKSPACE_URL \
+    VITE_WORKSPACE_ORG=$VITE_WORKSPACE_ORG
+
 # Build the SPA
 COPY frontend/ ./
 RUN npm run build

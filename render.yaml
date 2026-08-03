@@ -1,0 +1,92 @@
+# Render blueprint for the Prism public demo (deploy/render-public).
+# Non-secret config + Docker build args live here; every SECRET is sync:false
+# (set in the Render dashboard, never committed). Deploy either via the Render
+# "Blueprint" flow (reads this file) or by copying these into the web-service form.
+#
+# IMPORTANT: deploy the deploy/render-public branch (or rename/prism once merged) —
+# NOT main. main is pre-FEVM/pre-rename and would deploy a broken BCD-pointed app.
+services:
+  - type: web
+    name: prism-analytics
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    branch: deploy/render-public
+    region: virginia
+    plan: free
+    # Build-time (baked into the SPA by Vite). NON-SECRET workspace identifiers.
+    dockerBuildArgs:
+      VITE_WORKSPACE_URL: https://fevm-serverless-stable-71zsua.cloud.databricks.com
+      VITE_WORKSPACE_ORG: "7474654199269365"
+    envVars:
+      # ---- Databricks (FEVM prism-app SP) — SECRETS set in dashboard ----
+      - key: DATABRICKS_HOST
+        value: https://fevm-serverless-stable-71zsua.cloud.databricks.com
+      - key: DATABRICKS_CLIENT_ID
+        sync: false
+      - key: DATABRICKS_CLIENT_SECRET
+        sync: false
+      # ---- Data assets (FEVM) ----
+      - key: GENIE_SPACE_ID
+        value: 01f18f363d9e193495d201f4b836151d
+      - key: DASHBOARD_URL
+        value: https://fevm-serverless-stable-71zsua.cloud.databricks.com/embed/dashboardsv3/01f18f35b8561fb79677c244188f4c16
+      - key: DASHBOARD_IDS
+        value: 01f18f35b8561fb79677c244188f4c16
+      # ---- App / auth ----
+      - key: AUTH_ENABLED
+        value: "true"
+      - key: AUTH_COOKIE_SECURE
+        value: "true"
+      - key: AUTH_SESSION_COOKIE
+        value: apex_session
+      - key: AUTH_SESSION_TTL_SECONDS
+        value: "28800"
+      - key: AUTH_USERS_FILE
+        value: server/auth/users.seed.json
+      - key: AUTH_USERS_TABLE
+        value: apex_app_users
+      - key: AUTH_SESSION_SECRET
+        sync: false
+      - key: AES_KEY_BASE64
+        sync: false
+      # ---- Unity Catalog / warehouse (FEVM) ----
+      - key: UC_CATALOG
+        value: serverless_stable_71zsua_catalog
+      - key: UC_SCHEMA
+        value: prism_travel
+      - key: WAREHOUSE_NAME
+        value: Serverless Starter Warehouse
+      - key: VERIFY_TABLE
+        value: serverless_stable_71zsua_catalog.prism_travel.summarydataset
+      - key: TENANT_COLUMN
+        value: client_id
+      - key: TENANT_LABEL_COLUMN
+        value: client_name
+      # ---- Tenant filter mapping (FEVM SP-based row filter) ----
+      - key: MAPPING_TABLE
+        value: sp_tenant_mapping
+      - key: MAPPING_USER_COLUMN
+        value: sp_app_id
+      - key: MAPPING_TENANT_COLUMN
+        value: tenant_id
+      - key: MAPPING_ACTIVE_COLUMN
+        value: active
+      - key: FILTER_FUNCTION
+        value: tenant_row_filter
+      # ---- Lakebase (FEVM prism-edge). If unreachable from Render, set
+      #      LAKEBASE_ENABLED=false in the dashboard and redeploy (fail-soft:
+      #      in-memory history + JSON users; dashboard + Genie still work). ----
+      - key: LAKEBASE_ENABLED
+        value: "true"
+      - key: LAKEBASE_INSTANCE_NAME
+        value: prism-edge
+      - key: PGHOST
+        value: ep-polished-resonance-d8hn0eqy.database.us-east-2.cloud.databricks.com
+      - key: PGPORT
+        value: "5432"
+      - key: PGDATABASE
+        value: databricks_postgres
+      - key: PGUSER
+        value: rohit.bhagwat@databricks.com
+      - key: PGSSLMODE
+        value: require
