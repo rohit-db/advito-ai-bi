@@ -16,3 +16,6 @@ edge/.env
 
 # Local QA/verification screenshots (not part of the repo)
 /*.png
+
+# MCP resource-tracking scratch (dashboard/genie ids)
+.databricks-resources.json
