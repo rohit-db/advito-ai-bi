@@ -136,7 +136,7 @@ export default function HomePage() {
           <div className="relative z-10">
             <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
               <GradientMark size={20} />
-              {user?.tenant || "APEX Travel Intelligence"}
+              {user?.tenant || "Prism Travel Intelligence"}
             </div>
             <h1 className="mt-2 text-2xl md:text-[28px] font-semibold tracking-tight text-foreground">
               {greeting()}, {firstName}.
@@ -146,7 +146,7 @@ export default function HomePage() {
               answers with live SQL — governed end to end.
             </p>
 
-            {/* Ask APEX composer */}
+            {/* Ask Prism composer */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -160,7 +160,7 @@ export default function HomePage() {
                 autoFocus
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask APEX about spend, emissions, bookings…"
+                placeholder="Ask Prism about spend, emissions, bookings…"
                 className="flex-1 bg-transparent py-1 text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
               <button
@@ -258,7 +258,7 @@ export default function HomePage() {
             />
             <QuickCard
               icon={MessageCircle}
-              title="Ask APEX"
+              title="Ask Prism"
               desc="Full conversational analytics with history."
               onClick={() => navigate("/genie-mcp")}
             />
@@ -441,7 +441,7 @@ function AreaChart({
 
   const line = data.map((d, i) => `${x(i)},${y(d.value)}`).join(" ");
   const area = `0,${CHART_H} ${line} ${CHART_W},${CHART_H}`;
-  const gid = "apex-spend-grad";
+  const gid = "prism-spend-grad";
 
   return (
     <svg

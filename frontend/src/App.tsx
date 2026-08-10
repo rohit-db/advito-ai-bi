@@ -9,7 +9,7 @@ import FilterBar from "@/components/FilterBar";
 import DashboardWorkspace from "@/components/DashboardWorkspace";
 import CustomDashboard from "@/pages/CustomDashboard";
 import GenieMcpExperience from "@/pages/GenieMcpExperience";
-import AskApexLive from "@/pages/AskApexLive";
+import AskLive from "@/pages/AskLive";
 import HomePage from "@/pages/HomePage";
 import PreferencesPage from "@/pages/PreferencesPage";
 import Placeholder from "@/pages/Placeholder";
@@ -105,7 +105,7 @@ function RouteRenderer({
     case "react":
       if (route.path === "/") return <HomePage />;
       if (route.path === "/genie-mcp") return <GenieMcpExperience />;
-      if (route.path === "/ask-apex-live") return <AskApexLive />;
+      if (route.path === "/ask-live") return <AskLive />;
       if (route.path === "/preferences") return <PreferencesPage />;
       return <Placeholder />;
     case "placeholder":
@@ -134,7 +134,7 @@ export default function App() {
 
   const sidebarSections: SidebarNavSection[] = inAdmin && isOperator
     ? [
-        { items: [{ path: "/", label: "Back to APEX", icon: "ArrowLeftNav" }] },
+        { items: [{ path: "/", label: "Back to Prism", icon: "ArrowLeftNav" }] },
         {
           label: "Administration",
           items: ADMIN_SECTIONS.map((s) => ({ path: s.path, label: s.label, icon: s.icon })),
@@ -197,8 +197,8 @@ export default function App() {
         if (next) setFilters(next);
       });
     };
-    window.addEventListener("apex:filter-prefs-saved", onPrefsSaved);
-    return () => window.removeEventListener("apex:filter-prefs-saved", onPrefsSaved);
+    window.addEventListener("prism:filter-prefs-saved", onPrefsSaved);
+    return () => window.removeEventListener("prism:filter-prefs-saved", onPrefsSaved);
   }, [loadFilterPrefs]);
 
   // Apply + persist the user's filter selection.
@@ -259,7 +259,7 @@ export default function App() {
               className="gap-1.5"
             >
               <MessageCircle size={14} />
-              <span>Ask APEX</span>
+              <span>Ask Prism</span>
             </Button>
           </div>
         </div>

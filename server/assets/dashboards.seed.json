@@ -1,5 +1,5 @@
 {
-  "_note": "Dashboard asset registry (seed / JSON fallback). Server-owned source of truth for AI/BI dashboard specs + per-page Genie prompts, resolved by server/assets/registry.py and exposed via GET /api/assets. The frontend bundles a copy for fail-soft. Filter render vocabulary (FilterKey) lives in frontend/src/config.ts FILTERS; the `filters` map here only references those keys. Nav (path/icon/section/order) for a dashboard lives on the asset's `nav` object and drives its sidebar entry + route via config.ts buildRoutes(); fixed non-asset pages (Home, Ask APEX, My Filters) stay in config.ts FIXED_REACT_ROUTES.",
+  "_note": "Dashboard asset registry (seed / JSON fallback). Server-owned source of truth for AI/BI dashboard specs + per-page Genie prompts, resolved by server/assets/registry.py and exposed via GET /api/assets. The frontend bundles a copy for fail-soft. Filter render vocabulary (FilterKey) lives in frontend/src/config.ts FILTERS; the `filters` map here only references those keys. Nav (path/icon/section/order) for a dashboard lives on the asset's `nav` object and drives its sidebar entry + route via config.ts buildRoutes(); fixed non-asset pages (Home, Ask Prism, My Filters) stay in config.ts FIXED_REACT_ROUTES.",
   "assets": {
     "spend": {
       "label": "Spend",

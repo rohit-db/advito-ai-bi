@@ -11,10 +11,10 @@ import { brand, accentStyleSheet, DEFAULT_THEME } from "./brand";
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
-    let styleEl = document.getElementById("apex-accent") as HTMLStyleElement | null;
+    let styleEl = document.getElementById("prism-accent") as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement("style");
-      styleEl.id = "apex-accent";
+      styleEl.id = "prism-accent";
       document.head.appendChild(styleEl);
     }
     styleEl.textContent = accentStyleSheet(brand);
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       attribute="class"
       defaultTheme={DEFAULT_THEME}
       enableSystem={false}
-      storageKey="apex-theme"
+      storageKey="prism-theme"
       disableTransitionOnChange
     >
       {children}

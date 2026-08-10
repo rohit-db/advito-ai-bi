@@ -19,8 +19,8 @@ _BRAND_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "brand.co
 
 DEFAULT_BRAND: dict[str, Any] = {
     "identity": {
-        "appName": "APEX",
-        "shortName": "APEX",
+        "appName": "Prism",
+        "shortName": "Prism",
         "tagline": "Travel Intelligence",
         "logo": "/brand/logo.svg",
         "logoMark": "/brand/mark.svg",

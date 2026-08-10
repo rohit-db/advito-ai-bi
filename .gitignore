@@ -10,4 +10,8 @@ build/
 *.tsbuildinfo
 .databricks/
 .superpowers/
+.isaac/
 edge/.env
+
+# Local QA/verification screenshots (not part of the repo)
+/*.png

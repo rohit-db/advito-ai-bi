@@ -16,7 +16,7 @@ function formatRelative(iso: string | null): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-// Left-hand Lakebase conversation history rail, shared by the Ask APEX pages.
+// Left-hand Lakebase conversation history rail, shared by the Ask Prism pages.
 export default function ConversationRail({
   conversations,
   activeId,

@@ -1,4 +1,4 @@
-# AGENTS.md — APEX reference app
+# AGENTS.md — Prism reference app
 
 Universal guidance for AI coding agents (Cursor, Claude Code, Codex, …) and humans.
 This is the auto-loaded entrypoint; the `.cursor/rules/*.mdc` files mirror a subset
@@ -7,7 +7,7 @@ for Cursor specifically. **The canonical, detailed docs are in `docs/` — read 
 ## What this is
 A white-label analytical app on the Databricks Data Intelligence Platform:
 embedded AI/BI dashboards (logo hidden, filters passed, page headers hidden),
-an agentic **"Ask APEX"** chat over the managed **Genie MCP** server, per-tenant
+an agentic **"Ask Prism"** chat over the managed **Genie MCP** server, per-tenant
 data isolation via Service Principals + a Unity Catalog row filter, and a
 self-hosted white-label login. Runs on **Databricks Apps _or_ fully externally**
 (EC2/ECS/Docker) via a Service Principal — no Databricks App required.

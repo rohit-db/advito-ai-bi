@@ -60,7 +60,7 @@ export default function PreferencesPage() {
     setInitial(filters);
     setSaving(false);
     setSavedAt(true);
-    window.dispatchEvent(new CustomEvent("apex:filter-prefs-saved"));
+    window.dispatchEvent(new CustomEvent("prism:filter-prefs-saved"));
     window.setTimeout(() => setSavedAt(false), 2500);
   };
 

@@ -14,14 +14,14 @@ import {
   type ConversationMeta,
 } from "@/config";
 
-// Ask APEX MCP View conversations share the Lakebase history table with the
-// text Ask APEX chat, but are tagged with this distinct mode so each page only
+// Ask Prism MCP View conversations share the Lakebase history table with the
+// text Ask Prism chat, but are tagged with this distinct mode so each page only
 // lists (and replays) its own threads.
 const APP_VIEW_MODE = "app_view";
 
 export type { ConversationMeta };
 
-// ─── Ask APEX Live (Genie MCP App View) ────────────────────────────────────────
+// ─── Ask Prism Live (Genie MCP App View) ───────────────────────────────────────
 //
 // Drives the interactive `view_ask` path of Genie One MCP. The browser is the
 // MCP Apps *host*: it renders the sandboxed View (charts + progress) and routes

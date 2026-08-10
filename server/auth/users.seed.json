@@ -19,7 +19,7 @@
       "role": "user"
     },
     {
-      "email": "dana@apex.example",
+      "email": "dana@prism.example",
       "password_hash": "pbkdf2_sha256$200000$fAc5OBfaZAOcBXvWy/FfHw==$DICXaHvpkXX3g9CRJ6as6phddg5cX0FpJt6ntNSfLxo=",
       "display_name": "Dana Lee",
       "tenant": "All Clients",

@@ -81,7 +81,7 @@ export default function GenieMcpExperience() {
               </div>
               <div>
                 <h1 className="text-[15px] font-medium leading-tight tracking-tight text-foreground">
-                  Ask APEX
+                  Ask Prism
                 </h1>
                 <p className="text-[11px] text-muted-foreground">Conversational analytics, governed</p>
               </div>
@@ -96,7 +96,7 @@ export default function GenieMcpExperience() {
             <div className="relative z-10 w-full max-w-2xl text-center">
               <GradientMark size={56} className="mx-auto mb-5" />
               <h2 className="text-3xl font-medium tracking-tight text-foreground">
-                Ask APEX anything
+                Ask Prism anything
               </h2>
               <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-muted-foreground">
                 Grounded answers on your travel spend, sustainability, and bookings — with live SQL

@@ -81,7 +81,7 @@ export default function DashboardWorkspace({
                 </div>
                 <div>
                   <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                    Ask APEX
+                    Ask Prism
                     <McpStatusDot state={mcpStatus.state} />
                   </h2>
                   <p className="text-[11px] text-muted-foreground">AI-powered travel intelligence</p>

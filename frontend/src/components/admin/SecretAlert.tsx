@@ -99,7 +99,7 @@ export default function SecretAlert({
       {isOnboard && data.onManageAccess && (
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--border-success)] pt-4">
           <p className="text-xs text-[var(--success)]">
-            Next: grant this tenant access to dashboards and Genie so embeds and Ask APEX work.
+            Next: grant this tenant access to dashboards and Genie so embeds and Ask Prism work.
           </p>
           <Button
             type="button"

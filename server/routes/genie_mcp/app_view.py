@@ -1,5 +1,5 @@
 """
-Genie **MCP App** (interactive View) proxy for the "Ask APEX Live" page.
+Genie **MCP App** (interactive View) proxy for the "Ask Prism Live" page.
 
 Genie One MCP exposes a second ask path, ``view_ask``, that renders charts and
 progress inline via an MCP Apps **View** (an ``ui://`` HTML resource) instead of
@@ -58,7 +58,7 @@ _UI_EXTENSION = {
     "io.modelcontextprotocol/ui": {"mimeTypes": ["text/html;profile=mcp-app"]},
 }
 
-_CLIENT_INFO = types.Implementation(name="apex-ask-live", version="1.0.0")
+_CLIENT_INFO = types.Implementation(name="prism-ask-live", version="1.0.0")
 
 # MCP Apps (view_ask + the ui:// View) requires the 2025-11-25 protocol. The
 # pinned ``mcp`` SDK's ``LATEST_PROTOCOL_VERSION`` is older (2025-06-18), which

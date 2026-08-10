@@ -5,7 +5,7 @@ import Sidebar, { type SidebarNavSection } from "./Sidebar";
 
 const sections: SidebarNavSection[] = [
   { label: "Insights & Analytics", items: [{ path: "/", label: "Home", icon: "LayoutDashboard" }] },
-  { label: "Exploration", items: [{ path: "/genie-mcp", label: "Ask APEX", icon: "Sparkles" }] },
+  { label: "Exploration", items: [{ path: "/genie-mcp", label: "Ask Prism", icon: "Sparkles" }] },
 ];
 
 function renderAt(path: string, props?: Partial<React.ComponentProps<typeof Sidebar>>) {
@@ -21,7 +21,7 @@ describe("Sidebar", () => {
     renderAt("/");
     expect(screen.getByText("Insights & Analytics")).toBeInTheDocument();
     expect(screen.getByText("Home")).toBeInTheDocument();
-    expect(screen.getByText("Ask APEX")).toBeInTheDocument();
+    expect(screen.getByText("Ask Prism")).toBeInTheDocument();
   });
 
   it("marks the active route with the canonical active classes (bg-primary/10 text-primary)", () => {

@@ -6,7 +6,7 @@ def _operator_client(monkeypatch):
     import app as app_module
     monkeypatch.setenv("AUTH_ENABLED", "true")   # gate ON — the real posture
     client = TestClient(app_module.app)
-    cookie = create_session({"email": "dana@apex.example", "display_name": "Dana",
+    cookie = create_session({"email": "dana@prism.example", "display_name": "Dana",
                              "tenant": "All Clients", "tenant_id": "*", "role": "operator"})
     client.cookies.set(SESSION_COOKIE, cookie)
     return client

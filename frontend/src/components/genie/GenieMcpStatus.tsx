@@ -1,7 +1,7 @@
 import { Radio } from "lucide-react";
 import type { McpStatus } from "@/hooks/useGenieMcpChat";
 
-// Compact status pill for a LIGHT header (the Ask APEX page).
+// Compact status pill for a LIGHT header (the Ask Prism page).
 export function McpStatusPill({ status, onRetry }: { status: McpStatus; onRetry: () => void }) {
   if (status.state === "connecting") {
     return (

@@ -143,7 +143,7 @@ def _mint_embed_token(
 @router.get("/embed/token")
 def embed_token(request: Request,
                 dashboard_id: str | None = None,
-                viewer_id: str = "apex-viewer",
+                viewer_id: str = "prism-viewer",
                 tenant_id: str | None = None) -> JSONResponse:
     """Return a scoped, browser-safe embed token for the given dashboard.
 
@@ -159,7 +159,7 @@ def embed_token(request: Request,
     if identity:
         # Session identity wins over the default viewer; a query-param override
         # (anything other than the default) is still honored.
-        if viewer_id == "apex-viewer":
+        if viewer_id == "prism-viewer":
             viewer_id = identity.get("email") or identity.get("tenant") or viewer_id
         if tenant_id is None:
             tenant_id = identity.get("tenant_id")

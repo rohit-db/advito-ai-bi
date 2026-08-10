@@ -117,7 +117,7 @@ describe("AssetEditor", () => {
   it("lets the operator pick a workspace dashboard by name (sets its id in the payload)", async () => {
     vi.spyOn(adminApi, "listWorkspaceDashboards").mockResolvedValue({
       dashboards: [
-        { id: "01f-abc", name: "APEX Corporate Travel Analytics POC" },
+        { id: "01f-abc", name: "Prism Corporate Travel Analytics POC" },
         { id: "01f-xyz", name: "Travel CO2 Emissions Dashboard" },
       ],
     });

@@ -1,5 +1,5 @@
 bundle:
-  name: advito-ai-bi
+  name: prism-analytics
 
 include:
   - resources/*.yml
@@ -22,8 +22,8 @@ targets:
       schema: "apex"
     resources:
       apps:
-        advito-ai-bi:
-          name: advito-ai-bi
+        prism-analytics:
+          name: prism-analytics
           source_code_path: /Workspace/Users/rohit.bhagwat@bcdtravel.com/advito-ai-bi
           config:
             command:

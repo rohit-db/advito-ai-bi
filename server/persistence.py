@@ -219,7 +219,7 @@ def save_turn(
 
     ``assistant`` is the structured Genie message. For the text ``genie_ask`` path
     that is (steps, sql, toolCalls, table, deepLink, status, error, content); for
-    the "Ask APEX MCP View" (``view_ask``) path it also carries ``ask`` (the MCP
+    the "Ask Prism MCP View" (``view_ask``) path it also carries ``ask`` (the MCP
     App tool result + ``ui://`` resource uri) so the interactive View can be
     replayed. Sets the conversation title from the first user message when it's
     still the default placeholder.
